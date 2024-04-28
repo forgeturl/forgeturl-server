@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+option go_package = "api/article";
+
+import "google/protobuf/any.proto";
+
+service AuthService {
+  // 创建临时页面
+  rpc CreateTmpPage(CreateTmpPageReq) returns (CreateTmpPageResp) {
+    option (google.api.http) = {
+      post: "/page/createTmpPage"
+      body: "*"
+    };
+  }
+
+  // 拉取某个页面数据
+  rpc GetPage(GetPageReq) returns (GetPageResp) {
+    option (google.api.http) = {
+      post: "/page/getPage"
+      body: "*"
+    };
+  }
+
+  rpc GetPages(GetPagesReq) returns (GetPagesResp) {
+    option (google.api.http) = {
+      post: "/page/getPages"
+      body: "*"
+    };
+  }
+
+  // 拉取我的空间
+  rpc GetMySpace(GetMySpaceReq) returns (GetMySpaceResp) {
+    option (google.api.http) = {
+      post: "/page/getMySpace"
+      body: "*"
+    };
+  }
+
+}
+
+message CreateTmpPageReq {
+}
+
+message CreateTmpPageResp {// omitempty=false
+  string page_id = 1;
+  int64 create_time = 2;
+  int64 update_time = 3;
+}
+
+message Page {// omitempty=false
+  string page_id = 1;
+  string title = 2;
+  string content = 3;
+  repeated Collections collections = 4;
+
+  // 其他属性
+
+  int64 create_time = 10;
+  int64 update_time = 11;
+  // 是否是自己的页面
+  bool is_self = 12;
+  // 页面类型：只读、可编辑、可编辑可删除、可编辑不可删除
+  // 只读
+  bool read_only = 13;
+  // 可编辑
+  bool can_edit = 14;
+  // 可删除
+  bool can_delete = 15;
+
+}
+
+
+message Collections {// omitempty=false
+  repeated Link links = 1;
+}
+
+message Link {// omitempty=false
+  string title = 1;
+  string url = 2;
+  repeated string tags = 3;
+  string photo_url = 4;
+}
+
+message GetPageReq {
+  string page_id = 1;
+}
+
+message GetPageResp {
+  Page page = 1;
+}
+
+message GetPagesReq {
+  repeated string page_id = 1; // binding:"required,min=1,max=100"
+}
+
+message GetPagesResp {
+  repeated Page pages = 1;
+}
+
+message GetMySpaceReq {
+  // 用户id
+  string uid = 1;
+}
+
+message GetMySpaceResp {
+  // 我的空间下面的页面
+  repeated Page pages = 1;
+}
