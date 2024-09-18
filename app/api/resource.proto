@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option go_package = "api/api";
+
+import "google/protobuf/any.proto";
+
+service ResourceService {
+  rpc ImportBookmarks(ImportBookmarksReq) returns (ImportBookmarksResp);
+  rpc ExportBookmarks(ExportBookmarksReq) returns (ExportBookmarksResp);
+}
+
+message ImportBookmarksReq {
+  repeated Folder folders = 2;
+}
+
+message Folder {
+  string name = 1;
+  repeated string bookmark = 1;
+}
+
+message ImportBookmarksResp {
+}
+
+message ExportBookmarksReq {
+}
+
+message ExportBookmarksResp {
+  repeated Folder folders = 2;
+}

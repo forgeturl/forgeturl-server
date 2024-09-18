@@ -1,11 +1,32 @@
 syntax = "proto3";
 
-option go_package = "api/article";
+option go_package = "api/api";
 
 import "google/protobuf/any.proto";
 
-service AuthService {
-  // 创建临时页面
+service SpaceService {
+  // 拉取我的空间 || 空间
+  // 登录状态才能拉到自己的空间
+  // 部分页面如果消失或者没权限了，需要自动移除
+  rpc GetMySpace(GetMySpaceReq) returns (GetMySpaceResp) {
+    option (google.api.http) = {
+      post: "/page/getMySpace"
+      body: "*"
+    };
+  }
+
+  // 调整我的空间下面的页面顺序 || 空间
+  rpc ChangeSpacePageSequence(ChangeSpacePageSequenceReq) returns (ChangeSpacePageSequenceResp) {
+    option (google.api.http) = {
+      post: "/page/changeSpacePageSequence"
+      body: "*"
+    };
+  }
+
+  // 创建临时页面 || 页面
+  // 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
+  // 创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母
+  // 生成算法：当前时间转换的4个字母(时分秒)
   rpc CreateTmpPage(CreateTmpPageReq) returns (CreateTmpPageResp) {
     option (google.api.http) = {
       post: "/page/createTmpPage"
@@ -13,14 +34,9 @@ service AuthService {
     };
   }
 
-  // 拉取某个页面数据
-  rpc GetPage(GetPageReq) returns (GetPageResp) {
-    option (google.api.http) = {
-      post: "/page/getPage"
-      body: "*"
-    };
-  }
-
+  // 拉取某个页面数据 || 页面
+  // 拉取某个页面
+  // 临时页面，可以读到
   rpc GetPages(GetPagesReq) returns (GetPagesResp) {
     option (google.api.http) = {
       post: "/page/getPages"
@@ -28,10 +44,44 @@ service AuthService {
     };
   }
 
-  // 拉取我的空间
-  rpc GetMySpace(GetMySpaceReq) returns (GetMySpaceResp) {
+  // 拉取某个页面数据 || 页面
+  rpc GetPage(GetPageReq) returns (GetPageResp) {
     option (google.api.http) = {
-      post: "/page/getMySpace"
+      post: "/page/getPage"
+      body: "*"
+    };
+  }
+
+  // 更新页面 || 页面
+  rpc UpdatePage(UpdatePageReq) returns (UpdatePageResp) {
+    option (google.api.http) = {
+      post: "/page/updatePage"
+      body: "*"
+    };
+  }
+
+  // 把整个页面删除 || 页面
+  // 自己的默认页面只能清空，无法删除
+  rpc DeletePage(DeletePageReq) returns (DeletePageResp) {
+    option (google.api.http) = {
+      post: "/page/deletePage"
+      body: "*"
+    };
+  }
+
+  // 删除只读页面 || 页面
+  // 把页面的只读链接删除
+  rpc RemoveReadonlyPage(RemoveReadonlyPageReq) returns (RemoveReadonlyPageResp) {
+    option (google.api.http) = {
+      post: "/page/removeReadonlyPage"
+      body: "*"
+    };
+  }
+
+  // 生成新页面链接 || 页面
+  rpc CreateNewPageLink(CreateNewPageLinkReq) returns (CreateNewPageLinkResp) {
+    option (google.api.http) = {
+      post: "/page/createNewPageLink"
       body: "*"
     };
   }
@@ -54,19 +104,13 @@ message Page {// omitempty=false
   repeated Collections collections = 4;
 
   // 其他属性
-
   int64 create_time = 10;
   int64 update_time = 11;
   // 是否是自己的页面
   bool is_self = 12;
-  // 页面类型：只读、可编辑、可编辑可删除、可编辑不可删除
-  // 只读
-  bool read_only = 13;
-  // 可编辑
-  bool can_edit = 14;
-  // 可删除
-  bool can_delete = 15;
 
+  // 页面属性
+  PageConf page_conf = 13;
 }
 
 
@@ -79,6 +123,16 @@ message Link {// omitempty=false
   string url = 2;
   repeated string tags = 3;
   string photo_url = 4;
+}
+
+message PageConf {
+  // 页面类型：只读、可编辑、可编辑可删除、可编辑不可删除
+  // 只读
+  bool read_only = 13;
+  // 可编辑
+  bool can_edit = 14;
+  // 可删除
+  bool can_delete = 15;
 }
 
 message GetPageReq {
@@ -103,6 +157,54 @@ message GetMySpaceReq {
 }
 
 message GetMySpaceResp {
+  // 空间名字
+  string space_name = 2;
+
   // 我的空间下面的页面
-  repeated Page pages = 1;
+  repeated Page pages = 10;
+}
+
+message ChangeSpacePageSequenceReq {
+  // 用户id
+  string uid = 1;
+  // 调整后页面id的顺序
+  repeated string page_ids = 2;
+}
+
+message UpdatePageReq {
+  string page_id = 1;
+  string title = 2;
+  string content = 3;
+  repeated Collections collections = 4;
+}
+
+message UpdatePageResp {
+  int64 update_time = 2;
+}
+
+message DeletePageReq {
+  string page_id = 1;
+}
+
+message DeletePageResp {
+}
+
+message RemoveReadonlyPageReq {
+  string page_id = 1;
+}
+
+message RemoveReadonlyPageResp {
+}
+
+message CreateNewPageLinkReq {
+  string page_id = 1;
+  // 生成只读、编辑、超级权限的链接
+  string operation = 2; // binding:"required,oneof=read_only edit admin"
+}
+
+message CreateNewPageLinkResp {
+  // 只读 http://2049links.com/share_readonly/R加密字符串1
+  // 可编辑页面：http://2049links.com/share_editable/E加密字符串2
+  // 超级权限页面：http://2049links.com/share_admin/A加密字符串3
+  string link = 1;
 }
