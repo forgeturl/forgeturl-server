@@ -9,11 +9,14 @@ service LoginService {
 }
 
 message LoginReq {
+  // 用户名
   string username = 1;
+  // 前端加密后传给后端，不保存原文密码
   string password = 2;
 }
 
 message LoginResp {
+  // 成功则返回token，并且完成cookie的设置（记得要做cookie的弹窗功能）
   string token = 1;
 }
 

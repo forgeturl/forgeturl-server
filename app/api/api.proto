@@ -100,7 +100,9 @@ message CreateTmpPageResp {// omitempty=false
 message Page {// omitempty=false
   string page_id = 1;
   string title = 2;
+  // 页面描述，放在页面最上方展示
   string content = 3;
+  // 文件夹
   repeated Collections collections = 4;
 
   // 其他属性
@@ -115,18 +117,30 @@ message Page {// omitempty=false
 
 
 message Collections {// omitempty=false
+  // 文件夹中有多个链接
   repeated Link links = 1;
+}
+
+message SubLink {
+  // 右上角角标
+  string corner = 1;
+  // 链接
+  string url =2;
 }
 
 message Link {// omitempty=false
   string title = 1;
   string url = 2;
   repeated string tags = 3;
+  // 暂不支持
   string photo_url = 4;
+
+  // 子链接
+  repeated SubLink sub_links = 5;
 }
 
 message PageConf {
-  // 页面类型：只读、可编辑、可编辑可删除、可编辑不可删除
+  // 页面类型：只读、可编辑可删除、可编辑不可删除
   // 只读
   bool read_only = 13;
   // 可编辑
