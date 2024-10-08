@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"2049links-server/conf"
+	"forgeturl-server/conf"
+	"forgeturl-server/dal"
 
 	"github.com/sunmi-OS/gocore/v2/conf/nacos"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
-	"github.com/sunmi-OS/gocore/v2/db/orm"
-	"github.com/sunmi-OS/gocore/v2/db/redis"
 	"github.com/sunmi-OS/gocore/v2/glog/zap"
 	"github.com/sunmi-OS/gocore/v2/utils"
 )
@@ -17,7 +16,7 @@ func initConf() {
 	case "local":
 		nacos.SetLocalConfig(conf.LocalConfig)
 	default:
-		nacos.NewNacosEnv()
+		nacos.SetLocalConfig(conf.OnlConfig)
 	}
 
 	vt := nacos.GetViper()
@@ -34,13 +33,12 @@ func initConf() {
 
 // initDB 初始化DB服务 （内部方法）
 func initDB() {
-	orm.NewDB(conf.DBDemo)
-
+	dal.Init()
 }
 
 // initCache 初始化redis服务 （内部方法）
 func initCache() {
-	redis.NewRedis(conf.DemoDb0Redis)
+	// redis.NewRedis(conf.DemoDb0Redis)
 }
 
 // initLog init log

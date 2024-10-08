@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"2049links-server/cmd"
-	"2049links-server/conf"
+	"forgeturl-server/cmd"
+	"forgeturl-server/conf"
 
 	"github.com/sunmi-OS/gocore/v2/glog"
 	"github.com/sunmi-OS/gocore/v2/utils"

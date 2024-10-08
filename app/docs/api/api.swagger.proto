@@ -2,13 +2,14 @@ syntax = "proto3";
 
 option go_package = "api/api";
 
-import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
 
 service SpaceService {
   // 拉取我的空间 || 空间
   // 登录状态才能拉到自己的空间
   // 部分页面如果消失或者没权限了，需要自动移除
-  rpc GetMySpace(GetMySpaceReq) returns (GetMySpaceResp) {
+  rpc GetMySpace(GetMySpaceReq) returns (TGetMySpaceResp) {
     option (google.api.http) = {
       post: "/page/getMySpace"
       body: "*"
@@ -16,7 +17,7 @@ service SpaceService {
   }
 
   // 调整我的空间下面的页面顺序 || 空间
-  rpc ChangeSpacePageSequence(ChangeSpacePageSequenceReq) returns (ChangeSpacePageSequenceResp) {
+  rpc ChangeSpacePageSequence(ChangeSpacePageSequenceReq) returns (TChangeSpacePageSequenceResp) {
     option (google.api.http) = {
       post: "/page/changeSpacePageSequence"
       body: "*"
@@ -27,7 +28,7 @@ service SpaceService {
   // 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
   // 创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母
   // 生成算法：当前时间转换的4个字母(时分秒)
-  rpc CreateTmpPage(CreateTmpPageReq) returns (CreateTmpPageResp) {
+  rpc CreateTmpPage(CreateTmpPageReq) returns (TCreateTmpPageResp) {
     option (google.api.http) = {
       post: "/page/createTmpPage"
       body: "*"
@@ -37,7 +38,7 @@ service SpaceService {
   // 拉取某个页面数据 || 页面
   // 拉取某个页面
   // 临时页面，可以读到
-  rpc GetPages(GetPagesReq) returns (GetPagesResp) {
+  rpc GetPages(GetPagesReq) returns (TGetPagesResp) {
     option (google.api.http) = {
       post: "/page/getPages"
       body: "*"
@@ -45,7 +46,7 @@ service SpaceService {
   }
 
   // 拉取某个页面数据 || 页面
-  rpc GetPage(GetPageReq) returns (GetPageResp) {
+  rpc GetPage(GetPageReq) returns (TGetPageResp) {
     option (google.api.http) = {
       post: "/page/getPage"
       body: "*"
@@ -53,7 +54,7 @@ service SpaceService {
   }
 
   // 更新页面 || 页面
-  rpc UpdatePage(UpdatePageReq) returns (UpdatePageResp) {
+  rpc UpdatePage(UpdatePageReq) returns (TUpdatePageResp) {
     option (google.api.http) = {
       post: "/page/updatePage"
       body: "*"
@@ -62,24 +63,24 @@ service SpaceService {
 
   // 把整个页面删除 || 页面
   // 自己的默认页面只能清空，无法删除
-  rpc DeletePage(DeletePageReq) returns (DeletePageResp) {
+  rpc DeletePage(DeletePageReq) returns (TDeletePageResp) {
     option (google.api.http) = {
       post: "/page/deletePage"
       body: "*"
     };
   }
 
-  // 删除只读页面 || 页面
+  // 去除页面连接 || 页面
   // 把页面的只读链接删除
-  rpc RemoveReadonlyPage(RemoveReadonlyPageReq) returns (RemoveReadonlyPageResp) {
+  rpc RemovePageLink(RemovePageLinkReq) returns (TRemovePageLinkResp) {
     option (google.api.http) = {
-      post: "/page/removeReadonlyPage"
+      post: "/page/removePageLink"
       body: "*"
     };
   }
 
   // 生成新页面链接 || 页面
-  rpc CreateNewPageLink(CreateNewPageLinkReq) returns (CreateNewPageLinkResp) {
+  rpc CreateNewPageLink(CreateNewPageLinkReq) returns (TCreateNewPageLinkResp) {
     option (google.api.http) = {
       post: "/page/createNewPageLink"
       body: "*"
@@ -185,6 +186,11 @@ message ChangeSpacePageSequenceReq {
   repeated string page_ids = 2;
 }
 
+message ChangeSpacePageSequenceResp {
+  // 调整后页面id的顺序
+  repeated string page_ids = 2;
+}
+
 message UpdatePageReq {
   string page_id = 1;
   string title = 2;
@@ -203,11 +209,11 @@ message DeletePageReq {
 message DeletePageResp {
 }
 
-message RemoveReadonlyPageReq {
-  string page_id = 1;
+message RemovePageLinkReq {
+  string link_id = 1;
 }
 
-message RemoveReadonlyPageResp {
+message RemovePageLinkResp {
 }
 
 message CreateNewPageLinkReq {
@@ -220,5 +226,51 @@ message CreateNewPageLinkResp {
   // 只读 http://2049links.com/share_readonly/R加密字符串1
   // 可编辑页面：http://2049links.com/share_editable/E加密字符串2
   // 超级权限页面：http://2049links.com/share_admin/A加密字符串3
-  string link = 1;
+  string link_id = 1;
+}
+
+message TGetMySpaceResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   GetMySpaceResp data = 3; // binding:"required"
+}
+message TChangeSpacePageSequenceResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   ChangeSpacePageSequenceResp data = 3; // binding:"required"
+}
+message TCreateTmpPageResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   CreateTmpPageResp data = 3; // binding:"required"
+}
+message TGetPagesResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   GetPagesResp data = 3; // binding:"required"
+}
+message TGetPageResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   GetPageResp data = 3; // binding:"required"
+}
+message TUpdatePageResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   UpdatePageResp data = 3; // binding:"required"
+}
+message TDeletePageResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   DeletePageResp data = 3; // binding:"required"
+}
+message TRemovePageLinkResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   RemovePageLinkResp data = 3; // binding:"required"
+}
+message TCreateNewPageLinkResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   CreateNewPageLinkResp data = 3; // binding:"required"
 }

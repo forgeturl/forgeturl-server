@@ -1,0 +1,83 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "LoginService API",
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/login/connector/{name}": {
+      "get": {
+        "tags": [
+          "LoginService"
+        ],
+        "summary": "连接器登录，跳转鉴权的url",
+        "description": " https://github.com/googleapis/googleapis/blob/master/google/api/http.proto",
+        "operationId": "LoginService_Connector",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "连接器名称：如weixin、google",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "description": "连接器的入参",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TConnectorResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      ".ConnectorResp": {
+        "type": "object",
+        "properties": {}
+      },
+      ".TConnectorResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.ConnectorResp"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "LoginService"
+    }
+  ]
+}

@@ -1,10 +1,11 @@
 syntax = "proto3";
 
-option go_package = "api/api";
+option go_package = "api/dumplinks";
 
-import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
 
-service ResourceService {
+service DumplinksService {
   rpc ImportBookmarks(ImportBookmarksReq) returns (ImportBookmarksResp);
   rpc ExportBookmarks(ExportBookmarksReq) returns (ExportBookmarksResp);
 }
@@ -15,7 +16,7 @@ message ImportBookmarksReq {
 
 message Folder {
   string name = 1;
-  repeated string bookmark = 1;
+  repeated string bookmark = 2;
 }
 
 message ImportBookmarksResp {

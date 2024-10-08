@@ -1,0 +1,789 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "",
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/page/changeSpacePageSequence": {
+      "post": {
+        "tags": [
+          "空间"
+        ],
+        "summary": "调整我的空间下面的页面顺序",
+        "operationId": "SpaceService_ChangeSpacePageSequence",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.ChangeSpacePageSequenceReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TChangeSpacePageSequenceResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/createNewPageLink": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "生成新页面链接",
+        "operationId": "SpaceService_CreateNewPageLink",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.CreateNewPageLinkReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TCreateNewPageLinkResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/createTmpPage": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "创建临时页面",
+        "description": " 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面\n 创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母\n 生成算法：当前时间转换的4个字母(时分秒)",
+        "operationId": "SpaceService_CreateTmpPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.CreateTmpPageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TCreateTmpPageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/deletePage": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "把整个页面删除",
+        "description": " 自己的默认页面只能清空，无法删除",
+        "operationId": "SpaceService_DeletePage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.DeletePageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TDeletePageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/getMySpace": {
+      "post": {
+        "tags": [
+          "空间"
+        ],
+        "summary": "拉取我的空间",
+        "description": " 登录状态才能拉到自己的空间\n 部分页面如果消失或者没权限了，需要自动移除",
+        "operationId": "SpaceService_GetMySpace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.GetMySpaceReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TGetMySpaceResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/getPage": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "拉取某个页面数据",
+        "operationId": "SpaceService_GetPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.GetPageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TGetPageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/getPages": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "拉取某个页面数据",
+        "description": " 拉取某个页面\n 临时页面，可以读到",
+        "operationId": "SpaceService_GetPages",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.GetPagesReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TGetPagesResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/removePageLink": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "去除页面连接",
+        "description": " 把页面的只读链接删除",
+        "operationId": "SpaceService_RemovePageLink",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.RemovePageLinkReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TRemovePageLinkResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/updatePage": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "更新页面",
+        "operationId": "SpaceService_UpdatePage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.UpdatePageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TUpdatePageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      ".ChangeSpacePageSequenceReq": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "用户id"
+          },
+          "page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "调整后页面id的顺序"
+          }
+        }
+      },
+      ".ChangeSpacePageSequenceResp": {
+        "type": "object",
+        "properties": {
+          "page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "调整后页面id的顺序"
+          }
+        }
+      },
+      ".Collections": {
+        "type": "object",
+        "properties": {
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.Link"
+            },
+            "description": "文件夹中有多个链接"
+          }
+        }
+      },
+      ".CreateNewPageLinkReq": {
+        "required": [
+          "operation"
+        ],
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string",
+            "description": "生成只读、编辑、超级权限的链接"
+          }
+        }
+      },
+      ".CreateNewPageLinkResp": {
+        "type": "object",
+        "properties": {
+          "link_id": {
+            "type": "string",
+            "description": "只读 http://2049links.com/share_readonly/R加密字符串1\n 可编辑页面：http://2049links.com/share_editable/E加密字符串2\n 超级权限页面：http://2049links.com/share_admin/A加密字符串3"
+          }
+        }
+      },
+      ".CreateTmpPageReq": {
+        "type": "object",
+        "properties": {}
+      },
+      ".CreateTmpPageResp": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          },
+          "create_time": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "update_time": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      ".DeletePageReq": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          }
+        }
+      },
+      ".DeletePageResp": {
+        "type": "object",
+        "properties": {}
+      },
+      ".GetMySpaceReq": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "用户id"
+          }
+        }
+      },
+      ".GetMySpaceResp": {
+        "type": "object",
+        "properties": {
+          "space_name": {
+            "type": "string",
+            "description": "空间名字"
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.Page"
+            },
+            "description": "我的空间下面的页面"
+          }
+        }
+      },
+      ".GetPageReq": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          }
+        }
+      },
+      ".GetPageResp": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/.Page"
+          }
+        }
+      },
+      ".GetPagesReq": {
+        "required": [
+          "page_id"
+        ],
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      ".GetPagesResp": {
+        "type": "object",
+        "properties": {
+          "pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.Page"
+            }
+          }
+        }
+      },
+      ".Link": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "photo_url": {
+            "type": "string",
+            "description": "暂不支持"
+          },
+          "sub_links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.SubLink"
+            },
+            "description": "子链接"
+          }
+        }
+      },
+      ".Page": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "description": "页面描述，放在页面最上方展示"
+          },
+          "collections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.Collections"
+            },
+            "description": "文件夹"
+          },
+          "create_time": {
+            "type": "integer",
+            "description": "其他属性",
+            "format": "int64"
+          },
+          "update_time": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "is_self": {
+            "type": "boolean",
+            "description": "是否是自己的页面"
+          },
+          "page_conf": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/.PageConf"
+              }
+            ],
+            "description": "页面属性"
+          }
+        }
+      },
+      ".PageConf": {
+        "type": "object",
+        "properties": {
+          "read_only": {
+            "type": "boolean",
+            "description": "页面类型：只读、可编辑可删除、可编辑不可删除\n 只读"
+          },
+          "can_edit": {
+            "type": "boolean",
+            "description": "可编辑"
+          },
+          "can_delete": {
+            "type": "boolean",
+            "description": "可删除"
+          }
+        }
+      },
+      ".RemovePageLinkReq": {
+        "type": "object",
+        "properties": {
+          "link_id": {
+            "type": "string"
+          }
+        }
+      },
+      ".RemovePageLinkResp": {
+        "type": "object",
+        "properties": {}
+      },
+      ".SubLink": {
+        "type": "object",
+        "properties": {
+          "corner": {
+            "type": "string",
+            "description": "右上角角标"
+          },
+          "url": {
+            "type": "string",
+            "description": "链接"
+          }
+        }
+      },
+      ".TChangeSpacePageSequenceResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.ChangeSpacePageSequenceResp"
+          }
+        }
+      },
+      ".TCreateNewPageLinkResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.CreateNewPageLinkResp"
+          }
+        }
+      },
+      ".TCreateTmpPageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.CreateTmpPageResp"
+          }
+        }
+      },
+      ".TDeletePageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.DeletePageResp"
+          }
+        }
+      },
+      ".TGetMySpaceResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.GetMySpaceResp"
+          }
+        }
+      },
+      ".TGetPageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.GetPageResp"
+          }
+        }
+      },
+      ".TGetPagesResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.GetPagesResp"
+          }
+        }
+      },
+      ".TRemovePageLinkResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.RemovePageLinkResp"
+          }
+        }
+      },
+      ".TUpdatePageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.UpdatePageResp"
+          }
+        }
+      },
+      ".UpdatePageReq": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "collections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.Collections"
+            }
+          }
+        }
+      },
+      ".UpdatePageResp": {
+        "type": "object",
+        "properties": {
+          "update_time": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "空间"
+    },
+    {
+      "name": "页面"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"2049links-server/route"
+	"forgeturl-server/route"
 
 	"github.com/sunmi-OS/gocore/v2/api"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"

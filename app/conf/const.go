@@ -1,6 +1,6 @@
 package conf
 
 const (
-	ProjectName    = "2049links-server"
+	ProjectName    = "forgeturl-server"
 	ProjectVersion = "v1.0.0"
 )
