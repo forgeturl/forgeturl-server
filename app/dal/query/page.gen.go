@@ -27,8 +27,8 @@ func newPage(db *gorm.DB, opts ...gen.DOOption) page {
 
 	tableName := _page.pageDo.TableName()
 	_page.ALL = field.NewAsterisk(tableName)
-	_page.ID = field.NewInt32(tableName, "id")
-	_page.UID = field.NewInt32(tableName, "uid")
+	_page.ID = field.NewInt64(tableName, "id")
+	_page.UID = field.NewInt64(tableName, "uid")
 	_page.Pid = field.NewString(tableName, "pid")
 	_page.ReadonlyPid = field.NewString(tableName, "readonly_pid")
 	_page.EditPid = field.NewString(tableName, "edit_pid")
@@ -47,8 +47,8 @@ type page struct {
 	pageDo pageDo
 
 	ALL         field.Asterisk
-	ID          field.Int32
-	UID         field.Int32
+	ID          field.Int64
+	UID         field.Int64
 	Pid         field.String
 	ReadonlyPid field.String
 	EditPid     field.String
@@ -73,8 +73,8 @@ func (p page) As(alias string) *page {
 
 func (p *page) updateTableName(table string) *page {
 	p.ALL = field.NewAsterisk(table)
-	p.ID = field.NewInt32(table, "id")
-	p.UID = field.NewInt32(table, "uid")
+	p.ID = field.NewInt64(table, "id")
+	p.UID = field.NewInt64(table, "uid")
 	p.Pid = field.NewString(table, "pid")
 	p.ReadonlyPid = field.NewString(table, "readonly_pid")
 	p.EditPid = field.NewString(table, "edit_pid")

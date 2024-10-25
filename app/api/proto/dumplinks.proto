@@ -6,8 +6,17 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 
 service DumplinksService {
-  rpc ImportBookmarks(ImportBookmarksReq) returns (ImportBookmarksResp);
-  rpc ExportBookmarks(ExportBookmarksReq) returns (ExportBookmarksResp);
+  rpc ImportBookmarks(ImportBookmarksReq) returns (ImportBookmarksResp)  {
+    option (google.api.http) = {
+      post: "/dumplinks/importBookmarks"
+    };
+  };
+
+  rpc ExportBookmarks(ExportBookmarksReq) returns (ExportBookmarksResp){
+    option (google.api.http) = {
+      post: "/dumplinks/exportBookmarks"
+    };
+  };
 }
 
 message ImportBookmarksReq {

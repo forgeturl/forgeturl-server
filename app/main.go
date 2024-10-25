@@ -23,7 +23,6 @@ func main() {
 	// 指定命令运行的函数
 	app.Commands = []*cli.Command{
 		cmd.Api,
-		cmd.Job,
 	}
 
 	// 启动cli

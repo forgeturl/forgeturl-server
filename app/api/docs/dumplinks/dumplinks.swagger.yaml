@@ -3,8 +3,81 @@
 
 openapi: 3.0.3
 info:
-    title: ""
+    title: DumplinksService API
     version: 0.0.1
-paths: {}
+paths:
+    /dumplinks/exportBookmarks:
+        post:
+            tags:
+                - DumplinksService
+            operationId: DumplinksService_ExportBookmarks
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.TExportBookmarksResp'
+    /dumplinks/importBookmarks:
+        post:
+            tags:
+                - DumplinksService
+            operationId: DumplinksService_ImportBookmarks
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.TImportBookmarksResp'
 components:
-    schemas: {}
+    schemas:
+        .ExportBookmarksResp:
+            type: object
+            properties:
+                folders:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.Folder'
+        .Folder:
+            type: object
+            properties:
+                name:
+                    type: string
+                bookmark:
+                    type: array
+                    items:
+                        type: string
+        .ImportBookmarksResp:
+            type: object
+            properties: {}
+        .TExportBookmarksResp:
+            required:
+                - code
+                - msg
+                - data
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                msg:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/.ExportBookmarksResp'
+        .TImportBookmarksResp:
+            required:
+                - code
+                - msg
+                - data
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                msg:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/.ImportBookmarksResp'
+tags:
+    - name: DumplinksService

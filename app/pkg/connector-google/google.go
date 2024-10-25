@@ -7,9 +7,19 @@ import (
 	"io"
 	"time"
 
+	"github.com/sunmi-OS/gocore/v2/conf/viper"
 	"golang.org/x/oauth2"
 	oauth2Google "golang.org/x/oauth2/google"
 )
+
+var Connector *ConnectorConfig
+
+func Init() {
+	Connector = &ConnectorConfig{
+		ClientID:     viper.GetEnvConfig("GOOGLE_CLIENT_ID").String(),
+		ClientSecret: viper.GetEnvConfig("GOOGLE_CLIENT_SECRET").String(),
+	}
+}
 
 type ConnectorConfig struct {
 	ClientID     string `json:"client_id"`

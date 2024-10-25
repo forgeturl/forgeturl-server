@@ -1,8 +1,8 @@
 create table user(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     display_name varchar(128) default '' not null,
     username varchar(64) default '' not null,
-    email varchar(100) not null,
+    email varchar(100) not null, # 暂且username等于email吧，并且不让修改
     avatar          varchar(1024) default '' not null,
     status          int           default 0  not null, -- user status(normal 0,suspended 2,deleted 4)
     last_login_date timestamp                null,

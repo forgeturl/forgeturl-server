@@ -1,6 +1,7 @@
 create table page (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    uid INTEGER DEFAULT 0 NOT NULL, -- 页面归属的用户
+    -- id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
+    uid BIGINT DEFAULT 0 NOT NULL, -- 页面归属的用户
     pid varchar(32) default '' not null, -- 页面id，使用随机数生成
     readonly_pid varchar(32) default '' not null,-- comment '只读权限地址',
     edit_pid varchar(32) default '' not null, -- comment '编辑权限地址',

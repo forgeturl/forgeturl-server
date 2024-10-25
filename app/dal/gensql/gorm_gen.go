@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
-
-	"gorm.io/driver/sqlite"
 	"gorm.io/gen"
 	"gorm.io/gorm"
+	"gorm.io/rawsql"
 )
 
 // gorm.io/gen@v0.3.23/internal/model/base.go
@@ -34,30 +32,37 @@ func main() {
 		FieldSignable:     false, // 如果数据里配置的是int(11) unsigned则生成uint64
 	})
 
-	gormdb, err := gorm.Open(sqlite.Open("../../../identifier.sqlite"), &gorm.Config{})
+	// gormdb, err := gorm.Open(sqlite.Open("../../../forgeturl.sqlite"), &gorm.Config{})
+	gormdb, err := gorm.Open(rawsql.New(rawsql.Config{
+		FilePath: []string{
+			"./page.sql",
+			"./user.sql",
+		},
+	}))
 	if err != nil {
-		panic(fmt.Errorf("open db fail: %w", err))
+		panic(fmt.Errorf("open sql fail: %w", err))
 	}
 	g.UseDB(gormdb) // reuse your gorm db
 	g.WithDataTypeMap(dataMap)
-	// g.ApplyBasic(g.GenerateAllTable()...)
+	g.ApplyBasic(g.GenerateAllTable()...)
 
 	// 调用GenerateAllTable内部生成方法
-	tableList, err := gormdb.Migrator().GetTables()
-	fmt.Println("tableList:", tableList)
-	if err != nil {
-		panic(fmt.Errorf("get all tables fail: %w", err))
-	}
-	tableModels := make([]interface{}, len(tableList))
-	for i, tableName := range tableList {
-		if strings.HasPrefix(tableName, "sqlite_") {
-			continue
-		}
+	//tableList, err := gormdb.Migrator().GetTables()
+	//fmt.Println("tableList:", tableList)
+	//if err != nil {
+	//	panic(fmt.Errorf("get all tables fail: %w", err))
+	//}
 
-		fmt.Println("Generating model for table:", tableName)
-		tableModels[i] = g.GenerateModel(tableName)
-	}
-	g.ApplyBasic(tableModels...)
+	//tableModels := make([]interface{}, len(tableList))
+	//for i, tableName := range tableList {
+	//	if strings.HasPrefix(tableName, "sqlite_") {
+	//		continue
+	//	}
+	//
+	//	fmt.Println("Generating model for table:", tableName)
+	//	tableModels[i] = g.GenerateModel(tableName)
+	//}
+	//g.ApplyBasic(tableModels...)
 
 	// Generate the code
 	g.Execute()
