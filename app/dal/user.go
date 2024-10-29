@@ -24,3 +24,9 @@ func (*userImpl) Get(ctx context.Context, uid int64) (*model.User, error) {
 	}
 	return page, nil
 }
+
+func (*userImpl) UpdateDisplayName(ctx context.Context, uid int64, displayName string) error {
+	u := Q.User
+	_, err := u.WithContext(ctx).Where(u.ID.Eq(uid)).UpdateSimple(u.DisplayName.Value(displayName))
+	return transGormErr(err)
+}
