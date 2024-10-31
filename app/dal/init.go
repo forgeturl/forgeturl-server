@@ -3,27 +3,31 @@ package dal
 import (
 	"errors"
 	"fmt"
-	"forgeturl-server/api/common"
-	"forgeturl-server/dal/query"
-	"forgeturl-server/pkg/core"
 	"runtime"
 	"strconv"
 
-	"github.com/sunmi-OS/gocore/v2/conf/viper"
-	"gorm.io/driver/sqlite"
+	"forgeturl-server/api/common"
+	"forgeturl-server/dal/query"
+	"forgeturl-server/pkg/core"
+
+	"github.com/sunmi-OS/gocore/v2/db/orm"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
 var Q *query.Query
 
-const nacosDBKey = "appstoredb"
+const nacosDBKey = "mysql"
 
 func Init() error {
-	var err error
-	db, err = gorm.Open(sqlite.Open(viper.C.GetString("sqliteDB.Path")), &gorm.Config{})
-	if err != nil {
-		panic(fmt.Errorf("open db fail: %w", err))
+	name := nacosDBKey
+	if err0 := orm.NewOrUpdateDB(nacosDBKey); err0 != nil {
+		return fmt.Errorf("init db(%v) failed, err: %v", name, err0)
+	}
+
+	db = orm.GetORM(nacosDBKey)
+	if db == nil {
+		return fmt.Errorf("get db(%v) failed", name)
 	}
 
 	db.Config.CreateBatchSize = 1000

@@ -11,7 +11,7 @@ enum CommonError {
   /* 191004?? 统一客户端错误码，当下面错误码能表达错误原因时使用 */
   // 400 Unauthorized
   ERR_BAD_REQUEST = 400; // Bad request || 无效的请求
-  // 401 Unauthorized
+  // 401 Unauthorized，未登录，需要登录
   ERR_NOT_AUTHENTICATED = 401; // Not authorized || 未授权
   // 403 Forbidden
   ERR_FORBIDDEN = 403; // Forbidden || 被禁止

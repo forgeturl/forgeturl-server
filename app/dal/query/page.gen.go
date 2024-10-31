@@ -47,16 +47,16 @@ type page struct {
 	pageDo pageDo
 
 	ALL         field.Asterisk
-	ID          field.Int64
-	UID         field.Int64
-	Pid         field.String
-	ReadonlyPid field.String
-	EditPid     field.String
-	AdminPid    field.String
-	Title       field.String
-	Content     field.String
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
+	ID          field.Int64  // auto increment id
+	UID         field.Int64  // page owner of uid
+	Pid         field.String // origin page id，start with O
+	ReadonlyPid field.String // read only page id, start with R
+	EditPid     field.String // edit page id, start with E
+	AdminPid    field.String // super admin page id, start with A
+	Title       field.String // 标题
+	Content     field.String // 实体内容(文件夹、链接定义)
+	CreatedAt   field.Time   // 创建时间
+	UpdatedAt   field.Time   // 更新时间
 
 	fieldMap map[string]field.Expr
 }

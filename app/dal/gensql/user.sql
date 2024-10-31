@@ -1,25 +1,25 @@
-create table user(
-    id INTEGER PRIMARY KEY,
-    display_name varchar(128) default '' not null,
-    username varchar(64) default '' not null,
-    email varchar(100) not null, # 暂且username等于email吧，并且不让修改
-    avatar          varchar(1024) default '' not null,
-    status          int           default 0  not null, -- user status(normal 0,suspended 2,deleted 4)
-    last_login_date timestamp                null,
+CREATE TABLE user
+(
+    `id`            BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT 'auto increment ID',
+    `display_name`  VARCHAR(64) DEFAULT '' NOT NULL COMMENT 'display name of user',
+    `username`      VARCHAR(64) DEFAULT '' NOT NULL,
+    `email`         VARCHAR(100) NOT NULL COMMENT 'email from provider',
+    `avatar`        VARCHAR(1024) DEFAULT '' NOT NULL COMMENT 'user avatar url',
+    `status`        TINYINT   DEFAULT 0  NOT NULL COMMENT 'user status(normal 0,suspended 2,deleted 4)',
+    `last_login_date` DATETIME NOT NULL,
 
-    page_ids varchar(2048) default '' not null ,
+    `page_ids`      VARCHAR(2048) DEFAULT '' NOT NULL ,
+    `provider`      VARCHAR(32) DEFAULT '' NOT NULL COMMENT 'login source google/facebook/weixin',
+    `external_id`   VARCHAR(255) DEFAULT '' NOT NULL COMMENT 'login source unique id(gmail sub 255char//weixin unionid 28char)',
+    `ip_info`       VARCHAR(255)  DEFAULT '' NOT NULL,
+    `is_admin`      TINYINT(1)    DEFAULT 0  NOT NULL,
 
-    provider    varchar(32) default '' not null,
-    external_id varchar(128) default '' not null,
-    ip_info         varchar(255)  default '' not null,
-    is_admin        tinyint(1)    default 0  not null,
+    `suspended_at`  DATETIME                NULL,
+    `deleted_at`    DATETIME                NULL,
+    `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
 
-    suspended_at    timestamp                null,
-    deleted_at      timestamp                null,
-    created_at timestamp default current_timestamp,
-    updated_at timestamp default current_timestamp
+    PRIMARY KEY (`id`),
+    UNIQUE KEY      `uk_external_id` (`external_id`)
 );
 
-
-CREATE UNIQUE INDEX uk_username ON user(username);
-CREATE UNIQUE INDEX uk_email ON user(email);

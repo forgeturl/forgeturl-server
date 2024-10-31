@@ -14,22 +14,22 @@ const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	ID            int64          `gorm:"column:id;type:int(11);primaryKey" json:"id"`
-	DisplayName   string         `gorm:"column:display_name;type:varchar(128);not null" json:"display_name"`
+	ID            int64          `gorm:"column:id;type:bigint(20);primaryKey;autoIncrement:true;comment:auto increment ID" json:"id"`    // auto increment ID
+	DisplayName   string         `gorm:"column:display_name;type:varchar(64);not null;comment:display name of user" json:"display_name"` // display name of user
 	Username      string         `gorm:"column:username;type:varchar(64);not null" json:"username"`
-	Email         string         `gorm:"column:email;type:varchar(100);not null" json:"email"`
-	Avatar        string         `gorm:"column:avatar;type:varchar(1024);not null" json:"avatar"`
-	Status        int64          `gorm:"column:status;type:int(11);not null" json:"status"`
-	LastLoginDate time.Time      `gorm:"column:last_login_date;type:timestamp" json:"last_login_date"`
+	Email         string         `gorm:"column:email;type:varchar(100);not null;comment:email from provider" json:"email"`                         // email from provider
+	Avatar        string         `gorm:"column:avatar;type:varchar(1024);not null;comment:user avatar url" json:"avatar"`                          // user avatar url
+	Status        int32          `gorm:"column:status;type:tinyint(4);not null;comment:user status(normal 0,suspended 2,deleted 4)" json:"status"` // user status(normal 0,suspended 2,deleted 4)
+	LastLoginDate time.Time      `gorm:"column:last_login_date;type:datetime;not null" json:"last_login_date"`
 	PageIds       string         `gorm:"column:page_ids;type:varchar(2048);not null" json:"page_ids"`
-	Provider      string         `gorm:"column:provider;type:varchar(32);not null" json:"provider"`
-	ExternalID    string         `gorm:"column:external_id;type:varchar(128);not null" json:"external_id"`
+	Provider      string         `gorm:"column:provider;type:varchar(32);not null;comment:login source google/facebook/weixin" json:"provider"`                                 // login source google/facebook/weixin
+	ExternalID    string         `gorm:"column:external_id;type:varchar(128);not null;uniqueIndex:uk_external_id,priority:1;comment:login source unique id" json:"external_id"` // login source unique id
 	IPInfo        string         `gorm:"column:ip_info;type:varchar(255);not null" json:"ip_info"`
 	IsAdmin       int32          `gorm:"column:is_admin;type:tinyint(1);not null" json:"is_admin"`
-	SuspendedAt   time.Time      `gorm:"column:suspended_at;type:timestamp" json:"suspended_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp" json:"deleted_at"`
-	CreatedAt     *time.Time     `gorm:"column:created_at;type:timestamp;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt     *time.Time     `gorm:"column:updated_at;type:timestamp;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	SuspendedAt   time.Time      `gorm:"column:suspended_at;type:datetime" json:"suspended_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:datetime" json:"deleted_at"`
+	CreatedAt     *time.Time     `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:create time" json:"created_at"` // create time
+	UpdatedAt     *time.Time     `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:update time" json:"updated_at"` // update time
 }
 
 // TableName User's table name

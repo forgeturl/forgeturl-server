@@ -32,7 +32,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Username = field.NewString(tableName, "username")
 	_user.Email = field.NewString(tableName, "email")
 	_user.Avatar = field.NewString(tableName, "avatar")
-	_user.Status = field.NewInt64(tableName, "status")
+	_user.Status = field.NewInt32(tableName, "status")
 	_user.LastLoginDate = field.NewTime(tableName, "last_login_date")
 	_user.PageIds = field.NewString(tableName, "page_ids")
 	_user.Provider = field.NewString(tableName, "provider")
@@ -53,22 +53,22 @@ type user struct {
 	userDo userDo
 
 	ALL           field.Asterisk
-	ID            field.Int64
-	DisplayName   field.String
+	ID            field.Int64  // auto increment ID
+	DisplayName   field.String // display name of user
 	Username      field.String
-	Email         field.String
-	Avatar        field.String
-	Status        field.Int64
+	Email         field.String // email from provider
+	Avatar        field.String // user avatar url
+	Status        field.Int32  // user status(normal 0,suspended 2,deleted 4)
 	LastLoginDate field.Time
 	PageIds       field.String
-	Provider      field.String
-	ExternalID    field.String
+	Provider      field.String // login source google/facebook/weixin
+	ExternalID    field.String // login source unique id
 	IPInfo        field.String
 	IsAdmin       field.Int32
 	SuspendedAt   field.Time
 	DeletedAt     field.Field
-	CreatedAt     field.Time
-	UpdatedAt     field.Time
+	CreatedAt     field.Time // create time
+	UpdatedAt     field.Time // update time
 
 	fieldMap map[string]field.Expr
 }
@@ -90,7 +90,7 @@ func (u *user) updateTableName(table string) *user {
 	u.Username = field.NewString(table, "username")
 	u.Email = field.NewString(table, "email")
 	u.Avatar = field.NewString(table, "avatar")
-	u.Status = field.NewInt64(table, "status")
+	u.Status = field.NewInt32(table, "status")
 	u.LastLoginDate = field.NewTime(table, "last_login_date")
 	u.PageIds = field.NewString(table, "page_ids")
 	u.Provider = field.NewString(table, "provider")
