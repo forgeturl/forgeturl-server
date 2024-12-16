@@ -9,7 +9,6 @@ package login
 import (
 	context "context"
 	calloption "github.com/guoming0000/protoc-gen-go-gin/calloption"
-	ecode "github.com/sunmi-OS/gocore/v2/api/ecode"
 	http_request "github.com/sunmi-OS/gocore/v2/utils/http-request"
 )
 

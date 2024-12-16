@@ -20,6 +20,6 @@ CREATE TABLE user
     `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
 
     PRIMARY KEY (`id`),
-    UNIQUE KEY      `uk_external_id` (`external_id`)
+    UNIQUE KEY      `uk_provider_external_id` (`provider`, `external_id`)
 );
 

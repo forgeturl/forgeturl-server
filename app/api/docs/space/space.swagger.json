@@ -296,8 +296,9 @@
         "type": "object",
         "properties": {
           "uid": {
-            "type": "string",
-            "description": "用户id"
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
           },
           "page_ids": {
             "type": "array",
@@ -392,8 +393,9 @@
         "type": "object",
         "properties": {
           "uid": {
-            "type": "string",
-            "description": "用户id"
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
           }
         }
       },

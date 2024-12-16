@@ -168,7 +168,7 @@ message GetPagesResp {
 
 message GetMySpaceReq {
   // 用户id
-  string uid = 1;
+  int64 uid = 1;
 }
 
 message GetMySpaceResp {
@@ -181,7 +181,7 @@ message GetMySpaceResp {
 
 message ChangeSpacePageSequenceReq {
   // 用户id
-  string uid = 1;
+  int64 uid = 1;
   // 调整后页面id的顺序
   repeated string page_ids = 2;
 }

@@ -195,8 +195,9 @@ components:
             type: object
             properties:
                 uid:
-                    type: string
+                    type: integer
                     description: 用户id
+                    format: int64
                 page_ids:
                     type: array
                     items:
@@ -263,8 +264,9 @@ components:
             type: object
             properties:
                 uid:
-                    type: string
+                    type: integer
                     description: 用户id
+                    format: int64
         .GetMySpaceResp:
             type: object
             properties:

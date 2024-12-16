@@ -2,6 +2,8 @@ package api
 
 import (
 	"forgeturl-server/api/space"
+	"forgeturl-server/dal"
+
 	"github.com/sunmi-OS/gocore/v2/api"
 )
 
@@ -14,9 +16,29 @@ func NewSpaceService() space.SpaceServiceHTTPServer {
 
 func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpaceReq) (*space.GetMySpaceResp, error) {
 	ctx := context.Request.Context()
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
+	uid := req.Uid
+	userInfo, err := dal.User.Get(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	pageIds, ownerIds, readonlyIds, editIds, err := parsePageIds(userInfo.PageIds)
+	if err != nil {
+		return nil, err
+	}
+
+	owner, readonly, edit, err := dal.Page.GetPages(ctx, uid, ownerIds, readonlyIds, editIds)
+	if err != nil {
+		return nil, err
+	}
+
+	pages := toPages(pageIds, owner, readonly, edit)
+
+	resp := &space.GetMySpaceResp{
+		SpaceName: userInfo.DisplayName,
+		Pages:     pages,
+	}
+	return resp, nil
 }
 
 func (s spaceServiceImpl) ChangeSpacePageSequence(context *api.Context, req *space.ChangeSpacePageSequenceReq) (*space.ChangeSpacePageSequenceResp, error) {
@@ -42,6 +64,19 @@ func (s spaceServiceImpl) GetPages(context *api.Context, req *space.GetPagesReq)
 
 func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (*space.GetPageResp, error) {
 	ctx := context.Request.Context()
+
+	pageIds, ownerIds, readonlyIds, editIds, err := parsePageIds(ctx, userInfo.PageIds)
+	if err != nil {
+		return nil, err
+	}
+
+	owner, readonly, edit, err := dal.Page.GetPages(ctx, uid, ownerIds, readonlyIds, editIds)
+	if err != nil {
+		return nil, err
+	}
+
+	pages := toPages(pageIds, owner, readonly, edit)
+
 	_ = ctx
 	//TODO implement me
 	panic("implement me")

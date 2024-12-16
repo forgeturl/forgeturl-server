@@ -82,7 +82,7 @@ type GetPagesResp struct {
 
 type GetMySpaceReq struct {
 	// 用户id
-	Uid string `json:"uid,omitempty"`
+	Uid int64 `json:"uid,omitempty"`
 }
 
 type GetMySpaceResp struct {
@@ -94,7 +94,7 @@ type GetMySpaceResp struct {
 
 type ChangeSpacePageSequenceReq struct {
 	// 用户id
-	Uid string `json:"uid,omitempty"`
+	Uid int64 `json:"uid,omitempty"`
 	// 调整后页面id的顺序
 	PageIds []string `json:"page_ids,omitempty"`
 }
