@@ -63,12 +63,12 @@ func (g *ConnectorConfig) ConnectorReceiver(ctx context.Context, code string) (u
 		RedirectURL:  "https://api.2049links.com/login/connector/google",
 	}
 
-	token, err := oauth2Config.Exchange(context.Background(), code)
+	token, err := oauth2Config.Exchange(ctx, code)
 	if err != nil {
 		return nil, common.ErrNotAuthenticated(err.Error())
 	}
 
-	client := oauth2Config.Client(context.TODO(), token)
+	client := oauth2Config.Client(ctx, token)
 	client.Timeout = 15 * time.Second
 	response, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
 	if err != nil {
