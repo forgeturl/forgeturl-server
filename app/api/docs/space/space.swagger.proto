@@ -89,6 +89,7 @@ service SpaceService {
 
 }
 
+
 message CreateTmpPageReq {
 }
 
@@ -105,6 +106,8 @@ message Page {// omitempty=false
   string content = 3;
   // 文件夹
   repeated Collections collections = 4;
+  // 版本号，从0递增，当修改时需要传入该值
+  int64 version = 5;
 
   // 其他属性
   int64 create_time = 10;
@@ -196,6 +199,8 @@ message UpdatePageReq {
   string title = 2;
   string content = 3;
   repeated Collections collections = 4;
+  // 版本号，从0递增，修改时需要传入该值
+  int64 version = 5;  // binding:"min=0"
 }
 
 message UpdatePageResp {

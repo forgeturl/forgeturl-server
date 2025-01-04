@@ -2,6 +2,7 @@ package api
 
 import (
 	"forgeturl-server/api/dumplinks"
+
 	"github.com/sunmi-OS/gocore/v2/api"
 )
 
@@ -13,6 +14,7 @@ func NewDumplinksService() dumplinks.DumplinksServiceHTTPServer {
 }
 
 func (d dumplinksSerivceImpl) ImportBookmarks(context *api.Context, req *dumplinks.ImportBookmarksReq) (*dumplinks.ImportBookmarksResp, error) {
+
 	//TODO implement me
 	panic("implement me")
 }

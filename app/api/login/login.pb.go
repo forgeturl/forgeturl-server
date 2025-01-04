@@ -38,3 +38,33 @@ type ConnectorReq struct {
 
 type ConnectorResp struct {
 }
+
+type GetUserInfoReq struct {
+	// 用户id
+	Uid int64 `json:"uid,omitempty"`
+}
+
+type GetUserInfoResp struct {
+	// 用户id
+	Uid int64 `json:"uid,omitempty"`
+	// 展示名称
+	DisplayName string `json:"display_name,omitempty"`
+	// 用户名
+	Username string `json:"username,omitempty"`
+	// 用户头像
+	Avatar string `json:"avatar,omitempty"`
+	// 用户邮箱
+	Email string `json:"email,omitempty"`
+	// 用户状态 normal 0,suspended 2,deleted 4
+	Status int32 `json:"status,omitempty"`
+	// 上一次登录时间
+	LastLoginTime int64 `json:"last_login_time,omitempty"`
+	// 是否是管理员 0:普通用户 1:管理员
+	IsAdmin int32 `json:"is_admin,omitempty"`
+	// 账号注册来源
+	Provider string `json:"provider,omitempty"`
+	// 用户创建时间
+	CreateTime int64 `json:"create_time,omitempty"`
+	// 用户更新时间
+	UpdateTime int64 `json:"update_time,omitempty"`
+}

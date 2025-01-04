@@ -504,6 +504,11 @@
             },
             "description": "文件夹"
           },
+          "version": {
+            "type": "integer",
+            "description": "版本号，从0递增，当修改时需要传入该值",
+            "format": "int64"
+          },
           "create_time": {
             "type": "integer",
             "description": "其他属性",
@@ -766,6 +771,11 @@
             "items": {
               "$ref": "#/components/schemas/.Collections"
             }
+          },
+          "version": {
+            "type": "integer",
+            "description": "版本号，从0递增，修改时需要传入该值",
+            "format": "int64"
           }
         }
       },

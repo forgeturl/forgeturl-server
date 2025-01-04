@@ -4,6 +4,7 @@ import (
 	"forgeturl-server/api/common"
 	"forgeturl-server/api/space"
 	"forgeturl-server/dal/model"
+	"forgeturl-server/pkg/maths"
 
 	"github.com/bytedance/sonic"
 )
@@ -15,12 +16,22 @@ const (
 	ReadOnlyPage PageType = 1 // start With R
 	EditPage     PageType = 2 // start With E
 
-	OwnerPrefix    = "O"
-	ReadonlyPrefix = "R"
-	EditPrefix     = "E"
+	OwnerPrefix    = uint8('O')
+	ReadonlyPrefix = uint8('R')
+	EditPrefix     = uint8('E')
 )
 
-func parsePageId(pageId string)
+func parsePageId(pageId string) PageType {
+	switch pageId[0] {
+	case OwnerPrefix:
+		return OwnerPage
+	case ReadonlyPrefix:
+		return ReadOnlyPage
+	case EditPrefix:
+		return EditPage
+	}
+	return OwnerPage
+}
 
 func parsePageIds(pageIdStr string) (pageIds, ownerIds []string, readonlyIds []string, editIds []string, err error) {
 	err = sonic.UnmarshalString(pageIdStr, &pageIds)
@@ -30,16 +41,13 @@ func parsePageIds(pageIdStr string) (pageIds, ownerIds []string, readonlyIds []s
 	}
 
 	for _, pageId := range pageIds {
-		prefix := ""
-		if pageId != "" {
-			prefix = string(pageId[0])
-		}
-		switch prefix {
-		case OwnerPrefix:
+		pType := parsePageId(pageId)
+		switch pType {
+		case OwnerPage:
 			ownerIds = append(ownerIds, pageId)
-		case ReadonlyPrefix:
+		case ReadOnlyPage:
 			readonlyIds = append(readonlyIds, pageId)
-		case EditPrefix:
+		case EditPage:
 			editIds = append(editIds, pageId)
 		}
 	}
@@ -109,4 +117,16 @@ func toPages(pageIds []string, owner, readonly, edit []*model.Page) []*space.Pag
 
 	// 最后以pageIds的顺序展示
 	return pages
+}
+
+func genOwnerPageId() string {
+	return maths.GenPageID(string(OwnerPrefix))
+}
+
+func genReadOnlyPageId() string {
+	return maths.GenPageID(string(ReadonlyPrefix))
+}
+
+func genEditPageId() string {
+	return maths.GenPageID(string(EditPrefix))
 }

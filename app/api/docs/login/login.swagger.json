@@ -45,6 +45,36 @@
           }
         }
       }
+    },
+    "/page/getUserInfo": {
+      "post": {
+        "tags": [
+          "LoginService"
+        ],
+        "operationId": "LoginService_GetUserInfo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.GetUserInfoReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TGetUserInfoResp"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -52,6 +82,71 @@
       ".ConnectorResp": {
         "type": "object",
         "properties": {}
+      },
+      ".GetUserInfoReq": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
+          }
+        }
+      },
+      ".GetUserInfoResp": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "展示名称"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "用户头像"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱"
+          },
+          "status": {
+            "type": "integer",
+            "description": "用户状态 normal 0,suspended 2,deleted 4",
+            "format": "int32"
+          },
+          "last_login_time": {
+            "type": "integer",
+            "description": "上一次登录时间",
+            "format": "int64"
+          },
+          "is_admin": {
+            "type": "integer",
+            "description": "是否是管理员 0:普通用户 1:管理员",
+            "format": "int32"
+          },
+          "provider": {
+            "type": "string",
+            "description": "账号注册来源"
+          },
+          "create_time": {
+            "type": "integer",
+            "description": "用户创建时间",
+            "format": "int64"
+          },
+          "update_time": {
+            "type": "integer",
+            "description": "用户更新时间",
+            "format": "int64"
+          }
+        }
       },
       ".TConnectorResp": {
         "required": [
@@ -70,6 +165,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/.ConnectorResp"
+          }
+        }
+      },
+      ".TGetUserInfoResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.GetUserInfoResp"
           }
         }
       }

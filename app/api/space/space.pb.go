@@ -23,6 +23,8 @@ type Page struct {
 	Content string `json:"content"`
 	// 文件夹
 	Collections []*Collections `json:"collections"`
+	// 版本号，从0递增，当修改时需要传入该值
+	Version int64 `json:"version"`
 	// 其他属性
 	CreateTime int64 `json:"create_time"`
 	UpdateTime int64 `json:"update_time"`
@@ -109,6 +111,8 @@ type UpdatePageReq struct {
 	Title       string         `json:"title,omitempty"`
 	Content     string         `json:"content,omitempty"`
 	Collections []*Collections `json:"collections,omitempty"`
+	// 版本号，从0递增，修改时需要传入该值
+	Version int64 `json:"version,omitempty" binding:"min=0"`
 }
 
 type UpdatePageResp struct {

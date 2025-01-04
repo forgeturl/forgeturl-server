@@ -9,6 +9,7 @@ package login
 import (
 	context "context"
 	calloption "github.com/guoming0000/protoc-gen-go-gin/calloption"
+	ecode "github.com/sunmi-OS/gocore/v2/api/ecode"
 	http_request "github.com/sunmi-OS/gocore/v2/utils/http-request"
 )
 
@@ -17,6 +18,7 @@ type LoginServiceHTTPClient interface {
 	// 连接器登录，跳转鉴权的url
 	// https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
 	Connector(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
+	GetUserInfo(context.Context, *GetUserInfoReq, ...calloption.CallOption) (*TResponse[GetUserInfoResp], error)
 }
 
 type LoginServiceHTTPClientImpl struct {
@@ -30,4 +32,19 @@ func NewLoginServiceHTTPClient(hh *http_request.HttpClient) LoginServiceHTTPClie
 func (c *LoginServiceHTTPClientImpl) Connector(ctx context.Context, req *ConnectorReq, opts ...calloption.CallOption) (*TResponse[ConnectorResp], error) {
 	// TODO: GET method not support
 	return nil, ecode.NewV2(-1, "GET method not support")
+}
+func (c *LoginServiceHTTPClientImpl) GetUserInfo(ctx context.Context, req *GetUserInfoReq, opts ...calloption.CallOption) (*TResponse[GetUserInfoResp], error) {
+	resp := &TResponse[GetUserInfoResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/getUserInfo")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
 }
