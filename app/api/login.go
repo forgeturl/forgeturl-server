@@ -5,8 +5,7 @@ import (
 	"forgeturl-server/api/login"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
-	connector_google "forgeturl-server/pkg/connector-google"
-	connector_weixin "forgeturl-server/pkg/connector-weixin"
+	connectorgoogle "forgeturl-server/pkg/connector-google"
 
 	"github.com/sunmi-OS/gocore/v2/api"
 )
@@ -28,7 +27,7 @@ func (l loginSerivceImpl) Connector(context *api.Context, req *login.ConnectorRe
 	avatar := ""
 	switch req.Name {
 	case "google":
-		uInfo, err := connector_google.Connector.ConnectorReceiver(ctx, req.Code)
+		uInfo, err := connectorgoogle.Connector.ConnectorReceiver(ctx, req.Code)
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +38,6 @@ func (l loginSerivceImpl) Connector(context *api.Context, req *login.ConnectorRe
 		avatar = uInfo.Picture
 	case "facebook":
 	case "weixin":
-		connector_weixin.Init()
 	default:
 		return nil, common.ErrNotAuthenticated("invalid name")
 	}
@@ -67,4 +65,9 @@ func (l loginSerivceImpl) Connector(context *api.Context, req *login.ConnectorRe
 	}
 	_ = userInfo
 	return &login.ConnectorResp{}, nil
+}
+
+func (l loginSerivceImpl) GetUserInfo(context *api.Context, req *login.GetUserInfoReq) (*login.GetUserInfoResp, error) {
+	//TODO implement me
+	panic("implement me")
 }

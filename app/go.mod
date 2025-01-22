@@ -6,11 +6,13 @@ require (
 	github.com/bytedance/sonic v1.11.6
 	github.com/gin-contrib/pprof v1.5.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/gorilla/sessions v1.1.1
 	github.com/guoming0000/protoc-gen-go-gin v1.2.2
+	github.com/markbates/goth v1.80.0
 	github.com/prometheus/client_golang v1.19.0
 	github.com/sunmi-OS/gocore/v2 v2.1.41
 	github.com/urfave/cli/v2 v2.27.2
-	golang.org/x/oauth2 v0.16.0
+	golang.org/x/oauth2 v0.17.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80
 	gorm.io/gen v0.3.26
 	gorm.io/gorm v1.25.12
@@ -57,6 +59,9 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic v0.7.0 // indirect
 	github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49 // indirect
+	github.com/gorilla/context v1.1.1 // indirect
+	github.com/gorilla/mux v1.7.3 // indirect
+	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
