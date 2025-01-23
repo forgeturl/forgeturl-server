@@ -14,7 +14,14 @@ service LoginService {
   // https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
   rpc Connector(ConnectorReq) returns (ConnectorResp) {
     option (google.api.http) = {
-      get: "/login/connector/{name}"
+      get: "/login/connector/auth/{name}"
+    };
+  };
+
+  // 第三方登录回调
+  rpc ConnectorCallback(ConnectorReq) returns (ConnectorResp) {
+    option (google.api.http) = {
+      get: "/login/connector/callback/{name}"
     };
   };
 

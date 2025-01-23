@@ -18,6 +18,8 @@ type LoginServiceHTTPClient interface {
 	// 连接器登录，跳转鉴权的url
 	// https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
 	Connector(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
+	// 第三方登录回调
+	ConnectorCallback(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
 	GetUserInfo(context.Context, *GetUserInfoReq, ...calloption.CallOption) (*TResponse[GetUserInfoResp], error)
 }
 
@@ -30,6 +32,10 @@ func NewLoginServiceHTTPClient(hh *http_request.HttpClient) LoginServiceHTTPClie
 }
 
 func (c *LoginServiceHTTPClientImpl) Connector(ctx context.Context, req *ConnectorReq, opts ...calloption.CallOption) (*TResponse[ConnectorResp], error) {
+	// TODO: GET method not support
+	return nil, ecode.NewV2(-1, "GET method not support")
+}
+func (c *LoginServiceHTTPClientImpl) ConnectorCallback(ctx context.Context, req *ConnectorReq, opts ...calloption.CallOption) (*TResponse[ConnectorResp], error) {
 	// TODO: GET method not support
 	return nil, ecode.NewV2(-1, "GET method not support")
 }

@@ -5,7 +5,7 @@
     "version": "0.0.1"
   },
   "paths": {
-    "/login/connector/{name}": {
+    "/login/connector/auth/{name}": {
       "get": {
         "tags": [
           "LoginService"
@@ -13,6 +13,46 @@
         "summary": "连接器登录，跳转鉴权的url",
         "description": " https://github.com/googleapis/googleapis/blob/master/google/api/http.proto",
         "operationId": "LoginService_Connector",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "连接器名称：如weixin、google",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "description": "连接器的入参",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TConnectorResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login/connector/callback/{name}": {
+      "get": {
+        "tags": [
+          "LoginService"
+        ],
+        "summary": "第三方登录回调",
+        "operationId": "LoginService_ConnectorCallback",
         "parameters": [
           {
             "name": "name",

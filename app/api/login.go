@@ -71,3 +71,8 @@ func (l loginSerivceImpl) GetUserInfo(context *api.Context, req *login.GetUserIn
 	//TODO implement me
 	panic("implement me")
 }
+
+func (l loginSerivceImpl) ConnectorCallback(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
+	//TODO implement me
+	panic("implement me")
+}

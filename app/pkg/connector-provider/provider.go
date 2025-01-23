@@ -1,6 +1,7 @@
 package connector_provider
 
 import (
+	"github.com/markbates/goth/providers/github"
 	"os"
 
 	"github.com/gorilla/sessions"
@@ -10,8 +11,13 @@ import (
 	"github.com/markbates/goth/providers/wechat"
 )
 
+const (
+	clientKey    = "dfc0084166d0ef8a9aac"
+	clientSecret = "75a7af7446b893707299595d1a4718b7c81174a8"
+)
+
 func Init() {
-	store, _ = redistore.NewRediStore(10, "tcp", ":6379", "", []byte("redis-key"))
+	// store, _ = redistore.NewRediStore(10, "tcp", ":6379", "", []byte("redis-key"))
 
 	key := ""
 	maxAge := 86400 * 30 // 30 days
@@ -28,6 +34,8 @@ func Init() {
 	goth.UseProviders(
 		google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), "https://api.forgeturl.com/login/connector/google"),
 		wechat.New(os.Getenv("WECHAT_KEY"), os.Getenv("WECHAT_SECRET"), "https://api.forgeturl.com/login/connector/wechat", wechat.WECHAT_LANG_CN),
+		//github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), "https://api.forgeturl.com/login/connector/github"),
+		github.New(clientKey, clientSecret, "http://localhost:8080/auth/github/callback"),
 	)
 
 	g, err := goth.GetProvider("google")
