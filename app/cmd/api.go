@@ -31,13 +31,8 @@ func RunApi(c *cli.Context) error {
 	initLog()
 	initClient()
 
-	isDebugMode := true
-	if utils.IsRelease() {
-		isDebugMode = false
-	}
-
 	gs := api.NewGinServer(
-		api.WithServerDebug(isDebugMode),
+		api.WithServerDebug(!utils.IsRelease()),
 		api.WithServerHost(viper.C.GetString("network.ApiServiceHost")),
 		api.WithServerPort(viper.C.GetInt("network.ApiServicePort")),
 		api.WithOpenTrace(true),

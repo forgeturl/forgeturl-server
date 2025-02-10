@@ -3,14 +3,14 @@ module forgeturl-server
 go 1.20
 
 require (
-	github.com/bytedance/sonic v1.11.6
+	github.com/bytedance/sonic v1.12.2
 	github.com/gin-contrib/pprof v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/sessions v1.1.1
-	github.com/guoming0000/protoc-gen-go-gin v1.2.2
+	github.com/guoming0000/protoc-gen-go-gin v1.2.3
 	github.com/markbates/goth v1.80.0
 	github.com/prometheus/client_golang v1.19.0
-	github.com/sunmi-OS/gocore/v2 v2.1.41
+	github.com/sunmi-OS/gocore/v2 v2.1.52
 	github.com/urfave/cli/v2 v2.27.2
 	golang.org/x/oauth2 v0.17.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80
@@ -33,7 +33,7 @@ require (
 	github.com/aliyun/aliyun-log-go-sdk v0.1.71 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/bytedance/sonic/loader v0.2.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

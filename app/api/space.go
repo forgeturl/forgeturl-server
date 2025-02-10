@@ -65,18 +65,27 @@ func (s spaceServiceImpl) GetPages(context *api.Context, req *space.GetPagesReq)
 func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (*space.GetPageResp, error) {
 	ctx := context.Request.Context()
 
-	pageIds, ownerIds, readonlyIds, editIds, err := parsePageIds(ctx, userInfo.PageIds)
-	if err != nil {
-		return nil, err
-	}
-
-	owner, readonly, edit, err := dal.Page.GetPages(ctx, uid, ownerIds, readonlyIds, editIds)
-	if err != nil {
-		return nil, err
-	}
-
-	pages := toPages(pageIds, owner, readonly, edit)
-
+	//// 如果拿到了uid
+	//uid := req.PageId
+	//userInfo, err := dal.User.Get(ctx, uid)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//pageType := parsePageId(req.PageId)
+	//// 拉取某个页面数据
+	//pageIds, ownerIds, readonlyIds, editIds, err := parsePageIds(ctx, userInfo.PageIds)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//owner, readonly, edit, err := dal.Page.GetPages(ctx, uid, ownerIds, readonlyIds, editIds)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//pages := toPages(pageIds, owner, readonly, edit)
+	//
 	_ = ctx
 	//TODO implement me
 	panic("implement me")

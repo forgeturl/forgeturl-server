@@ -3,9 +3,7 @@ package cmd
 import (
 	"forgeturl-server/conf"
 	"forgeturl-server/dal"
-	connector_facebook "forgeturl-server/pkg/connector-facebook"
-	connector_google "forgeturl-server/pkg/connector-google"
-	connector_weixin "forgeturl-server/pkg/connector-weixin"
+	connector_provider "forgeturl-server/pkg/connector-provider"
 
 	"github.com/sunmi-OS/gocore/v2/conf/nacos"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
@@ -50,7 +48,5 @@ func initLog() {
 }
 
 func initClient() {
-	connector_google.Init()
-	connector_facebook.Init()
-	connector_weixin.Init()
+	connector_provider.Init()
 }
