@@ -37,6 +37,26 @@ type ConnectorReq struct {
 }
 
 type ConnectorResp struct {
+	// 跳转鉴权的地址
+	AuthUrl string `json:"auth_url,omitempty"`
+}
+
+type ConnectorCallbackReq struct {
+	// 连接器名称：如weixin、google
+	Name string `json:"name,omitempty"`
+}
+
+type ConnectorCallbackResp struct {
+	// 用户id
+	Uid int64 `json:"uid,omitempty"`
+	// 展示名称
+	DisplayName string `json:"display_name,omitempty"`
+	// 用户名
+	Username string `json:"username,omitempty"`
+	// 用户头像
+	Avatar string `json:"avatar,omitempty"`
+	// 用户邮箱
+	Email string `json:"email,omitempty"`
 }
 
 type GetUserInfoReq struct {

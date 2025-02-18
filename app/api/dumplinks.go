@@ -14,12 +14,14 @@ func NewDumplinksService() dumplinks.DumplinksServiceHTTPServer {
 }
 
 func (d dumplinksSerivceImpl) ImportBookmarks(context *api.Context, req *dumplinks.ImportBookmarksReq) (*dumplinks.ImportBookmarksResp, error) {
-
+	// 导入书签
 	//TODO implement me
 	panic("implement me")
 }
 
 func (d dumplinksSerivceImpl) ExportBookmarks(context *api.Context, req *dumplinks.ExportBookmarksReq) (*dumplinks.ExportBookmarksResp, error) {
+	// 导出书签
+
 	//TODO implement me
 	panic("implement me")
 }

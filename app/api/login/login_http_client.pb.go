@@ -19,7 +19,7 @@ type LoginServiceHTTPClient interface {
 	// https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
 	Connector(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
 	// 第三方登录回调
-	ConnectorCallback(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
+	ConnectorCallback(context.Context, *ConnectorCallbackReq, ...calloption.CallOption) (*TResponse[ConnectorCallbackResp], error)
 	GetUserInfo(context.Context, *GetUserInfoReq, ...calloption.CallOption) (*TResponse[GetUserInfoResp], error)
 }
 
@@ -35,7 +35,7 @@ func (c *LoginServiceHTTPClientImpl) Connector(ctx context.Context, req *Connect
 	// TODO: GET method not support
 	return nil, ecode.NewV2(-1, "GET method not support")
 }
-func (c *LoginServiceHTTPClientImpl) ConnectorCallback(ctx context.Context, req *ConnectorReq, opts ...calloption.CallOption) (*TResponse[ConnectorResp], error) {
+func (c *LoginServiceHTTPClientImpl) ConnectorCallback(ctx context.Context, req *ConnectorCallbackReq, opts ...calloption.CallOption) (*TResponse[ConnectorCallbackResp], error) {
 	// TODO: GET method not support
 	return nil, ecode.NewV2(-1, "GET method not support")
 }

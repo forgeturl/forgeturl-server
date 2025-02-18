@@ -17,7 +17,7 @@ type LoginServiceHTTPServer interface {
 	// https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
 	Connector(*api.Context, *ConnectorReq) (*ConnectorResp, error)
 	// 第三方登录回调
-	ConnectorCallback(*api.Context, *ConnectorReq) (*ConnectorResp, error)
+	ConnectorCallback(*api.Context, *ConnectorCallbackReq) (*ConnectorCallbackResp, error)
 	GetUserInfo(*api.Context, *GetUserInfoReq) (*GetUserInfoResp, error)
 }
 
@@ -52,7 +52,7 @@ func _LoginService_Connector_HTTP_Handler(srv LoginServiceHTTPServer) func(g *gi
 
 func _LoginService_ConnectorCallback_HTTP_Handler(srv LoginServiceHTTPServer) func(g *gin.Context) {
 	return func(g *gin.Context) {
-		req := &ConnectorReq{}
+		req := &ConnectorCallbackReq{}
 		var err error
 		ctx := api.NewContext(g)
 		err = ctx.ShouldBindUri(req)

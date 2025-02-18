@@ -19,7 +19,7 @@ service LoginService {
   };
 
   // 第三方登录回调
-  rpc ConnectorCallback(ConnectorReq) returns (TConnectorResp) {
+  rpc ConnectorCallback(ConnectorCallbackReq) returns (TConnectorCallbackResp) {
     option (google.api.http) = {
       get: "/login/connector/callback/{name}"
     };
@@ -63,9 +63,27 @@ message ConnectorReq {
 }
 
 message ConnectorResp {
-
+  // 跳转鉴权的地址
+  string auth_url = 1;
 }
 
+message ConnectorCallbackReq {
+  // 连接器名称：如weixin、google
+  string name = 2;
+}
+
+message ConnectorCallbackResp {
+    // 用户id
+    int64 uid = 1;
+    // 展示名称
+    string display_name = 2;
+    // 用户名
+    string username = 3;
+    // 用户头像
+    string avatar = 4;
+    // 用户邮箱
+    string email = 5;
+}
 
 message GetUserInfoReq {
   // 用户id
@@ -103,6 +121,11 @@ message TConnectorResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
    ConnectorResp data = 3; // binding:"required"
+}
+message TConnectorCallbackResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   ConnectorCallbackResp data = 3; // binding:"required"
 }
 message TGetUserInfoResp {
    int32 code = 1; // binding:"required"

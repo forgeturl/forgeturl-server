@@ -62,14 +62,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "code",
-            "in": "query",
-            "description": "连接器的入参",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -78,7 +70,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/.TConnectorResp"
+                  "$ref": "#/components/schemas/.TConnectorCallbackResp"
                 }
               }
             }
@@ -119,9 +111,40 @@
   },
   "components": {
     "schemas": {
+      ".ConnectorCallbackResp": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "展示名称"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "用户头像"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱"
+          }
+        }
+      },
       ".ConnectorResp": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "auth_url": {
+            "type": "string",
+            "description": "跳转鉴权的地址"
+          }
+        }
       },
       ".GetUserInfoReq": {
         "type": "object",
@@ -185,6 +208,26 @@
             "type": "integer",
             "description": "用户更新时间",
             "format": "int64"
+          }
+        }
+      },
+      ".TConnectorCallbackResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.ConnectorCallbackResp"
           }
         }
       },
