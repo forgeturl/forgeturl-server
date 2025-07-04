@@ -1,10 +1,11 @@
 package connector_provider
 
 import (
-	"forgeturl-server/pkg/core"
 	"os"
 
-	"github.com/gorilla/sessions"
+	"forgeturl-server/pkg/core"
+
+	"github.com/boj/redistore"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
@@ -19,16 +20,18 @@ const (
 )
 
 func Init() {
-	// store, _ = redistore.NewRediStore(10, "tcp", ":6379", "", []byte("redis-key"))
-	key := ""
+	// todo 自己实现一个，通过header返回， 不通过cookie返回
+
 	maxAge := 86400 * 30 // 30 days
 	isProd := false
-
-	store := sessions.NewCookieStore([]byte(key))
-	store.MaxAge(maxAge)
+	store, _ := redistore.NewRediStore(10, "tcp", ":6379", "", "")
+	// key := "redis-key"
+	// store := sessions.NewCookieStore([]byte(key))
+	// store.MaxAge(maxAge)
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
 	store.Options.Secure = isProd
+	store.SetMaxAge(maxAge)
 
 	gothic.Store = store
 	viders := []goth.Provider{

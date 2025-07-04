@@ -26,7 +26,7 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	// Get user ID from context
 	userID, exists := ctx.Get("uid")
 	if !exists {
-		return nil, ecode.ErrUnauthorized
+		return nil, ecode.ErrUnauthorized()
 	}
 	uid, ok := userID.(int64)
 	if !ok {

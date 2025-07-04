@@ -5,21 +5,22 @@ import (
 	"forgeturl-server/api/login"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
+	"forgeturl-server/pkg/lcache"
 
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/sunmi-OS/gocore/v2/api"
 )
 
-type loginSerivceImpl struct {
+type loginServiceImpl struct {
 }
 
 func NewLoginService() login.LoginServiceHTTPServer {
-	return &loginSerivceImpl{}
+	return &loginServiceImpl{}
 }
 
 // Connector 连接器登录，跳转鉴权的url
-func (l loginSerivceImpl) Connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
+func (l loginServiceImpl) Connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
 	providerName, err := gothic.GetProviderName(context.Request)
 	if err != nil {
 		return nil, common.ErrNotAuthenticated(err.Error())
@@ -50,7 +51,7 @@ func (l loginSerivceImpl) Connector(context *api.Context, req *login.ConnectorRe
 	}, nil
 }
 
-func (l loginSerivceImpl) ConnectorCallback(context *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
+func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
 	ctx := context.Request.Context()
 	providerName, err := gothic.GetProviderName(context.Request)
 	if err != nil {
@@ -126,12 +127,41 @@ func (l loginSerivceImpl) ConnectorCallback(context *api.Context, req *login.Con
 	}, nil
 }
 
-func (l loginSerivceImpl) GetUserInfo(context *api.Context, req *login.GetUserInfoReq) (*login.GetUserInfoResp, error) {
+func (l loginServiceImpl) GetUserInfo(context *api.Context, req *login.GetUserInfoReq) (*login.GetUserInfoResp, error) {
 	// 已登录才能获取到详情，否则拉拉取不到
 	ctx := context.Request.Context()
-	userInfo, err := dal.User.GetByID(ctx, req.UserId)
+	uid := req.Uid
+	loginUid := lcache.GetLoginUid(context)
+	userInfo, err := dal.User.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return &login.GetUserInfoResp{UserInfo: userInfo}, nil
+
+	// 如果是自己，则返回内容多些
+	info := &login.GetUserInfoResp{
+		Uid:           uid,
+		DisplayName:   userInfo.DisplayName,
+		Username:      userInfo.Username,
+		Avatar:        userInfo.Avatar,
+		Email:         userInfo.Email,
+		Status:        userInfo.Status,
+		LastLoginTime: userInfo.LastLoginDate.Unix(),
+		IsAdmin:       userInfo.IsAdmin,
+		Provider:      userInfo.Provider,
+		CreateTime:    userInfo.CreatedAt.Unix(),
+		UpdateTime:    userInfo.UpdatedAt.Unix(),
+	}
+
+	// 如果不是自己，则返回内容少些
+	if loginUid != uid {
+		info.Email = ""
+		info.Provider = ""
+		info.Username = ""
+		info.LastLoginTime = 0
+		info.IsAdmin = 0
+		info.CreateTime = 0
+		info.UpdateTime = 0
+	}
+
+	return info, nil
 }

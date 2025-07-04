@@ -47,7 +47,7 @@ func (*pageImpl) Get(ctx context.Context, pageId string, pageIdType PageIdType) 
 	return page, nil
 }
 
-// 首页拉取大致详情使用
+// GetPages 首页拉取大致详情使用
 func (*pageImpl) GetPages(ctx context.Context, uid int64, ownerIds, readonlyIds, editIds []string) (owner, readonly, edit []*model.Page, err error) {
 	u := Q.Page
 	do := u.WithContext(ctx)
@@ -76,4 +76,30 @@ func (*pageImpl) GetPages(ctx context.Context, uid int64, ownerIds, readonlyIds,
 	}
 
 	return
+}
+
+func (*pageImpl) DeleteByPid(ctx context.Context, uid int64, pid string) error {
+	u := Q.Page
+	do := u.WithContext(ctx)
+	// 删除页面
+	_, err := do.Where(u.UID.Eq(uid), u.Pid.Eq(pid)).Delete()
+	if err != nil {
+		return transGormErr(err)
+	}
+	return nil
+}
+
+// UnlinkPage 解除页面链接
+// 不真删，只是把该页面链接移除
+func (*pageImpl) UnlinkPage(ctx context.Context, uid int64, readOnlyPid, editPid, adminPid string) error {
+	u := Q.Page
+	do := u.WithContext(ctx)
+	do = do.Where(u.UID.Eq(uid))
+	var err error
+	if readOnlyPid != "" {
+		_, err = do.Where(u.ReadonlyPid.Eq(readOnlyPid)).UpdateSimple(u.ReadonlyPid, "")
+	} else if editPid != "" {
+
+	}
+
 }

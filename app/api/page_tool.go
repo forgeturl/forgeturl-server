@@ -5,32 +5,24 @@ import (
 	"forgeturl-server/api/space"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/pkg/maths"
+	"forgeturl-server/conf"
 
 	"github.com/bytedance/sonic"
 )
 
-type PageType int
 
-const (
-	OwnerPage    PageType = 0 // start with O
-	ReadOnlyPage PageType = 1 // start With R
-	EditPage     PageType = 2 // start With E
-
-	OwnerPrefix    = uint8('O')
-	ReadonlyPrefix = uint8('R')
-	EditPrefix     = uint8('E')
-)
-
-func parsePageId(pageId string) PageType {
+func parsePageId(pageId string) conf.PageType {
 	switch pageId[0] {
-	case OwnerPrefix:
-		return OwnerPage
-	case ReadonlyPrefix:
-		return ReadOnlyPage
-	case EditPrefix:
-		return EditPage
+	case conf.OwnerPrefix:
+		return conf.OwnerPage
+	case conf.ReadonlyPrefix:
+		return conf.ReadOnlyPage
+	case conf.EditPrefix:
+		return conf.EditPage
+	case conf.TempPrefix:
+		return conf.TempPage
 	}
-	return OwnerPage
+	return conf.OwnerPage
 }
 
 func parsePageIds(pageIdStr string) (pageIds, ownerIds []string, readonlyIds []string, editIds []string, err error) {
@@ -43,11 +35,11 @@ func parsePageIds(pageIdStr string) (pageIds, ownerIds []string, readonlyIds []s
 	for _, pageId := range pageIds {
 		pType := parsePageId(pageId)
 		switch pType {
-		case OwnerPage:
+		case conf.OwnerPage:
 			ownerIds = append(ownerIds, pageId)
-		case ReadOnlyPage:
+		case conf.ReadOnlyPage:
 			readonlyIds = append(readonlyIds, pageId)
-		case EditPage:
+		case conf.EditPage:
 			editIds = append(editIds, pageId)
 		}
 	}
@@ -120,13 +112,13 @@ func toPages(pageIds []string, owner, readonly, edit []*model.Page) []*space.Pag
 }
 
 func genOwnerPageId() string {
-	return maths.GenPageID(string(OwnerPrefix))
+	return maths.GenPageID(string(conf.OwnerPrefix))
 }
 
 func genReadOnlyPageId() string {
-	return maths.GenPageID(string(ReadonlyPrefix))
+	return maths.GenPageID(string(conf.ReadonlyPrefix))
 }
 
 func genEditPageId() string {
-	return maths.GenPageID(string(EditPrefix))
+	return maths.GenPageID(string(conf.EditPrefix))
 }
