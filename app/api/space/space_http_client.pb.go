@@ -20,7 +20,8 @@ type SpaceServiceHTTPClient interface {
 	// 部分页面如果消失或者没权限了，需要自动移除
 	GetMySpace(context.Context, *GetMySpaceReq, ...calloption.CallOption) (*TResponse[GetMySpaceResp], error)
 	// 调整我的空间下面的页面顺序 || 空间
-	ChangeSpacePageSequence(context.Context, *ChangeSpacePageSequenceReq, ...calloption.CallOption) (*TResponse[ChangeSpacePageSequenceResp], error)
+	// 如果有新增、删除page_id，也使用该方法
+	SavePageIds(context.Context, *SavePageIdsReq, ...calloption.CallOption) (*TResponse[SavePageIdsResp], error)
 	// 创建临时页面 || 页面
 	// 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
 	// 创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母
@@ -39,7 +40,7 @@ type SpaceServiceHTTPClient interface {
 	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
 	// 去除页面连接 || 页面
 	// 把页面的只读链接删除
-	RemovePageLink(context.Context, *RemovePageLinkReq, ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error)
+	UnlinkPage(context.Context, *UnlinkPageReq, ...calloption.CallOption) (*TResponse[UnlinkPageResp], error)
 	// 生成新页面链接 || 页面
 	CreateNewPageLink(context.Context, *CreateNewPageLinkReq, ...calloption.CallOption) (*TResponse[CreateNewPageLinkResp], error)
 }
@@ -68,13 +69,13 @@ func (c *SpaceServiceHTTPClientImpl) GetMySpace(ctx context.Context, req *GetMyS
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) ChangeSpacePageSequence(ctx context.Context, req *ChangeSpacePageSequenceReq, opts ...calloption.CallOption) (*TResponse[ChangeSpacePageSequenceResp], error) {
-	resp := &TResponse[ChangeSpacePageSequenceResp]{}
+func (c *SpaceServiceHTTPClientImpl) SavePageIds(ctx context.Context, req *SavePageIdsReq, opts ...calloption.CallOption) (*TResponse[SavePageIdsResp], error) {
+	resp := &TResponse[SavePageIdsResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/changeSpacePageSequence")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/savePageIds")
 	if err != nil {
 		return nil, err
 	}
@@ -164,13 +165,13 @@ func (c *SpaceServiceHTTPClientImpl) DeletePage(ctx context.Context, req *Delete
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) RemovePageLink(ctx context.Context, req *RemovePageLinkReq, opts ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error) {
-	resp := &TResponse[RemovePageLinkResp]{}
+func (c *SpaceServiceHTTPClientImpl) UnlinkPage(ctx context.Context, req *UnlinkPageReq, opts ...calloption.CallOption) (*TResponse[UnlinkPageResp], error) {
+	resp := &TResponse[UnlinkPageResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/removePageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/unlinkPage")
 	if err != nil {
 		return nil, err
 	}

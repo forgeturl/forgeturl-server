@@ -8,6 +8,8 @@ import (
 )
 
 type CreateTmpPageReq struct {
+	// 客户侧唯一识别码
+	UserUuid string `json:"user_uuid" binding:"required,min=1,max=32"`
 }
 
 type CreateTmpPageResp struct {
@@ -20,7 +22,7 @@ type Page struct {
 	PageId string `json:"page_id"`
 	Title  string `json:"title"`
 	// 页面描述，放在页面最上方展示
-	Content string `json:"content"`
+	Brief string `json:"brief"`
 	// 文件夹
 	Collections []*Collections `json:"collections"`
 	// 版本号，从0递增，当修改时需要传入该值
@@ -94,14 +96,14 @@ type GetMySpaceResp struct {
 	Pages []*Page `json:"pages,omitempty"`
 }
 
-type ChangeSpacePageSequenceReq struct {
+type SavePageIdsReq struct {
 	// 用户id
 	Uid int64 `json:"uid,omitempty"`
 	// 调整后页面id的顺序
 	PageIds []string `json:"page_ids,omitempty"`
 }
 
-type ChangeSpacePageSequenceResp struct {
+type SavePageIdsResp struct {
 	// 调整后页面id的顺序
 	PageIds []string `json:"page_ids,omitempty"`
 }
@@ -109,10 +111,16 @@ type ChangeSpacePageSequenceResp struct {
 type UpdatePageReq struct {
 	PageId      string         `json:"page_id,omitempty"`
 	Title       string         `json:"title,omitempty"`
+	Brief       string         `json:"brief,omitempty"`
 	Content     string         `json:"content,omitempty"`
 	Collections []*Collections `json:"collections,omitempty"`
-	// 版本号，从0递增，修改时需要传入该值
+	// 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0
 	Version int64 `json:"version,omitempty" binding:"min=0"`
+	// 配置参数
+	// 0x01 title
+	// 0x02 brief
+	// 0x04 collections
+	Mask int64 `json:"mask,omitempty"`
 }
 
 type UpdatePageResp struct {
@@ -126,17 +134,17 @@ type DeletePageReq struct {
 type DeletePageResp struct {
 }
 
-type RemovePageLinkReq struct {
-	LinkId string `json:"link_id,omitempty"`
+type UnlinkPageReq struct {
+	PageId string `json:"page_id,omitempty"`
 }
 
-type RemovePageLinkResp struct {
+type UnlinkPageResp struct {
 }
 
 type CreateNewPageLinkReq struct {
 	PageId string `json:"page_id,omitempty"`
 	// 生成只读、编辑、超级权限的链接
-	Operation string `json:"operation" binding:"required,oneof=read_only edit admin"`
+	Operation string `json:"operation" binding:"required,oneof=readonly edit admin"`
 }
 
 type CreateNewPageLinkResp struct {

@@ -34,7 +34,9 @@ func newPage(db *gorm.DB, opts ...gen.DOOption) page {
 	_page.EditPid = field.NewString(tableName, "edit_pid")
 	_page.AdminPid = field.NewString(tableName, "admin_pid")
 	_page.Title = field.NewString(tableName, "title")
+	_page.Brief = field.NewString(tableName, "brief")
 	_page.Content = field.NewString(tableName, "content")
+	_page.Version = field.NewInt64(tableName, "version")
 	_page.CreatedAt = field.NewTime(tableName, "created_at")
 	_page.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -54,7 +56,9 @@ type page struct {
 	EditPid     field.String // edit page id, start with E
 	AdminPid    field.String // super admin page id, start with A
 	Title       field.String // 标题
+	Brief       field.String // 简要描述
 	Content     field.String // 实体内容(文件夹、链接定义)
+	Version     field.Int64  // 版本号
 	CreatedAt   field.Time   // 创建时间
 	UpdatedAt   field.Time   // 更新时间
 
@@ -80,7 +84,9 @@ func (p *page) updateTableName(table string) *page {
 	p.EditPid = field.NewString(table, "edit_pid")
 	p.AdminPid = field.NewString(table, "admin_pid")
 	p.Title = field.NewString(table, "title")
+	p.Brief = field.NewString(table, "brief")
 	p.Content = field.NewString(table, "content")
+	p.Version = field.NewInt64(table, "version")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -107,7 +113,7 @@ func (p *page) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (p *page) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 10)
+	p.fieldMap = make(map[string]field.Expr, 12)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["uid"] = p.UID
 	p.fieldMap["pid"] = p.Pid
@@ -115,7 +121,9 @@ func (p *page) fillFieldMap() {
 	p.fieldMap["edit_pid"] = p.EditPid
 	p.fieldMap["admin_pid"] = p.AdminPid
 	p.fieldMap["title"] = p.Title
+	p.fieldMap["brief"] = p.Brief
 	p.fieldMap["content"] = p.Content
+	p.fieldMap["version"] = p.Version
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 }

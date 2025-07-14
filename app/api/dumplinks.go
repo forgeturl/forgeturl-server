@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"forgeturl-server/api/common"
 	"forgeturl-server/api/dumplinks"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/dal/query"
@@ -26,11 +27,11 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	// Get user ID from context
 	userID, exists := ctx.Get("uid")
 	if !exists {
-		return nil, ecode.ErrUnauthorized()
+		return nil, common.ErrForbidden()
 	}
 	uid, ok := userID.(int64)
 	if !ok {
-		return nil, ecode.ErrUnauthorized
+		return nil, common.ErrForbidden()
 	}
 
 	// Convert bookmarks to JSON content
@@ -39,11 +40,10 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	}
 	content, err := json.Marshal(bookmarkContent)
 	if err != nil {
-		return nil, ecode.ErrInvalidParam
+		return nil, common.ErrBadRequest()
 	}
 
 	// Create or update page record
-	q := query.Use(query.DB)
 	var page *model.Page
 
 	// Check if user already has a bookmark page

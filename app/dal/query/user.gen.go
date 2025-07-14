@@ -62,7 +62,7 @@ type user struct {
 	LastLoginDate field.Time
 	PageIds       field.String
 	Provider      field.String // login source google/facebook/weixin
-	ExternalID    field.String // login source unique id
+	ExternalID    field.String // login source unique id(gmail sub 255char//weixin unionid 28char)
 	IPInfo        field.String
 	IsAdmin       field.Int32
 	SuspendedAt   field.Time

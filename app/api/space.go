@@ -1,14 +1,21 @@
 package api
 
 import (
+	"forgeturl-server/api/common"
 	"forgeturl-server/api/space"
+	"forgeturl-server/conf"
 	"forgeturl-server/dal"
-	"forgeturl-server/pkg/lcache"
+	"forgeturl-server/pkg/middleware"
 
 	"github.com/sunmi-OS/gocore/v2/api"
 )
 
 type spaceServiceImpl struct {
+}
+
+func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageIdsReq) (*space.SavePageIdsResp, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewSpaceService() space.SpaceServiceHTTPServer {
@@ -34,7 +41,7 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 		return nil, err
 	}
 
-	pages := toPages(pageIds, owner, readonly, edit)
+	pages := toPages(uid, pageIds, owner, readonly, edit)
 
 	resp := &space.GetMySpaceResp{
 		SpaceName: userInfo.DisplayName,
@@ -45,33 +52,23 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 
 func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (*space.GetPageResp, error) {
 	ctx := context.Request.Context()
-
-	uid := lcache.GetLoginUid(context)
-	userInfo, err := dal.User.Get(ctx, uid)
-	if err != nil {
-		return nil, err
+	// 获取某个页面数据
+	uid := middleware.GetLoginUid(context)
+	pageId := req.PageId
+	if isNeedLoginPageId(pageId) && uid == 0 {
+		return nil, common.ErrNeedLogin("")
 	}
-	
-	pageType := parsePageId(req.PageId)
+
+	pageType := conf.ParseIdType(req.PageId)
 	// 拉取某个页面数据
-	
-	owner, readonly, edit, err := dal.Page.GetPages(ctx, uid, ownerIds, readonlyIds, editIds)
+
+	page, err := dal.Page.GetPage(ctx, uid, pageId, pageType)
 	if err != nil {
 		return nil, err
 	}
-	
-	pages := toPages(pageIds, owner, readonly, edit)
-	
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
-}
 
-func (s spaceServiceImpl) ChangeSpacePageSequence(context *api.Context, req *space.ChangeSpacePageSequenceReq) (*space.ChangeSpacePageSequenceResp, error) {
-	ctx := context.Request.Context()
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
+	pageResp := toPage(uid, page)
+	return &space.GetPageResp{Page: pageResp}, nil
 }
 
 func (s spaceServiceImpl) CreateTmpPage(context *api.Context, req *space.CreateTmpPageReq) (*space.CreateTmpPageResp, error) {
@@ -90,28 +87,44 @@ func (s spaceServiceImpl) GetPages(context *api.Context, req *space.GetPagesReq)
 
 func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePageReq) (*space.UpdatePageResp, error) {
 	ctx := context.Request.Context()
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
+
+	err := dal.Page.UpdatePage(ctx, uid, req.Mask, req.Version, req.PageId, req.Title, req.Brief, req.Content)
+	if err != nil {
+		return nil, err
+	}
+	return &space.UpdatePageResp{}, nil
 }
 
 func (s spaceServiceImpl) DeletePage(context *api.Context, req *space.DeletePageReq) (*space.DeletePageResp, error) {
 	ctx := context.Request.Context()
-	uid := lcache.GetLoginUid(context)
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
 
-	dal.Page.Create()
-
-	// 如果页面是自己的才能删除
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
+	err := dal.Page.DeleteByPid(ctx, uid, req.PageId)
+	if err != nil {
+		return nil, err
+	}
+	return &space.DeletePageResp{}, nil
 }
 
-func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.RemovePageLinkReq) (*space.RemovePageLinkResp, error) {
+func (s spaceServiceImpl) UnlinkPage(context *api.Context, req *space.UnlinkPageReq) (*space.UnlinkPageResp, error) {
 	ctx := context.Request.Context()
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
+
+	err := dal.Page.UnlinkPage(ctx, uid, req.PageId)
+	if err != nil {
+		return nil, err
+	}
+	return &space.UnlinkPageResp{}, nil
 }
 
 func (s spaceServiceImpl) CreateNewPageLink(context *api.Context, req *space.CreateNewPageLinkReq) (*space.CreateNewPageLinkResp, error) {

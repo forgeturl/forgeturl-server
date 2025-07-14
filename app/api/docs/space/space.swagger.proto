@@ -17,9 +17,10 @@ service SpaceService {
   }
 
   // 调整我的空间下面的页面顺序 || 空间
-  rpc ChangeSpacePageSequence(ChangeSpacePageSequenceReq) returns (TChangeSpacePageSequenceResp) {
+  // 如果有新增、删除page_id，也使用该方法
+  rpc SavePageIds(SavePageIdsReq) returns (TSavePageIdsResp) {
     option (google.api.http) = {
-      post: "/page/changeSpacePageSequence"
+      post: "/page/savePageIds"
       body: "*"
     };
   }
@@ -72,9 +73,9 @@ service SpaceService {
 
   // 去除页面连接 || 页面
   // 把页面的只读链接删除
-  rpc RemovePageLink(RemovePageLinkReq) returns (TRemovePageLinkResp) {
+  rpc UnlinkPage(UnlinkPageReq) returns (TUnlinkPageResp) {
     option (google.api.http) = {
-      post: "/page/removePageLink"
+      post: "/page/unlinkPage"
       body: "*"
     };
   }
@@ -91,6 +92,8 @@ service SpaceService {
 
 
 message CreateTmpPageReq {
+  // 客户侧唯一识别码
+  string user_uuid = 1; // binding:"required,min=1,max=32"
 }
 
 message CreateTmpPageResp {// omitempty=false
@@ -103,7 +106,7 @@ message Page {// omitempty=false
   string page_id = 1;
   string title = 2;
   // 页面描述，放在页面最上方展示
-  string content = 3;
+  string brief = 3;
   // 文件夹
   repeated Collections collections = 4;
   // 版本号，从0递增，当修改时需要传入该值
@@ -182,14 +185,14 @@ message GetMySpaceResp {
   repeated Page pages = 10;
 }
 
-message ChangeSpacePageSequenceReq {
+message SavePageIdsReq {
   // 用户id
   int64 uid = 1;
   // 调整后页面id的顺序
   repeated string page_ids = 2;
 }
 
-message ChangeSpacePageSequenceResp {
+message SavePageIdsResp {
   // 调整后页面id的顺序
   repeated string page_ids = 2;
 }
@@ -197,10 +200,16 @@ message ChangeSpacePageSequenceResp {
 message UpdatePageReq {
   string page_id = 1;
   string title = 2;
-  string content = 3;
-  repeated Collections collections = 4;
-  // 版本号，从0递增，修改时需要传入该值
-  int64 version = 5;  // binding:"min=0"
+  string brief = 3;
+  string content = 4;
+  repeated Collections collections = 5;
+  // 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0
+  int64 version = 6;  // binding:"min=0"
+  // 配置参数
+  // 0x01 title
+  // 0x02 brief
+  // 0x04 collections
+  int64 mask = 7;
 }
 
 message UpdatePageResp {
@@ -214,17 +223,17 @@ message DeletePageReq {
 message DeletePageResp {
 }
 
-message RemovePageLinkReq {
-  string link_id = 1;
+message UnlinkPageReq {
+  string page_id = 1;
 }
 
-message RemovePageLinkResp {
+message UnlinkPageResp {
 }
 
 message CreateNewPageLinkReq {
   string page_id = 1;
   // 生成只读、编辑、超级权限的链接
-  string operation = 2; // binding:"required,oneof=read_only edit admin"
+  string operation = 2; // binding:"required,oneof=readonly edit admin"
 }
 
 message CreateNewPageLinkResp {
@@ -239,10 +248,10 @@ message TGetMySpaceResp {
    string msg = 2; // binding:"required"
    GetMySpaceResp data = 3; // binding:"required"
 }
-message TChangeSpacePageSequenceResp {
+message TSavePageIdsResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
-   ChangeSpacePageSequenceResp data = 3; // binding:"required"
+   SavePageIdsResp data = 3; // binding:"required"
 }
 message TCreateTmpPageResp {
    int32 code = 1; // binding:"required"
@@ -269,10 +278,10 @@ message TDeletePageResp {
    string msg = 2; // binding:"required"
    DeletePageResp data = 3; // binding:"required"
 }
-message TRemovePageLinkResp {
+message TUnlinkPageResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
-   RemovePageLinkResp data = 3; // binding:"required"
+   UnlinkPageResp data = 3; // binding:"required"
 }
 message TCreateNewPageLinkResp {
    int32 code = 1; // binding:"required"

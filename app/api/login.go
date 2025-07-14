@@ -131,7 +131,7 @@ func (l loginServiceImpl) GetUserInfo(context *api.Context, req *login.GetUserIn
 	// 已登录才能获取到详情，否则拉拉取不到
 	ctx := context.Request.Context()
 	uid := req.Uid
-	loginUid := lcache.GetLoginUid(context)
+	loginUid := middleware.GetLoginUid(context)
 	userInfo, err := dal.User.Get(ctx, uid)
 	if err != nil {
 		return nil, err

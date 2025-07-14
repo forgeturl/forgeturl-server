@@ -22,10 +22,10 @@ type User struct {
 	Status        int32          `gorm:"column:status;type:tinyint(4);not null;comment:user status(normal 0,suspended 2,deleted 4)" json:"status"` // user status(normal 0,suspended 2,deleted 4)
 	LastLoginDate time.Time      `gorm:"column:last_login_date;type:datetime;not null" json:"last_login_date"`
 	PageIds       string         `gorm:"column:page_ids;type:varchar(2048);not null" json:"page_ids"`
-	Provider      string         `gorm:"column:provider;type:varchar(32);not null;comment:login source google/facebook/weixin" json:"provider"`                                 // login source google/facebook/weixin
-	ExternalID    string         `gorm:"column:external_id;type:varchar(128);not null;uniqueIndex:uk_external_id,priority:1;comment:login source unique id" json:"external_id"` // login source unique id
+	Provider      string         `gorm:"column:provider;type:varchar(32);not null;uniqueIndex:uk_provider_external_id,priority:1;comment:login source google/facebook/weixin" json:"provider"`                                     // login source google/facebook/weixin
+	ExternalID    string         `gorm:"column:external_id;type:varchar(255);not null;uniqueIndex:uk_provider_external_id,priority:2;comment:login source unique id(gmail sub 255char//weixin unionid 28char)" json:"external_id"` // login source unique id(gmail sub 255char//weixin unionid 28char)
 	IPInfo        string         `gorm:"column:ip_info;type:varchar(255);not null" json:"ip_info"`
-	IsAdmin       int32          `gorm:"column:is_admin;type:tinyint(1);not null" json:"is_admin"`
+	IsAdmin       int32          `gorm:"column:is_admin;type:tinyint(4);not null" json:"is_admin"`
 	SuspendedAt   time.Time      `gorm:"column:suspended_at;type:datetime" json:"suspended_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:datetime" json:"deleted_at"`
 	CreatedAt     *time.Time     `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:create time" json:"created_at"` // create time

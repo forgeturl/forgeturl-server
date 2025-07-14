@@ -43,4 +43,9 @@ enum CommonError {
   ERR_SERVICE_UNAVAILABLE = 503; // Service unavailable || 服务器暂时不可用
   // 504 Gateway Timeout
   ERR_GATEWAY_TIMEOUT = 504;	// Gateway timeout || 网关超时
+
+
+  ERR_NEED_LOGIN = 40001; // need login || 需要登录
+  ERR_NOT_SUPPORT = 40002; // The operation is not supported || 不支持该操作
+  ERR_UPDATE_MISS_NEED_REFRESH_PAGE = 40003; // This page has been modified, please refresh and try again! || 这个页面被更改过了，请刷新后重试！
 }

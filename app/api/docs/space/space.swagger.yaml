@@ -6,25 +6,6 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /page/changeSpacePageSequence:
-        post:
-            tags:
-                - 空间
-            summary: 调整我的空间下面的页面顺序
-            operationId: SpaceService_ChangeSpacePageSequence
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/.ChangeSpacePageSequenceReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/.TChangeSpacePageSequenceResp'
     /page/createNewPageLink:
         post:
             tags:
@@ -150,18 +131,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.TGetPagesResp'
-    /page/removePageLink:
+    /page/savePageIds:
         post:
             tags:
-                - 页面
-            summary: 去除页面连接
-            description: ' 把页面的只读链接删除'
-            operationId: SpaceService_RemovePageLink
+                - 空间
+            summary: 调整我的空间下面的页面顺序
+            description: ' 如果有新增、删除page_id，也使用该方法'
+            operationId: SpaceService_SavePageIds
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/.RemovePageLinkReq'
+                            $ref: '#/components/schemas/.SavePageIdsReq'
                 required: true
             responses:
                 "200":
@@ -169,7 +150,27 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/.TRemovePageLinkResp'
+                                $ref: '#/components/schemas/.TSavePageIdsResp'
+    /page/unlinkPage:
+        post:
+            tags:
+                - 页面
+            summary: 去除页面连接
+            description: ' 把页面的只读链接删除'
+            operationId: SpaceService_UnlinkPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.UnlinkPageReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.TUnlinkPageResp'
     /page/updatePage:
         post:
             tags:
@@ -191,26 +192,6 @@ paths:
                                 $ref: '#/components/schemas/.TUpdatePageResp'
 components:
     schemas:
-        .ChangeSpacePageSequenceReq:
-            type: object
-            properties:
-                uid:
-                    type: integer
-                    description: 用户id
-                    format: int64
-                page_ids:
-                    type: array
-                    items:
-                        type: string
-                    description: 调整后页面id的顺序
-        .ChangeSpacePageSequenceResp:
-            type: object
-            properties:
-                page_ids:
-                    type: array
-                    items:
-                        type: string
-                    description: 调整后页面id的顺序
         .Collections:
             type: object
             properties:
@@ -239,8 +220,13 @@ components:
                          可编辑页面：http://2049links.com/share_editable/E加密字符串2
                          超级权限页面：http://2049links.com/share_admin/A加密字符串3
         .CreateTmpPageReq:
+            required:
+                - user_uuid
             type: object
-            properties: {}
+            properties:
+                user_uuid:
+                    type: string
+                    description: 客户侧唯一识别码
         .CreateTmpPageResp:
             type: object
             properties:
@@ -330,7 +316,7 @@ components:
                     type: string
                 title:
                     type: string
-                content:
+                brief:
                     type: string
                     description: 页面描述，放在页面最上方展示
                 collections:
@@ -370,14 +356,26 @@ components:
                 can_delete:
                     type: boolean
                     description: 可删除
-        .RemovePageLinkReq:
+        .SavePageIdsReq:
             type: object
             properties:
-                link_id:
-                    type: string
-        .RemovePageLinkResp:
+                uid:
+                    type: integer
+                    description: 用户id
+                    format: int64
+                page_ids:
+                    type: array
+                    items:
+                        type: string
+                    description: 调整后页面id的顺序
+        .SavePageIdsResp:
             type: object
-            properties: {}
+            properties:
+                page_ids:
+                    type: array
+                    items:
+                        type: string
+                    description: 调整后页面id的顺序
         .SubLink:
             type: object
             properties:
@@ -387,20 +385,6 @@ components:
                 url:
                     type: string
                     description: 链接
-        .TChangeSpacePageSequenceResp:
-            required:
-                - code
-                - msg
-                - data
-            type: object
-            properties:
-                code:
-                    type: integer
-                    format: int32
-                msg:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/.ChangeSpacePageSequenceResp'
         .TCreateNewPageLinkResp:
             required:
                 - code
@@ -485,7 +469,7 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.GetPagesResp'
-        .TRemovePageLinkResp:
+        .TSavePageIdsResp:
             required:
                 - code
                 - msg
@@ -498,7 +482,21 @@ components:
                 msg:
                     type: string
                 data:
-                    $ref: '#/components/schemas/.RemovePageLinkResp'
+                    $ref: '#/components/schemas/.SavePageIdsResp'
+        .TUnlinkPageResp:
+            required:
+                - code
+                - msg
+                - data
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                msg:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/.UnlinkPageResp'
         .TUpdatePageResp:
             required:
                 - code
@@ -513,12 +511,22 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.UpdatePageResp'
+        .UnlinkPageReq:
+            type: object
+            properties:
+                page_id:
+                    type: string
+        .UnlinkPageResp:
+            type: object
+            properties: {}
         .UpdatePageReq:
             type: object
             properties:
                 page_id:
                     type: string
                 title:
+                    type: string
+                brief:
                     type: string
                 content:
                     type: string
@@ -528,7 +536,15 @@ components:
                         $ref: '#/components/schemas/.Collections'
                 version:
                     type: integer
-                    description: 版本号，从0递增，修改时需要传入该值
+                    description: 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0
+                    format: int64
+                mask:
+                    type: integer
+                    description: |-
+                        配置参数
+                         0x01 title
+                         0x02 brief
+                         0x04 collections
                     format: int64
         .UpdatePageResp:
             type: object

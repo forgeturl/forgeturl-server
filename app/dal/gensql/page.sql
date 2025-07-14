@@ -9,6 +9,7 @@ CREATE TABLE page
     `edit_pid`  VARCHAR(16) DEFAULT '' NOT NULL COMMENT 'edit page id, start with E',
     `admin_pid` VARCHAR(16) DEFAULT '' NOT NULL COMMENT 'super admin page id, start with A',
     `title`     VARCHAR(256) DEFAULT '' NOT NULL COMMENT '标题',
+    `brief`     VARCHAR(1024) DEFAULT '' NOT NULL COMMENT '简要描述',
     `content`   MEDIUMTEXT NOT NULL COMMENT '实体内容(文件夹、链接定义)',
     `version`   BIGINT(20) DEFAULT 0 NOT NULL COMMENT '版本号',
 

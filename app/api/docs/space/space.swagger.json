@@ -5,37 +5,6 @@
     "version": "0.0.1"
   },
   "paths": {
-    "/page/changeSpacePageSequence": {
-      "post": {
-        "tags": [
-          "空间"
-        ],
-        "summary": "调整我的空间下面的页面顺序",
-        "operationId": "SpaceService_ChangeSpacePageSequence",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/.ChangeSpacePageSequenceReq"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/.TChangeSpacePageSequenceResp"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/page/createNewPageLink": {
       "post": {
         "tags": [
@@ -226,19 +195,19 @@
         }
       }
     },
-    "/page/removePageLink": {
+    "/page/savePageIds": {
       "post": {
         "tags": [
-          "页面"
+          "空间"
         ],
-        "summary": "去除页面连接",
-        "description": " 把页面的只读链接删除",
-        "operationId": "SpaceService_RemovePageLink",
+        "summary": "调整我的空间下面的页面顺序",
+        "description": " 如果有新增、删除page_id，也使用该方法",
+        "operationId": "SpaceService_SavePageIds",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/.RemovePageLinkReq"
+                "$ref": "#/components/schemas/.SavePageIdsReq"
               }
             }
           },
@@ -250,7 +219,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/.TRemovePageLinkResp"
+                  "$ref": "#/components/schemas/.TSavePageIdsResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/page/unlinkPage": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "去除页面连接",
+        "description": " 把页面的只读链接删除",
+        "operationId": "SpaceService_UnlinkPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.UnlinkPageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TUnlinkPageResp"
                 }
               }
             }
@@ -292,35 +293,6 @@
   },
   "components": {
     "schemas": {
-      ".ChangeSpacePageSequenceReq": {
-        "type": "object",
-        "properties": {
-          "uid": {
-            "type": "integer",
-            "description": "用户id",
-            "format": "int64"
-          },
-          "page_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "调整后页面id的顺序"
-          }
-        }
-      },
-      ".ChangeSpacePageSequenceResp": {
-        "type": "object",
-        "properties": {
-          "page_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "调整后页面id的顺序"
-          }
-        }
-      },
       ".Collections": {
         "type": "object",
         "properties": {
@@ -358,8 +330,16 @@
         }
       },
       ".CreateTmpPageReq": {
+        "required": [
+          "user_uuid"
+        ],
         "type": "object",
-        "properties": {}
+        "properties": {
+          "user_uuid": {
+            "type": "string",
+            "description": "客户侧唯一识别码"
+          }
+        }
       },
       ".CreateTmpPageResp": {
         "type": "object",
@@ -493,7 +473,7 @@
           "title": {
             "type": "string"
           },
-          "content": {
+          "brief": {
             "type": "string",
             "description": "页面描述，放在页面最上方展示"
           },
@@ -549,17 +529,34 @@
           }
         }
       },
-      ".RemovePageLinkReq": {
+      ".SavePageIdsReq": {
         "type": "object",
         "properties": {
-          "link_id": {
-            "type": "string"
+          "uid": {
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
+          },
+          "page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "调整后页面id的顺序"
           }
         }
       },
-      ".RemovePageLinkResp": {
+      ".SavePageIdsResp": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "调整后页面id的顺序"
+          }
+        }
       },
       ".SubLink": {
         "type": "object",
@@ -571,26 +568,6 @@
           "url": {
             "type": "string",
             "description": "链接"
-          }
-        }
-      },
-      ".TChangeSpacePageSequenceResp": {
-        "required": [
-          "code",
-          "msg",
-          "data"
-        ],
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/.ChangeSpacePageSequenceResp"
           }
         }
       },
@@ -714,7 +691,7 @@
           }
         }
       },
-      ".TRemovePageLinkResp": {
+      ".TSavePageIdsResp": {
         "required": [
           "code",
           "msg",
@@ -730,7 +707,27 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/.RemovePageLinkResp"
+            "$ref": "#/components/schemas/.SavePageIdsResp"
+          }
+        }
+      },
+      ".TUnlinkPageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.UnlinkPageResp"
           }
         }
       },
@@ -754,6 +751,18 @@
           }
         }
       },
+      ".UnlinkPageReq": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          }
+        }
+      },
+      ".UnlinkPageResp": {
+        "type": "object",
+        "properties": {}
+      },
       ".UpdatePageReq": {
         "type": "object",
         "properties": {
@@ -761,6 +770,9 @@
             "type": "string"
           },
           "title": {
+            "type": "string"
+          },
+          "brief": {
             "type": "string"
           },
           "content": {
@@ -774,7 +786,12 @@
           },
           "version": {
             "type": "integer",
-            "description": "版本号，从0递增，修改时需要传入该值",
+            "description": "版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0",
+            "format": "int64"
+          },
+          "mask": {
+            "type": "integer",
+            "description": "配置参数\n 0x01 title\n 0x02 brief\n 0x04 collections",
             "format": "int64"
           }
         }
