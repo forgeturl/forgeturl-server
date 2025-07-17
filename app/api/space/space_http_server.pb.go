@@ -36,24 +36,24 @@ type SpaceServiceHTTPServer interface {
 	// 把整个页面删除 || 页面
 	// 自己的默认页面只能清空，无法删除
 	DeletePage(*api.Context, *DeletePageReq) (*DeletePageResp, error)
-	// 去除页面连接 || 页面
-	// 把页面的只读链接删除
-	UnlinkPage(*api.Context, *UnlinkPageReq) (*UnlinkPageResp, error)
+	// 去除页面的某种链接 || 页面
+	// 把页面的只读链接、编辑链接删除
+	RemovePageLink(*api.Context, *RemovePageLinkReq) (*RemovePageLinkResp, error)
 	// 生成新页面链接 || 页面
-	CreateNewPageLink(*api.Context, *CreateNewPageLinkReq) (*CreateNewPageLinkResp, error)
+	CreatePageLink(*api.Context, *CreatePageLinkReq) (*CreatePageLinkResp, error)
 }
 
 func RegisterSpaceServiceHTTPServer(s *gin.Engine, srv SpaceServiceHTTPServer) {
 	r := s.Group("/")
-	r.POST("/page/getMySpace", _SpaceService_GetMySpace_HTTP_Handler(srv))               // 拉取我的空间 || 空间
-	r.POST("/page/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))             // 调整我的空间下面的页面顺序 || 空间
-	r.POST("/page/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))         // 创建临时页面 || 页面
-	r.POST("/page/getPages", _SpaceService_GetPages_HTTP_Handler(srv))                   // 拉取某个页面数据 || 页面
-	r.POST("/page/getPage", _SpaceService_GetPage_HTTP_Handler(srv))                     // 拉取某个页面数据 || 页面
-	r.POST("/page/updatePage", _SpaceService_UpdatePage_HTTP_Handler(srv))               // 更新页面 || 页面
-	r.POST("/page/deletePage", _SpaceService_DeletePage_HTTP_Handler(srv))               // 把整个页面删除 || 页面
-	r.POST("/page/unlinkPage", _SpaceService_UnlinkPage_HTTP_Handler(srv))               // 去除页面连接 || 页面
-	r.POST("/page/createNewPageLink", _SpaceService_CreateNewPageLink_HTTP_Handler(srv)) // 生成新页面链接 || 页面
+	r.POST("/page/getMySpace", _SpaceService_GetMySpace_HTTP_Handler(srv))         // 拉取我的空间 || 空间
+	r.POST("/page/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))       // 调整我的空间下面的页面顺序 || 空间
+	r.POST("/page/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))   // 创建临时页面 || 页面
+	r.POST("/page/getPages", _SpaceService_GetPages_HTTP_Handler(srv))             // 拉取某个页面数据 || 页面
+	r.POST("/page/getPage", _SpaceService_GetPage_HTTP_Handler(srv))               // 拉取某个页面数据 || 页面
+	r.POST("/page/updatePage", _SpaceService_UpdatePage_HTTP_Handler(srv))         // 更新页面 || 页面
+	r.POST("/page/deletePage", _SpaceService_DeletePage_HTTP_Handler(srv))         // 把整个页面删除 || 页面
+	r.POST("/page/removePageLink", _SpaceService_RemovePageLink_HTTP_Handler(srv)) // 去除页面的某种链接 || 页面
+	r.POST("/page/createPageLink", _SpaceService_CreatePageLink_HTTP_Handler(srv)) // 生成新页面链接 || 页面
 }
 
 func _SpaceService_GetMySpace_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
@@ -168,9 +168,9 @@ func _SpaceService_DeletePage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *g
 	}
 }
 
-func _SpaceService_UnlinkPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+func _SpaceService_RemovePageLink_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
 	return func(g *gin.Context) {
-		req := &UnlinkPageReq{}
+		req := &RemovePageLinkReq{}
 		var err error
 		ctx := api.NewContext(g)
 		err = parseReq(&ctx, req)
@@ -179,14 +179,14 @@ func _SpaceService_UnlinkPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *g
 			setRetJSON(&ctx, nil, err)
 			return
 		}
-		resp, err := srv.UnlinkPage(&ctx, req)
+		resp, err := srv.RemovePageLink(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }
 
-func _SpaceService_CreateNewPageLink_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+func _SpaceService_CreatePageLink_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
 	return func(g *gin.Context) {
-		req := &CreateNewPageLinkReq{}
+		req := &CreatePageLinkReq{}
 		var err error
 		ctx := api.NewContext(g)
 		err = parseReq(&ctx, req)
@@ -195,7 +195,7 @@ func _SpaceService_CreateNewPageLink_HTTP_Handler(srv SpaceServiceHTTPServer) fu
 			setRetJSON(&ctx, nil, err)
 			return
 		}
-		resp, err := srv.CreateNewPageLink(&ctx, req)
+		resp, err := srv.CreatePageLink(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }

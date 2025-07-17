@@ -41,24 +41,42 @@ func parsePageIds(pageIdStr string) (pageIds, ownerIds []string, readonlyIds []s
 	return
 }
 
-func toPage(uid int64, page *model.Page) *space.Page {
+func toPage(uid int64, pageId string, page *model.Page) *space.Page {
 	var co []*space.Collections
 	_ = sonic.UnmarshalString(page.Content, co)
 	isSelf := page.UID == uid
-	return &space.Page{
-		PageId:      page.Pid,
+	pageResp := &space.Page{
+		// PageId:      page.Pid,
+		PageId:      pageId,
 		Title:       page.Title,
 		Brief:       page.Brief,
 		Collections: co, // Collections are not used in this context
 		CreateTime:  page.CreatedAt.Unix(),
 		UpdateTime:  page.UpdatedAt.Unix(),
 		IsSelf:      isSelf,
-		PageConf: &space.PageConf{
-			ReadOnly:  page.ReadonlyPid != "",
-			CanEdit:   page.EditPid != "",
-			CanDelete: page.AdminPid != "",
-		},
+		PageConf:    &space.PageConf{},
 	}
+
+	if page.ReadonlyPid == pageId {
+		pageResp.PageConf.ReadOnly = true
+	} else if page.EditPid == pageId {
+		pageResp.PageConf.CanEdit = true
+	} else if page.AdminPid == pageId {
+		pageResp.PageConf.CanEdit = true
+		pageResp.PageConf.CanDelete = true
+	}
+
+	// 如果是自己的页面，则展示一下信息，并且标最高权限
+	if isSelf {
+		pageResp.ReadonlyPageId = page.ReadonlyPid
+		pageResp.EditPageId = page.EditPid
+		pageResp.AdminPageId = page.AdminPid
+
+		pageResp.PageConf.CanEdit = true
+		pageResp.PageConf.CanDelete = true
+
+	}
+	return pageResp
 }
 
 func toPages(uid int64, pageIds []string, owner, readonly, edit []*model.Page) []*space.Page {
@@ -72,6 +90,10 @@ func toPages(uid int64, pageIds []string, owner, readonly, edit []*model.Page) [
 		if pg.Pid == "" {
 			continue
 		}
+
+		pageMap[pg.Pid] = toPage(uid, pg.Pid, pg)
+
+
 		pageMap[pg.Pid] = &space.Page{
 			PageId:      pg.Pid,
 			Title:       pg.Title,

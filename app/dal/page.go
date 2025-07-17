@@ -41,35 +41,19 @@ func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, pageIdTy
 	return page, nil
 }
 
-// GetPages 首页拉取大致详情使用
-func (*pageImpl) GetPages(ctx context.Context, uid int64, ownerIds, readonlyIds, editIds []string) (owner, readonly, edit []*model.Page, err error) {
+
+func (*pageImpl) CheckIsYourPage(ctx context.Context, uid int64, pageIds []string) error {
 	u := Q.Page
 	do := u.WithContext(ctx)
-	if len(ownerIds) > 0 {
-		owner, err = do.Where(u.UID.Eq(uid), u.Pid.In(ownerIds...)).Find()
-		if err != nil {
-			err = transGormErr(err)
-			return
-		}
+	do = do.Select(u.ID).Where(u.UID.Eq(uid), u.Pid.In(pageIds...))
+	infos, err := do.Find()
+	if err != nil {
+		return transGormErr(err)
 	}
-
-	if len(readonlyIds) > 0 {
-		readonly, err = do.Where(u.ReadonlyPid.In(readonlyIds...)).Find()
-		if err != nil {
-			err = transGormErr(err)
-			return
-		}
+	if len(infos) != len(pageIds) {
+		return common.ErrNotYourPageOrPageNotExist()
 	}
-
-	if len(editIds) > 0 {
-		edit, err = do.Where(u.EditPid.In(editIds...)).Find()
-		if err != nil {
-			err = transGormErr(err)
-			return
-		}
-	}
-
-	return
+	return nil
 }
 
 const (

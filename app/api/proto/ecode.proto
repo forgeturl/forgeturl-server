@@ -48,4 +48,5 @@ enum CommonError {
   ERR_NEED_LOGIN = 40001; // need login || 需要登录
   ERR_NOT_SUPPORT = 40002; // The operation is not supported || 不支持该操作
   ERR_UPDATE_MISS_NEED_REFRESH_PAGE = 40003; // This page has been modified, please refresh and try again! || 这个页面被更改过了，请刷新后重试！
+  ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST = 40004; // This page is not yours or not exist || 这个页面不是你的或者不存在
 }

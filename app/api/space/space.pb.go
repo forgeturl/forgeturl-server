@@ -34,6 +34,10 @@ type Page struct {
 	IsSelf bool `json:"is_self"`
 	// 页面属性
 	PageConf *PageConf `json:"page_conf"`
+	// 如果是自己的页面，则会展示一下信息
+	ReadonlyPageId string `json:"readonly_page_id"`
+	EditPageId     string `json:"edit_page_id"`
+	AdminPageId    string `json:"admin_page_id"`
 }
 
 type Collections struct {
@@ -134,22 +138,26 @@ type DeletePageReq struct {
 type DeletePageResp struct {
 }
 
-type UnlinkPageReq struct {
+type RemovePageLinkReq struct {
 	PageId string `json:"page_id,omitempty"`
 }
 
-type UnlinkPageResp struct {
+type RemovePageLinkResp struct {
 }
 
-type CreateNewPageLinkReq struct {
-	PageId string `json:"page_id,omitempty"`
+type CreatePageLinkReq struct {
+	// 原始页面id
+	PageId string `json:"page_id" binding:"required,min=1,max=64"`
 	// 生成只读、编辑、超级权限的链接
-	Operation string `json:"operation" binding:"required,oneof=readonly edit admin"`
+	// 只读、编辑、超级权限的链接，只能生成一个, 如果已经存在，则需要提醒用户，会覆盖之前的链接
+	PageType string `json:"page_type" binding:"required,oneof=readonly edit admin"`
 }
 
-type CreateNewPageLinkResp struct {
+type CreatePageLinkResp struct {
 	// 只读 http://2049links.com/share_readonly/R加密字符串1
 	// 可编辑页面：http://2049links.com/share_editable/E加密字符串2
 	// 超级权限页面：http://2049links.com/share_admin/A加密字符串3
-	LinkId string `json:"link_id,omitempty"`
+	NewPageId string `json:"new_page_id"`
+	// 页面类型
+	PageType string `json:"page_type" binding:"oneof=readonly edit admin"`
 }

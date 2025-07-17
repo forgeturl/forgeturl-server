@@ -39,3 +39,9 @@ func (*userImpl) UpdateDisplayName(ctx context.Context, uid int64, displayName s
 	_, err := u.WithContext(ctx).Where(u.ID.Eq(uid)).UpdateSimple(u.DisplayName.Value(displayName))
 	return transGormErr(err)
 }
+
+func (*userImpl) UpdatePageIds(ctx context.Context, uid int64, pageIdStr string) error {
+	u := Q.User
+	_, err := u.WithContext(ctx).Where(u.ID.Eq(uid)).UpdateSimple(u.PageIds.Value(pageIdStr))
+	return transGormErr(err)
+}

@@ -71,19 +71,19 @@ service SpaceService {
     };
   }
 
-  // 去除页面连接 || 页面
-  // 把页面的只读链接删除
-  rpc UnlinkPage(UnlinkPageReq) returns (TUnlinkPageResp) {
+  // 去除页面的某种链接 || 页面
+  // 把页面的只读链接、编辑链接删除
+  rpc RemovePageLink(RemovePageLinkReq) returns (TRemovePageLinkResp) {
     option (google.api.http) = {
-      post: "/page/unlinkPage"
+      post: "/page/removePageLink"
       body: "*"
     };
   }
 
   // 生成新页面链接 || 页面
-  rpc CreateNewPageLink(CreateNewPageLinkReq) returns (TCreateNewPageLinkResp) {
+  rpc CreatePageLink(CreatePageLinkReq) returns (TCreatePageLinkResp) {
     option (google.api.http) = {
-      post: "/page/createNewPageLink"
+      post: "/page/createPageLink"
       body: "*"
     };
   }
@@ -120,6 +120,11 @@ message Page {// omitempty=false
 
   // 页面属性
   PageConf page_conf = 13;
+
+  // 如果是自己的页面，则会展示一下信息
+  string readonly_page_id = 14;
+  string edit_page_id = 15;
+  string admin_page_id = 16;
 }
 
 
@@ -223,24 +228,28 @@ message DeletePageReq {
 message DeletePageResp {
 }
 
-message UnlinkPageReq {
+message RemovePageLinkReq {
   string page_id = 1;
 }
 
-message UnlinkPageResp {
+message RemovePageLinkResp {
 }
 
-message CreateNewPageLinkReq {
-  string page_id = 1;
+message CreatePageLinkReq {
+  // 原始页面id
+  string page_id = 1; // binding:"required,min=1,max=64"
   // 生成只读、编辑、超级权限的链接
-  string operation = 2; // binding:"required,oneof=readonly edit admin"
+  // 只读、编辑、超级权限的链接，只能生成一个, 如果已经存在，则需要提醒用户，会覆盖之前的链接
+  string page_type = 2; // binding:"required,oneof=readonly edit admin"
 }
 
-message CreateNewPageLinkResp {
+message CreatePageLinkResp { // omitempty=false
   // 只读 http://2049links.com/share_readonly/R加密字符串1
   // 可编辑页面：http://2049links.com/share_editable/E加密字符串2
   // 超级权限页面：http://2049links.com/share_admin/A加密字符串3
-  string link_id = 1;
+  string new_page_id = 1;
+  // 页面类型
+  string page_type = 2; // binding:"oneof=readonly edit admin"
 }
 
 message TGetMySpaceResp {
@@ -278,13 +287,13 @@ message TDeletePageResp {
    string msg = 2; // binding:"required"
    DeletePageResp data = 3; // binding:"required"
 }
-message TUnlinkPageResp {
+message TRemovePageLinkResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
-   UnlinkPageResp data = 3; // binding:"required"
+   RemovePageLinkResp data = 3; // binding:"required"
 }
-message TCreateNewPageLinkResp {
+message TCreatePageLinkResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
-   CreateNewPageLinkResp data = 3; // binding:"required"
+   CreatePageLinkResp data = 3; // binding:"required"
 }

@@ -38,11 +38,11 @@ type SpaceServiceHTTPClient interface {
 	// 把整个页面删除 || 页面
 	// 自己的默认页面只能清空，无法删除
 	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
-	// 去除页面连接 || 页面
-	// 把页面的只读链接删除
-	UnlinkPage(context.Context, *UnlinkPageReq, ...calloption.CallOption) (*TResponse[UnlinkPageResp], error)
+	// 去除页面的某种链接 || 页面
+	// 把页面的只读链接、编辑链接删除
+	RemovePageLink(context.Context, *RemovePageLinkReq, ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error)
 	// 生成新页面链接 || 页面
-	CreateNewPageLink(context.Context, *CreateNewPageLinkReq, ...calloption.CallOption) (*TResponse[CreateNewPageLinkResp], error)
+	CreatePageLink(context.Context, *CreatePageLinkReq, ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error)
 }
 
 type SpaceServiceHTTPClientImpl struct {
@@ -165,13 +165,13 @@ func (c *SpaceServiceHTTPClientImpl) DeletePage(ctx context.Context, req *Delete
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) UnlinkPage(ctx context.Context, req *UnlinkPageReq, opts ...calloption.CallOption) (*TResponse[UnlinkPageResp], error) {
-	resp := &TResponse[UnlinkPageResp]{}
+func (c *SpaceServiceHTTPClientImpl) RemovePageLink(ctx context.Context, req *RemovePageLinkReq, opts ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error) {
+	resp := &TResponse[RemovePageLinkResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/unlinkPage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/removePageLink")
 	if err != nil {
 		return nil, err
 	}
@@ -181,13 +181,13 @@ func (c *SpaceServiceHTTPClientImpl) UnlinkPage(ctx context.Context, req *Unlink
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) CreateNewPageLink(ctx context.Context, req *CreateNewPageLinkReq, opts ...calloption.CallOption) (*TResponse[CreateNewPageLinkResp], error) {
-	resp := &TResponse[CreateNewPageLinkResp]{}
+func (c *SpaceServiceHTTPClientImpl) CreatePageLink(ctx context.Context, req *CreatePageLinkReq, opts ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error) {
+	resp := &TResponse[CreatePageLinkResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/createNewPageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/createPageLink")
 	if err != nil {
 		return nil, err
 	}

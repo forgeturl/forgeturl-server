@@ -6,17 +6,17 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /page/createNewPageLink:
+    /page/createPageLink:
         post:
             tags:
                 - 页面
             summary: 生成新页面链接
-            operationId: SpaceService_CreateNewPageLink
+            operationId: SpaceService_CreatePageLink
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/.CreateNewPageLinkReq'
+                            $ref: '#/components/schemas/.CreatePageLinkReq'
                 required: true
             responses:
                 "200":
@@ -24,7 +24,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/.TCreateNewPageLinkResp'
+                                $ref: '#/components/schemas/.TCreatePageLinkResp'
     /page/createTmpPage:
         post:
             tags:
@@ -131,6 +131,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.TGetPagesResp'
+    /page/removePageLink:
+        post:
+            tags:
+                - 页面
+            summary: 去除页面的某种链接
+            description: ' 把页面的只读链接、编辑链接删除'
+            operationId: SpaceService_RemovePageLink
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.RemovePageLinkReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.TRemovePageLinkResp'
     /page/savePageIds:
         post:
             tags:
@@ -151,26 +171,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.TSavePageIdsResp'
-    /page/unlinkPage:
-        post:
-            tags:
-                - 页面
-            summary: 去除页面连接
-            description: ' 把页面的只读链接删除'
-            operationId: SpaceService_UnlinkPage
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/.UnlinkPageReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/.TUnlinkPageResp'
     /page/updatePage:
         post:
             tags:
@@ -200,25 +200,32 @@ components:
                     items:
                         $ref: '#/components/schemas/.Link'
                     description: 文件夹中有多个链接
-        .CreateNewPageLinkReq:
+        .CreatePageLinkReq:
             required:
-                - operation
+                - page_id
+                - page_type
             type: object
             properties:
                 page_id:
                     type: string
-                operation:
+                    description: 原始页面id
+                page_type:
                     type: string
-                    description: 生成只读、编辑、超级权限的链接
-        .CreateNewPageLinkResp:
+                    description: |-
+                        生成只读、编辑、超级权限的链接
+                         只读、编辑、超级权限的链接，只能生成一个, 如果已经存在，则需要提醒用户，会覆盖之前的链接
+        .CreatePageLinkResp:
             type: object
             properties:
-                link_id:
+                new_page_id:
                     type: string
                     description: |-
                         只读 http://2049links.com/share_readonly/R加密字符串1
                          可编辑页面：http://2049links.com/share_editable/E加密字符串2
                          超级权限页面：http://2049links.com/share_admin/A加密字符串3
+                page_type:
+                    type: string
+                    description: 页面类型
         .CreateTmpPageReq:
             required:
                 - user_uuid
@@ -342,6 +349,13 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/.PageConf'
                     description: 页面属性
+                readonly_page_id:
+                    type: string
+                    description: 如果是自己的页面，则会展示一下信息
+                edit_page_id:
+                    type: string
+                admin_page_id:
+                    type: string
         .PageConf:
             type: object
             properties:
@@ -356,6 +370,14 @@ components:
                 can_delete:
                     type: boolean
                     description: 可删除
+        .RemovePageLinkReq:
+            type: object
+            properties:
+                page_id:
+                    type: string
+        .RemovePageLinkResp:
+            type: object
+            properties: {}
         .SavePageIdsReq:
             type: object
             properties:
@@ -385,7 +407,7 @@ components:
                 url:
                     type: string
                     description: 链接
-        .TCreateNewPageLinkResp:
+        .TCreatePageLinkResp:
             required:
                 - code
                 - msg
@@ -398,7 +420,7 @@ components:
                 msg:
                     type: string
                 data:
-                    $ref: '#/components/schemas/.CreateNewPageLinkResp'
+                    $ref: '#/components/schemas/.CreatePageLinkResp'
         .TCreateTmpPageResp:
             required:
                 - code
@@ -469,6 +491,20 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.GetPagesResp'
+        .TRemovePageLinkResp:
+            required:
+                - code
+                - msg
+                - data
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                msg:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/.RemovePageLinkResp'
         .TSavePageIdsResp:
             required:
                 - code
@@ -483,20 +519,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.SavePageIdsResp'
-        .TUnlinkPageResp:
-            required:
-                - code
-                - msg
-                - data
-            type: object
-            properties:
-                code:
-                    type: integer
-                    format: int32
-                msg:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/.UnlinkPageResp'
         .TUpdatePageResp:
             required:
                 - code
@@ -511,14 +533,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.UpdatePageResp'
-        .UnlinkPageReq:
-            type: object
-            properties:
-                page_id:
-                    type: string
-        .UnlinkPageResp:
-            type: object
-            properties: {}
         .UpdatePageReq:
             type: object
             properties:

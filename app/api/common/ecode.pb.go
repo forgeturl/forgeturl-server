@@ -12,50 +12,52 @@ import (
 )
 
 const (
-	ERR_COMMON_UNKNOWN                = 0
-	ERR_BAD_REQUEST                   = 400
-	ERR_NOT_AUTHENTICATED             = 401
-	ERR_FORBIDDEN                     = 403
-	ERR_NOT_FOUND                     = 404
-	ERR_METHOD_NOT_ALLOWED            = 405
-	ERR_REQUEST_TIMEOUT               = 408
-	ERR_CONFLICT                      = 409
-	ERR_GONE                          = 410
-	ERR_REQUEST_ENTITY_TOO_LARGE      = 413
-	ERR_RANGE_NOT_SATISFIABLE         = 416
-	ERR_TOO_MANY_REQUESTS             = 429
-	ERR_INTERNAL_SERVER_ERROR         = 500
-	ERR_NOT_IMPLEMENTED               = 501
-	ERR_BAD_GATEWAY                   = 502
-	ERR_SERVICE_UNAVAILABLE           = 503
-	ERR_GATEWAY_TIMEOUT               = 504
-	ERR_NEED_LOGIN                    = 40001
-	ERR_NOT_SUPPORT                   = 40002
-	ERR_UPDATE_MISS_NEED_REFRESH_PAGE = 40003
+	ERR_COMMON_UNKNOWN                  = 0
+	ERR_BAD_REQUEST                     = 400
+	ERR_NOT_AUTHENTICATED               = 401
+	ERR_FORBIDDEN                       = 403
+	ERR_NOT_FOUND                       = 404
+	ERR_METHOD_NOT_ALLOWED              = 405
+	ERR_REQUEST_TIMEOUT                 = 408
+	ERR_CONFLICT                        = 409
+	ERR_GONE                            = 410
+	ERR_REQUEST_ENTITY_TOO_LARGE        = 413
+	ERR_RANGE_NOT_SATISFIABLE           = 416
+	ERR_TOO_MANY_REQUESTS               = 429
+	ERR_INTERNAL_SERVER_ERROR           = 500
+	ERR_NOT_IMPLEMENTED                 = 501
+	ERR_BAD_GATEWAY                     = 502
+	ERR_SERVICE_UNAVAILABLE             = 503
+	ERR_GATEWAY_TIMEOUT                 = 504
+	ERR_NEED_LOGIN                      = 40001
+	ERR_NOT_SUPPORT                     = 40002
+	ERR_UPDATE_MISS_NEED_REFRESH_PAGE   = 40003
+	ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST = 40004
 )
 
 var (
 	ErrMap = map[int]string{
-		ERR_COMMON_UNKNOWN:                "common unknown",
-		ERR_BAD_REQUEST:                   "Bad request",
-		ERR_NOT_AUTHENTICATED:             "Not authorized",
-		ERR_FORBIDDEN:                     "Forbidden",
-		ERR_NOT_FOUND:                     "Not found",
-		ERR_METHOD_NOT_ALLOWED:            "Method not allowed",
-		ERR_REQUEST_TIMEOUT:               "Request timeout",
-		ERR_CONFLICT:                      "Conflict",
-		ERR_GONE:                          "Resource gone",
-		ERR_REQUEST_ENTITY_TOO_LARGE:      "Request entity too large",
-		ERR_RANGE_NOT_SATISFIABLE:         "Range not satisfiable",
-		ERR_TOO_MANY_REQUESTS:             "Too many requests",
-		ERR_INTERNAL_SERVER_ERROR:         "Internal server error",
-		ERR_NOT_IMPLEMENTED:               "Server not implemented this function",
-		ERR_BAD_GATEWAY:                   "Bad gateway",
-		ERR_SERVICE_UNAVAILABLE:           "Service unavailable",
-		ERR_GATEWAY_TIMEOUT:               "Gateway timeout",
-		ERR_NEED_LOGIN:                    "need login",
-		ERR_NOT_SUPPORT:                   "The operation is not supported",
-		ERR_UPDATE_MISS_NEED_REFRESH_PAGE: "This page has been modified, please refresh and try again!",
+		ERR_COMMON_UNKNOWN:                  "common unknown",
+		ERR_BAD_REQUEST:                     "Bad request",
+		ERR_NOT_AUTHENTICATED:               "Not authorized",
+		ERR_FORBIDDEN:                       "Forbidden",
+		ERR_NOT_FOUND:                       "Not found",
+		ERR_METHOD_NOT_ALLOWED:              "Method not allowed",
+		ERR_REQUEST_TIMEOUT:                 "Request timeout",
+		ERR_CONFLICT:                        "Conflict",
+		ERR_GONE:                            "Resource gone",
+		ERR_REQUEST_ENTITY_TOO_LARGE:        "Request entity too large",
+		ERR_RANGE_NOT_SATISFIABLE:           "Range not satisfiable",
+		ERR_TOO_MANY_REQUESTS:               "Too many requests",
+		ERR_INTERNAL_SERVER_ERROR:           "Internal server error",
+		ERR_NOT_IMPLEMENTED:                 "Server not implemented this function",
+		ERR_BAD_GATEWAY:                     "Bad gateway",
+		ERR_SERVICE_UNAVAILABLE:             "Service unavailable",
+		ERR_GATEWAY_TIMEOUT:                 "Gateway timeout",
+		ERR_NEED_LOGIN:                      "need login",
+		ERR_NOT_SUPPORT:                     "The operation is not supported",
+		ERR_UPDATE_MISS_NEED_REFRESH_PAGE:   "This page has been modified, please refresh and try again!",
+		ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST: "This page is not yours or not exist",
 	}
 )
 
@@ -165,6 +167,11 @@ func ErrNotSupport(msg ...string) *ecode.ErrorV2 {
 // code: 40003 msg: "This page has been modified, please refresh and try again!"
 func ErrUpdateMissNeedRefreshPage(msg ...string) *ecode.ErrorV2 {
 	return makeNewErr(ERR_UPDATE_MISS_NEED_REFRESH_PAGE, msg...)
+}
+
+// code: 40004 msg: "This page is not yours or not exist"
+func ErrNotYourPageOrPageNotExist(msg ...string) *ecode.ErrorV2 {
+	return makeNewErr(ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST, msg...)
 }
 
 func IsErrCommonUnknown(err error) bool {
@@ -443,6 +450,20 @@ func IsErrUpdateMissNeedRefreshPage(err error) bool {
 func IsErrUpdateMissNeedRefreshPageDEEP(err error) bool {
 	if se := new(ecode.ErrorV2); errors.As(err, &se) {
 		return se.Code() == ERR_UPDATE_MISS_NEED_REFRESH_PAGE && se.Message() == ErrMap[ERR_UPDATE_MISS_NEED_REFRESH_PAGE]
+	}
+	return false
+}
+
+func IsErrNotYourPageOrPageNotExist(err error) bool {
+	if se := new(ecode.ErrorV2); errors.As(err, &se) {
+		return se.Code() == ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST
+	}
+	return false
+}
+
+func IsErrNotYourPageOrPageNotExistDEEP(err error) bool {
+	if se := new(ecode.ErrorV2); errors.As(err, &se) {
+		return se.Code() == ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST && se.Message() == ErrMap[ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST]
 	}
 	return false
 }

@@ -7,6 +7,7 @@ import (
 	"forgeturl-server/dal"
 	"forgeturl-server/pkg/middleware"
 
+	"github.com/bytedance/sonic"
 	"github.com/sunmi-OS/gocore/v2/api"
 )
 
@@ -14,8 +15,35 @@ type spaceServiceImpl struct {
 }
 
 func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageIdsReq) (*space.SavePageIdsResp, error) {
-	//TODO implement me
-	panic("implement me")
+	ctx := context.Request.Context()
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
+
+	pageIds := req.PageIds
+
+	// 如果是owner page则必须是他自己的才能保存
+	ownerIds := make([]string, 0)
+	for _, pageId := range pageIds {
+		if conf.ParseIdType(pageId) == conf.OwnerPage {
+			ownerIds = append(ownerIds, pageId)
+		}
+	}
+	err := dal.Page.CheckIsYourPage(ctx, uid, ownerIds)
+	if err != nil {
+		return nil, err
+	}
+	
+	pageIdsStr, err := sonic.MarshalString(pageIds)
+	if err != nil {
+		return nil, common.ErrBadRequest(err.Error())
+	}
+	err = dal.User.UpdatePageIds(ctx, uid, pageIdsStr)
+	if err != nil {
+		return nil, err
+	}
+	return &space.SavePageIdsResp{}, nil
 }
 
 func NewSpaceService() space.SpaceServiceHTTPServer {
@@ -30,23 +58,24 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 	if err != nil {
 		return nil, err
 	}
-
-	pageIds, ownerIds, readonlyIds, editIds, err := parsePageIds(userInfo.PageIds)
-	if err != nil {
-		return nil, err
-	}
-
-	owner, readonly, edit, err := dal.Page.GetPages(ctx, uid, ownerIds, readonlyIds, editIds)
-	if err != nil {
-		return nil, err
-	}
-
-	pages := toPages(uid, pageIds, owner, readonly, edit)
-
 	resp := &space.GetMySpaceResp{
 		SpaceName: userInfo.DisplayName,
-		Pages:     pages,
+		Pages:     make([]*space.Page, 0),
 	}
+
+	pageIds := make([]string, 0)
+	_ = sonic.UnmarshalString(userInfo.PageIds, &pageIds)
+
+	for _, pageId := range pageIds {
+		pageType := conf.ParseIdType(pageId)
+		page, err := dal.Page.GetPage(ctx, uid, pageId, pageType)
+		if err != nil {
+			return nil, err
+		}
+		pageResp := toPage(uid, pageId, page)
+		resp.Pages = append(resp.Pages, pageResp)
+	}
+
 	return resp, nil
 }
 
@@ -67,18 +96,11 @@ func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (
 		return nil, err
 	}
 
-	pageResp := toPage(uid, page)
+	pageResp := toPage(uid, pageId, page)
 	return &space.GetPageResp{Page: pageResp}, nil
 }
 
 func (s spaceServiceImpl) CreateTmpPage(context *api.Context, req *space.CreateTmpPageReq) (*space.CreateTmpPageResp, error) {
-	ctx := context.Request.Context()
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s spaceServiceImpl) GetPages(context *api.Context, req *space.GetPagesReq) (*space.GetPagesResp, error) {
 	ctx := context.Request.Context()
 	_ = ctx
 	//TODO implement me
@@ -113,7 +135,7 @@ func (s spaceServiceImpl) DeletePage(context *api.Context, req *space.DeletePage
 	return &space.DeletePageResp{}, nil
 }
 
-func (s spaceServiceImpl) UnlinkPage(context *api.Context, req *space.UnlinkPageReq) (*space.UnlinkPageResp, error) {
+func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.RemovePageLinkReq) (*space.RemovePageLinkResp, error) {
 	ctx := context.Request.Context()
 	uid := middleware.GetLoginUid(context)
 	if uid == 0 {
@@ -127,7 +149,7 @@ func (s spaceServiceImpl) UnlinkPage(context *api.Context, req *space.UnlinkPage
 	return &space.UnlinkPageResp{}, nil
 }
 
-func (s spaceServiceImpl) CreateNewPageLink(context *api.Context, req *space.CreateNewPageLinkReq) (*space.CreateNewPageLinkResp, error) {
+func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.CreateNewPageLinkReq) (*space.CreateNewPageLinkResp, error) {
 	ctx := context.Request.Context()
 	_ = ctx
 	//TODO implement me
