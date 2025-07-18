@@ -109,28 +109,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.TGetPageResp'
-    /page/getPages:
-        post:
-            tags:
-                - 页面
-            summary: 拉取某个页面数据
-            description: |4-
-                 拉取某个页面
-                 临时页面，可以读到
-            operationId: SpaceService_GetPages
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/.GetPagesReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/.TGetPagesResp'
     /page/removePageLink:
         post:
             tags:
@@ -266,10 +244,10 @@ components:
                 space_name:
                     type: string
                     description: 空间名字
-                pages:
+                page_briefs:
                     type: array
                     items:
-                        $ref: '#/components/schemas/.Page'
+                        $ref: '#/components/schemas/.PageBrief'
                     description: 我的空间下面的页面
         .GetPageReq:
             type: object
@@ -281,22 +259,6 @@ components:
             properties:
                 page:
                     $ref: '#/components/schemas/.Page'
-        .GetPagesReq:
-            required:
-                - page_id
-            type: object
-            properties:
-                page_id:
-                    type: array
-                    items:
-                        type: string
-        .GetPagesResp:
-            type: object
-            properties:
-                pages:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/.Page'
         .Link:
             type: object
             properties:
@@ -356,6 +318,34 @@ components:
                     type: string
                 admin_page_id:
                     type: string
+        .PageBrief:
+            type: object
+            properties:
+                page_id:
+                    type: string
+                title:
+                    type: string
+                brief:
+                    type: string
+                create_time:
+                    type: integer
+                    description: 创建时间
+                    format: int64
+                update_time:
+                    type: integer
+                    description: 更新时间
+                    format: int64
+                is_self:
+                    type: boolean
+                    description: 是否是自己的页面
+                page_type:
+                    type: string
+                    description: 页面类型
+                page_conf:
+                    allOf:
+                        - $ref: '#/components/schemas/.PageConf'
+                    description: 页面配置
+            description: 页面简介
         .PageConf:
             type: object
             properties:
@@ -477,20 +467,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.GetPageResp'
-        .TGetPagesResp:
-            required:
-                - code
-                - msg
-                - data
-            type: object
-            properties:
-                code:
-                    type: integer
-                    format: int32
-                msg:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/.GetPagesResp'
         .TRemovePageLinkResp:
             required:
                 - code

@@ -36,3 +36,23 @@ func ParseIdType(pageId string) PageType {
 	}
 	return OwnerPage
 }
+
+func (p PageType) IsOwnPage() bool {
+	return p == OwnerPage
+}
+
+func (p PageType) IsReadOnlyPage() bool {
+	return p == ReadOnlyPage
+}
+
+func (p PageType) IsEditPage() bool {
+	return p == EditPage
+}
+
+func (p PageType) IsTempPage() bool {
+	return p == TempPage
+}
+
+func (p PageType) IsAdminPage() bool {
+	return p == AdminPage
+}

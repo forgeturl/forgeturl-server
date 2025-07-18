@@ -19,8 +19,35 @@ func (*pageImpl) Create(ctx context.Context, page *model.Page) error {
 }
 
 // GetPage 可以通过多种id获取页面
-func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, pageIdType conf.PageType) (*model.Page, error) {
+func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string) (*model.Page, error) {
 	// 这里缺少一些权限校验，比如是否是该页面的owner，是否是该页面的readonly，是否是该页面的edit，是否是该页面的admin
+	u := Q.Page
+	do := u.WithContext(ctx)
+	pageIdType := conf.ParseIdType(pageId)
+	switch pageIdType {
+	case conf.OwnerPage:
+		do = do.Where(u.Pid.Eq(pageId), u.UID.Eq(uid)) // 默认页面，需要是该页面的owner。需要登录。
+	case conf.ReadOnlyPage:
+		do = do.Where(u.ReadonlyPid.Eq(pageId)) // 只读页面，谁都能访问。不需要登录。
+	case conf.EditPage:
+		do = do.Where(u.EditPid.Eq(pageId)) // 编辑页面，谁有链接就能编辑。需要登录。
+	case conf.AdminPage:
+		do = do.Where(u.AdminPid.Eq(pageId)) // 管理页面，谁有链接就能管理。需要登录。
+	default:
+		return nil, common.ErrBadRequest("invalid page id type")
+	}
+
+	page, err := do.First()
+	if err != nil {
+		return nil, transGormErr(err)
+	}
+	return page, nil
+}
+
+// GetPageBrief 通过pid获取页面，不获取content内容
+func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string) (*model.Page, error) {
+	// 这里缺少一些权限校验，比如是否是该页面的owner，是否是该页面的readonly，是否是该页面的edit，是否是该页面的admin
+	pageIdType := conf.ParseIdType(pageId)
 	u := Q.Page
 	do := u.WithContext(ctx)
 	switch pageIdType {
@@ -32,7 +59,11 @@ func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, pageIdTy
 		do = do.Where(u.EditPid.Eq(pageId)) // 编辑页面，谁有链接就能编辑。需要登录。
 	case conf.AdminPage:
 		do = do.Where(u.AdminPid.Eq(pageId)) // 管理页面，谁有链接就能管理。需要登录。
+	default:
+		return nil, common.ErrBadRequest("invalid page id type")
 	}
+
+	do = do.Omit(u.Content)
 
 	page, err := do.First()
 	if err != nil {
@@ -40,7 +71,6 @@ func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, pageIdTy
 	}
 	return page, nil
 }
-
 
 func (*pageImpl) CheckIsYourPage(ctx context.Context, uid int64, pageIds []string) error {
 	u := Q.Page
@@ -136,5 +166,26 @@ func (*pageImpl) UnlinkPage(ctx context.Context, uid int64, pid string) error {
 		_, err = do.Where(u.AdminPid.Eq(pid)).UpdateSimple(u.AdminPid.Value(""))
 
 	}
+	return transGormErr(err)
+}
+
+func (*pageImpl) UpdateReadonlyPid(ctx context.Context, pid, readonlyPid string) error {
+	u := Q.Page
+	do := u.WithContext(ctx)
+	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.ReadonlyPid.Value(readonlyPid))
+	return transGormErr(err)
+}
+
+func (*pageImpl) UpdateEditPid(ctx context.Context, pid, editPid string) error {
+	u := Q.Page
+	do := u.WithContext(ctx)
+	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.EditPid.Value(editPid))
+	return transGormErr(err)
+}
+
+func (*pageImpl) UpdateAdminPid(ctx context.Context, pid, adminPid string) error {
+	u := Q.Page
+	do := u.WithContext(ctx)
+	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.AdminPid.Value(adminPid))
 	return transGormErr(err)
 }

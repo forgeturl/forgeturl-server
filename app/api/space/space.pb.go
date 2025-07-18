@@ -40,6 +40,23 @@ type Page struct {
 	AdminPageId    string `json:"admin_page_id"`
 }
 
+// 页面简介
+type PageBrief struct {
+	PageId string `json:"page_id,omitempty"`
+	Title  string `json:"title,omitempty"`
+	Brief  string `json:"brief,omitempty"`
+	// 创建时间
+	CreateTime int64 `json:"create_time,omitempty"`
+	// 更新时间
+	UpdateTime int64 `json:"update_time,omitempty"`
+	// 是否是自己的页面
+	IsSelf bool `json:"is_self,omitempty"`
+	// 页面类型
+	PageType string `json:"page_type,omitempty"`
+	// 页面配置
+	PageConf *PageConf `json:"page_conf,omitempty"`
+}
+
 type Collections struct {
 	// 文件夹中有多个链接
 	Links []*Link `json:"links"`
@@ -80,14 +97,6 @@ type GetPageResp struct {
 	Page *Page `json:"page,omitempty"`
 }
 
-type GetPagesReq struct {
-	PageId []string `json:"page_id" binding:"required,min=1,max=100"`
-}
-
-type GetPagesResp struct {
-	Pages []*Page `json:"pages,omitempty"`
-}
-
 type GetMySpaceReq struct {
 	// 用户id
 	Uid int64 `json:"uid,omitempty"`
@@ -97,7 +106,7 @@ type GetMySpaceResp struct {
 	// 空间名字
 	SpaceName string `json:"space_name,omitempty"`
 	// 我的空间下面的页面
-	Pages []*Page `json:"pages,omitempty"`
+	PageBriefs []*PageBrief `json:"page_briefs,omitempty"`
 }
 
 type SavePageIdsReq struct {

@@ -37,16 +37,6 @@ service SpaceService {
   }
 
   // 拉取某个页面数据 || 页面
-  // 拉取某个页面
-  // 临时页面，可以读到
-  rpc GetPages(GetPagesReq) returns (GetPagesResp) {
-    option (google.api.http) = {
-      post: "/page/getPages"
-      body: "*"
-    };
-  }
-
-  // 拉取某个页面数据 || 页面
   rpc GetPage(GetPageReq) returns (GetPageResp) {
     option (google.api.http) = {
       post: "/page/getPage"
@@ -71,19 +61,19 @@ service SpaceService {
     };
   }
 
+  // 生成新页面链接 || 页面
+  rpc CreatePageLink(CreatePageLinkReq) returns (CreatePageLinkResp) {
+    option (google.api.http) = {
+      post: "/page/createPageLink"
+      body: "*"
+    };
+  }
+
   // 去除页面的某种链接 || 页面
   // 把页面的只读链接、编辑链接删除
   rpc RemovePageLink(RemovePageLinkReq) returns (RemovePageLinkResp) {
     option (google.api.http) = {
       post: "/page/removePageLink"
-      body: "*"
-    };
-  }
-
-  // 生成新页面链接 || 页面
-  rpc CreatePageLink(CreatePageLinkReq) returns (CreatePageLinkResp) {
-    option (google.api.http) = {
-      post: "/page/createPageLink"
       body: "*"
     };
   }
@@ -125,6 +115,23 @@ message Page {// omitempty=false
   string readonly_page_id = 14;
   string edit_page_id = 15;
   string admin_page_id = 16;
+}
+
+// 页面简介
+message PageBrief {
+  string page_id = 1;
+  string title = 2;
+  string brief = 3;
+  // 创建时间
+  int64 create_time = 4;
+  // 更新时间
+  int64 update_time = 5;
+  // 是否是自己的页面
+  bool is_self = 6;
+  // 页面类型
+  string page_type = 7;
+  // 页面配置
+  PageConf page_conf = 8;
 }
 
 
@@ -169,13 +176,6 @@ message GetPageResp {
   Page page = 1;
 }
 
-message GetPagesReq {
-  repeated string page_id = 1; // binding:"required,min=1,max=100"
-}
-
-message GetPagesResp {
-  repeated Page pages = 1;
-}
 
 message GetMySpaceReq {
   // 用户id
@@ -187,7 +187,7 @@ message GetMySpaceResp {
   string space_name = 2;
 
   // 我的空间下面的页面
-  repeated Page pages = 10;
+  repeated PageBrief page_briefs = 10;
 }
 
 message SavePageIdsReq {
@@ -214,7 +214,7 @@ message UpdatePageReq {
   // 0x01 title
   // 0x02 brief
   // 0x04 collections
-  int64 mask = 7;
+  int64 mask = 7; // binding:"required,min=1,max=7"
 }
 
 message UpdatePageResp {

@@ -58,6 +58,22 @@ func (m *Page) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
+func (m *PageBrief) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *PageBrief) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *PageBrief) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *PageBrief) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
 func (m *Collections) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }
@@ -151,38 +167,6 @@ func (m *GetPageResp) Unmarshal(buf []byte) error {
 }
 
 func (m *GetPageResp) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
-func (m *GetPagesReq) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *GetPagesReq) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *GetPagesReq) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *GetPagesReq) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
-func (m *GetPagesResp) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *GetPagesResp) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *GetPagesResp) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *GetPagesResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 

@@ -14,6 +14,10 @@ import (
 type spaceServiceImpl struct {
 }
 
+func NewSpaceService() space.SpaceServiceHTTPServer {
+	return &spaceServiceImpl{}
+}
+
 func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageIdsReq) (*space.SavePageIdsResp, error) {
 	ctx := context.Request.Context()
 	uid := middleware.GetLoginUid(context)
@@ -26,7 +30,7 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 	// 如果是owner page则必须是他自己的才能保存
 	ownerIds := make([]string, 0)
 	for _, pageId := range pageIds {
-		if conf.ParseIdType(pageId) == conf.OwnerPage {
+		if conf.ParseIdType(pageId).IsOwnPage() {
 			ownerIds = append(ownerIds, pageId)
 		}
 	}
@@ -34,7 +38,7 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 	if err != nil {
 		return nil, err
 	}
-	
+
 	pageIdsStr, err := sonic.MarshalString(pageIds)
 	if err != nil {
 		return nil, common.ErrBadRequest(err.Error())
@@ -46,10 +50,6 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 	return &space.SavePageIdsResp{}, nil
 }
 
-func NewSpaceService() space.SpaceServiceHTTPServer {
-	return &spaceServiceImpl{}
-}
-
 // GetMySpace 只需要给个大概
 func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpaceReq) (*space.GetMySpaceResp, error) {
 	ctx := context.Request.Context()
@@ -59,21 +59,20 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 		return nil, err
 	}
 	resp := &space.GetMySpaceResp{
-		SpaceName: userInfo.DisplayName,
-		Pages:     make([]*space.Page, 0),
+		SpaceName:  userInfo.DisplayName,
+		PageBriefs: make([]*space.PageBrief, 0),
 	}
 
 	pageIds := make([]string, 0)
 	_ = sonic.UnmarshalString(userInfo.PageIds, &pageIds)
 
 	for _, pageId := range pageIds {
-		pageType := conf.ParseIdType(pageId)
-		page, err := dal.Page.GetPage(ctx, uid, pageId, pageType)
+		page, err := dal.Page.GetPageBrief(ctx, uid, pageId)
 		if err != nil {
 			return nil, err
 		}
-		pageResp := toPage(uid, pageId, page)
-		resp.Pages = append(resp.Pages, pageResp)
+		pageResp := toPageBrief(uid, pageId, page)
+		resp.PageBriefs = append(resp.PageBriefs, pageResp)
 	}
 
 	return resp, nil
@@ -88,10 +87,9 @@ func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (
 		return nil, common.ErrNeedLogin("")
 	}
 
-	pageType := conf.ParseIdType(req.PageId)
 	// 拉取某个页面数据
 
-	page, err := dal.Page.GetPage(ctx, uid, pageId, pageType)
+	page, err := dal.Page.GetPage(ctx, uid, pageId)
 	if err != nil {
 		return nil, err
 	}
@@ -146,12 +144,63 @@ func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.Remove
 	if err != nil {
 		return nil, err
 	}
-	return &space.UnlinkPageResp{}, nil
+	return &space.RemovePageLinkResp{}, nil
 }
 
-func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.CreateNewPageLinkReq) (*space.CreateNewPageLinkResp, error) {
+func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.CreatePageLinkReq) (*space.CreatePageLinkResp, error) {
+	// 当前页面是你的，则你可以创建 readonly edit admin链接
+	// 当前如果你有该页面的adminId，则可以创建 readonly edit链接
+	// 其他情况会被拒绝
+
+	// 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
 	ctx := context.Request.Context()
-	_ = ctx
-	//TODO implement me
-	panic("implement me")
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
+
+	data, err := dal.Page.GetPageBrief(ctx, uid, req.PageId)
+	if err != nil {
+		return nil, err
+	}
+	canCreateAdminPid := data.UID == uid
+	pageTypeStr := req.PageType
+
+	newPageId := ""
+	switch pageTypeStr {
+	case "readonly":
+		if data.ReadonlyPid != "" {
+			return nil, common.ErrBadRequest("readonly link already exists")
+		}
+		newPageId = genReadOnlyPageId()
+		err = dal.Page.UpdateReadonlyPid(ctx, data.Pid, newPageId)
+
+	case "edit":
+		if data.EditPid != "" {
+			return nil, common.ErrBadRequest("edit link already exists")
+		}
+		newPageId = genEditPageId()
+		err = dal.Page.UpdateEditPid(ctx, data.Pid, newPageId)
+
+	case "admin":
+		if data.AdminPid != "" {
+			return nil, common.ErrBadRequest("admin link already exists")
+		}
+		if !canCreateAdminPid {
+			return nil, common.ErrBadRequest("you are not the owner of this page, cannot create admin link")
+		}
+		newPageId = genAdminPageId()
+		err = dal.Page.UpdateAdminPid(ctx, data.Pid, newPageId)
+	default:
+		return nil, common.ErrBadRequest("invalid page type")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &space.CreatePageLinkResp{
+		PageType:  pageTypeStr,
+		NewPageId: newPageId,
+	}, nil
 }

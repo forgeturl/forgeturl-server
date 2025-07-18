@@ -28,21 +28,17 @@ type SpaceServiceHTTPClient interface {
 	// 生成算法：当前时间转换的4个字母(时分秒)
 	CreateTmpPage(context.Context, *CreateTmpPageReq, ...calloption.CallOption) (*TResponse[CreateTmpPageResp], error)
 	// 拉取某个页面数据 || 页面
-	// 拉取某个页面
-	// 临时页面，可以读到
-	GetPages(context.Context, *GetPagesReq, ...calloption.CallOption) (*TResponse[GetPagesResp], error)
-	// 拉取某个页面数据 || 页面
 	GetPage(context.Context, *GetPageReq, ...calloption.CallOption) (*TResponse[GetPageResp], error)
 	// 更新页面 || 页面
 	UpdatePage(context.Context, *UpdatePageReq, ...calloption.CallOption) (*TResponse[UpdatePageResp], error)
 	// 把整个页面删除 || 页面
 	// 自己的默认页面只能清空，无法删除
 	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
+	// 生成新页面链接 || 页面
+	CreatePageLink(context.Context, *CreatePageLinkReq, ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error)
 	// 去除页面的某种链接 || 页面
 	// 把页面的只读链接、编辑链接删除
 	RemovePageLink(context.Context, *RemovePageLinkReq, ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error)
-	// 生成新页面链接 || 页面
-	CreatePageLink(context.Context, *CreatePageLinkReq, ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error)
 }
 
 type SpaceServiceHTTPClientImpl struct {
@@ -101,22 +97,6 @@ func (c *SpaceServiceHTTPClientImpl) CreateTmpPage(ctx context.Context, req *Cre
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) GetPages(ctx context.Context, req *GetPagesReq, opts ...calloption.CallOption) (*TResponse[GetPagesResp], error) {
-	resp := &TResponse[GetPagesResp]{}
-	r := c.hh.Client.R().SetContext(ctx)
-	for _, opt := range opts {
-		opt(r)
-	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/getPages")
-	if err != nil {
-		return nil, err
-	}
-	if resp.Code != 1 {
-		err = ecode.NewV2(int(resp.Code), resp.Msg)
-	}
-	return resp, err
-}
-
 func (c *SpaceServiceHTTPClientImpl) GetPage(ctx context.Context, req *GetPageReq, opts ...calloption.CallOption) (*TResponse[GetPageResp], error) {
 	resp := &TResponse[GetPageResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
@@ -165,13 +145,13 @@ func (c *SpaceServiceHTTPClientImpl) DeletePage(ctx context.Context, req *Delete
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) RemovePageLink(ctx context.Context, req *RemovePageLinkReq, opts ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error) {
-	resp := &TResponse[RemovePageLinkResp]{}
+func (c *SpaceServiceHTTPClientImpl) CreatePageLink(ctx context.Context, req *CreatePageLinkReq, opts ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error) {
+	resp := &TResponse[CreatePageLinkResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/removePageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/createPageLink")
 	if err != nil {
 		return nil, err
 	}
@@ -181,13 +161,13 @@ func (c *SpaceServiceHTTPClientImpl) RemovePageLink(ctx context.Context, req *Re
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) CreatePageLink(ctx context.Context, req *CreatePageLinkReq, opts ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error) {
-	resp := &TResponse[CreatePageLinkResp]{}
+func (c *SpaceServiceHTTPClientImpl) RemovePageLink(ctx context.Context, req *RemovePageLinkReq, opts ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error) {
+	resp := &TResponse[RemovePageLinkResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/createPageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/removePageLink")
 	if err != nil {
 		return nil, err
 	}
