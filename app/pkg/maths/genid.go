@@ -31,6 +31,7 @@ func Base58Encode(num int64) string {
 // GenPageID 如果是int32最长是7个字符，如果是int64最长是12个字符
 func GenPageID(prefix string) string {
 	// ri := rand.Int63()
+	// 前期先用int32，后期如果需要更多的ID可以改成int64
 	ri := rand.Int31()
 	return prefix + Base58Encode(int64(ri))
 }

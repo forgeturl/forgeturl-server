@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"forgeturl-server/api/common"
 	"forgeturl-server/api/dumplinks"
+	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/dal/query"
 
@@ -47,37 +48,25 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	var page *model.Page
 
 	// Check if user already has a bookmark page
-	existingPage, err := q.Page.WithContext(ctx.Request.Context()).
-		Where(q.Page.UID.Eq(uid), q.Page.Title.Eq("Chrome Bookmarks")).
-		First()
-
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Create new page for bookmarks with proper page IDs
-			page = &model.Page{
-				UID:         uid,
-				Title:       "Chrome Bookmarks",
-				Content:     string(content),
-				Pid:         genOwnerPageId(),
-				ReadonlyPid: genReadOnlyPageId(),
-				EditPid:     genEditPageId(),
-				AdminPid:    genOwnerPageId(), // Reusing owner page ID for admin
-			}
-			err = q.Page.WithContext(ctx.Request.Context()).Create(page)
-			if err != nil {
-				return nil, ecode.ErrSystem
-			}
-		} else {
-			return nil, ecode.ErrSystem
+	// 如果存在需要删除先
+	_, err = dal.Page.GetSelfPage(ctx.Request.Context(), uid)
+	if common.IsErrNotFound(err) {
+		// Create new page for bookmarks with proper page IDs
+		page = &model.Page{
+			UID:         uid,
+			Title:       "Chrome Bookmarks",
+			Content:     string(content),
+			Pid:         genOwnerPageId(),
+			ReadonlyPid: genReadOnlyPageId(),
+			EditPid:     genEditPageId(),
+			AdminPid:    genOwnerPageId(), // Reusing owner page ID for admin
+		}
+		err = dal.Page.Create(ctx.Request.Context(), page)
+		if err != nil {
+			return nil, err
 		}
 	} else {
-		// Update existing page
-		_, err = q.Page.WithContext(ctx.Request.Context()).
-			Where(q.Page.ID.Eq(existingPage.ID)).
-			Update(q.Page.Content, string(content))
-		if err != nil {
-			return nil, ecode.ErrSystem
-		}
+		return nil, common.ErrBadRequest("Your self page already exist, please remove them first")
 	}
 
 	return &dumplinks.ImportBookmarksResp{}, nil

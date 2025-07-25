@@ -18,6 +18,15 @@ func (*pageImpl) Create(ctx context.Context, page *model.Page) error {
 	return transGormErr(err)
 }
 
+func (*pageImpl) GetSelfPage(ctx context.Context, uid int64) (*model.Page, error) {
+	u := Q.Page
+	data, err := u.WithContext(ctx).Where(u.UID.Eq(uid)).First()
+	if err != nil {
+		return nil, transGormErr(err)
+	}
+	return data, nil
+}
+
 // GetPage 可以通过多种id获取页面
 func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string) (*model.Page, error) {
 	// 这里缺少一些权限校验，比如是否是该页面的owner，是否是该页面的readonly，是否是该页面的edit，是否是该页面的admin
