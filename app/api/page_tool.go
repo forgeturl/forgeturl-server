@@ -59,22 +59,28 @@ func toPage(uid int64, pageId string, page *model.Page) *space.Page {
 
 	if page.ReadonlyPid == pageId {
 		pageResp.PageConf.ReadOnly = true
+
+		pageResp.ReadonlyPageId = page.ReadonlyPid
 	} else if page.EditPid == pageId {
 		pageResp.PageConf.CanEdit = true
+
+		pageResp.ReadonlyPageId = page.ReadonlyPid
+		pageResp.EditPageId = page.EditPid
 	} else if page.AdminPid == pageId {
 		pageResp.PageConf.CanEdit = true
 		pageResp.PageConf.CanDelete = true
-	}
 
-	// 如果是自己的页面，则展示一下信息，并且标最高权限
-	if isSelf {
 		pageResp.ReadonlyPageId = page.ReadonlyPid
 		pageResp.EditPageId = page.EditPid
 		pageResp.AdminPageId = page.AdminPid
-
+	} else if page.Pid == pageId || isSelf {
+		// 如果是自己的页面，则展示一下信息，并且标最高权限
 		pageResp.PageConf.CanEdit = true
 		pageResp.PageConf.CanDelete = true
 
+		pageResp.ReadonlyPageId = page.ReadonlyPid
+		pageResp.EditPageId = page.EditPid
+		pageResp.AdminPageId = page.AdminPid
 	}
 	return pageResp
 }

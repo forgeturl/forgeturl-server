@@ -5,7 +5,7 @@ import (
 	"forgeturl-server/api/login"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
-	"forgeturl-server/pkg/lcache"
+	"forgeturl-server/pkg/middleware"
 
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"

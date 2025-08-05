@@ -128,8 +128,6 @@ message PageBrief {
   int64 update_time = 5;
   // 是否是自己的页面
   bool is_self = 6;
-  // 页面类型
-  string page_type = 7;
   // 页面配置
   PageConf page_conf = 8;
 }

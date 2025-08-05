@@ -19,6 +19,10 @@ const (
 	EditPrefix     = uint8('E')
 	TempPrefix     = uint8('T') // start With T, for temporary pages
 	AdminPrefix    = uint8('A')
+
+	ReadOnlyStr = "readonly"
+	EditStr     = "edit"
+	AdminStr    = "admin"
 )
 
 func ParseIdType(pageId string) PageType {

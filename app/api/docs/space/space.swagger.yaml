@@ -338,9 +338,6 @@ components:
                 is_self:
                     type: boolean
                     description: 是否是自己的页面
-                page_type:
-                    type: string
-                    description: 页面类型
                 page_conf:
                     allOf:
                         - $ref: '#/components/schemas/.PageConf'
@@ -510,6 +507,8 @@ components:
                 data:
                     $ref: '#/components/schemas/.UpdatePageResp'
         .UpdatePageReq:
+            required:
+                - mask
             type: object
             properties:
                 page_id:

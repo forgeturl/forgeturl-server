@@ -51,8 +51,6 @@ type PageBrief struct {
 	UpdateTime int64 `json:"update_time,omitempty"`
 	// 是否是自己的页面
 	IsSelf bool `json:"is_self,omitempty"`
-	// 页面类型
-	PageType string `json:"page_type,omitempty"`
 	// 页面配置
 	PageConf *PageConf `json:"page_conf,omitempty"`
 }
@@ -133,7 +131,7 @@ type UpdatePageReq struct {
 	// 0x01 title
 	// 0x02 brief
 	// 0x04 collections
-	Mask int64 `json:"mask,omitempty"`
+	Mask int64 `json:"mask" binding:"required,min=1,max=7"`
 }
 
 type UpdatePageResp struct {
