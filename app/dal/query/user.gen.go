@@ -34,7 +34,6 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Avatar = field.NewString(tableName, "avatar")
 	_user.Status = field.NewInt32(tableName, "status")
 	_user.LastLoginDate = field.NewTime(tableName, "last_login_date")
-	_user.PageIds = field.NewString(tableName, "page_ids")
 	_user.Provider = field.NewString(tableName, "provider")
 	_user.ExternalID = field.NewString(tableName, "external_id")
 	_user.IPInfo = field.NewString(tableName, "ip_info")
@@ -60,7 +59,6 @@ type user struct {
 	Avatar        field.String // user avatar url
 	Status        field.Int32  // user status(normal 0,suspended 2,deleted 4)
 	LastLoginDate field.Time
-	PageIds       field.String
 	Provider      field.String // login source google/facebook/weixin
 	ExternalID    field.String // login source unique id(gmail sub 255char//weixin unionid 28char)
 	IPInfo        field.String
@@ -92,7 +90,6 @@ func (u *user) updateTableName(table string) *user {
 	u.Avatar = field.NewString(table, "avatar")
 	u.Status = field.NewInt32(table, "status")
 	u.LastLoginDate = field.NewTime(table, "last_login_date")
-	u.PageIds = field.NewString(table, "page_ids")
 	u.Provider = field.NewString(table, "provider")
 	u.ExternalID = field.NewString(table, "external_id")
 	u.IPInfo = field.NewString(table, "ip_info")
@@ -125,7 +122,7 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 16)
+	u.fieldMap = make(map[string]field.Expr, 15)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["display_name"] = u.DisplayName
 	u.fieldMap["username"] = u.Username
@@ -133,7 +130,6 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["avatar"] = u.Avatar
 	u.fieldMap["status"] = u.Status
 	u.fieldMap["last_login_date"] = u.LastLoginDate
-	u.fieldMap["page_ids"] = u.PageIds
 	u.fieldMap["provider"] = u.Provider
 	u.fieldMap["external_id"] = u.ExternalID
 	u.fieldMap["ip_info"] = u.IPInfo

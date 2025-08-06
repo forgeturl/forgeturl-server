@@ -21,7 +21,6 @@ type User struct {
 	Avatar        string         `gorm:"column:avatar;type:varchar(1024);not null;comment:user avatar url" json:"avatar"`                          // user avatar url
 	Status        int32          `gorm:"column:status;type:tinyint(4);not null;comment:user status(normal 0,suspended 2,deleted 4)" json:"status"` // user status(normal 0,suspended 2,deleted 4)
 	LastLoginDate time.Time      `gorm:"column:last_login_date;type:datetime;not null" json:"last_login_date"`
-	PageIds       string         `gorm:"column:page_ids;type:varchar(2048);not null" json:"page_ids"`
 	Provider      string         `gorm:"column:provider;type:varchar(32);not null;uniqueIndex:uk_provider_external_id,priority:1;comment:login source google/facebook/weixin" json:"provider"`                                     // login source google/facebook/weixin
 	ExternalID    string         `gorm:"column:external_id;type:varchar(255);not null;uniqueIndex:uk_provider_external_id,priority:2;comment:login source unique id(gmail sub 255char//weixin unionid 28char)" json:"external_id"` // login source unique id(gmail sub 255char//weixin unionid 28char)
 	IPInfo        string         `gorm:"column:ip_info;type:varchar(255);not null" json:"ip_info"`

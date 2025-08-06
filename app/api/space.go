@@ -5,6 +5,7 @@ import (
 	"forgeturl-server/api/space"
 	"forgeturl-server/conf"
 	"forgeturl-server/dal"
+	"forgeturl-server/dal/query"
 	"forgeturl-server/pkg/middleware"
 
 	"github.com/bytedance/sonic"
@@ -158,51 +159,72 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 	if uid == 0 {
 		return nil, common.ErrNeedLogin("")
 	}
-
-	data, err := dal.Page.GetPageBrief(ctx, uid, req.PageId)
-	if err != nil {
-		return nil, err
-	}
-	inputPageType := conf.ParseIdType(req.PageId)
-	canCreateAdminPid := data.UID == uid
 	pageTypeStr := req.PageType
-
 	newPageId := ""
-	switch pageTypeStr {
-	case conf.ReadOnlyStr:
-		// todo 如果已经存在直接返回？
 
-		if data.ReadonlyPid != "" {
-			return nil, common.ErrBadRequest("readonly link already exists")
+	err := dal.Q.Transaction(func(tx *query.Query) error {
+		data, err0 := dal.Page.GetPageBrief(ctx, uid, req.PageId, tx)
+		if err0 != nil {
+			return err0
 		}
-		newPageId = genReadOnlyPageId()
-		err = dal.Page.UpdateReadonlyPid(ctx, data.Pid, newPageId)
+		inputPageType := conf.ParseIdType(req.PageId)
+		canCreateAdminPid := data.UID == uid
 
-	case conf.EditStr:
-		// 如果inputPageType是readonly的，则不允许创建
-		if inputPageType == conf.ReadOnlyPage {
-			return nil, common.ErrBadRequest("cannot create edit link from readonly page")
-		}
-		if data.EditPid != "" {
-			return nil, common.ErrBadRequest("edit link already exists")
-		}
-		newPageId = genEditPageId()
-		err = dal.Page.UpdateEditPid(ctx, data.Pid, newPageId)
+		switch pageTypeStr {
+		case conf.ReadOnlyStr:
+			// todo 如果已经存在直接返回？
 
-	case conf.AdminStr:
-		if data.AdminPid != "" {
-			return nil, common.ErrBadRequest("admin link already exists")
-		}
-		if !canCreateAdminPid {
-			return nil, common.ErrBadRequest("you are not the owner of this page, cannot create admin link")
-		}
-		newPageId = genAdminPageId()
-		err = dal.Page.UpdateAdminPid(ctx, data.Pid, newPageId)
+			if data.ReadonlyPid != "" {
+				return common.ErrBadRequest("readonly link already exists")
+			}
+			newPageId = genReadOnlyPageId()
 
-	default:
-		return nil, common.ErrBadRequest("invalid page type")
-	}
+			err0 = idExistReturnErr(dal.Page.CheckIdExist(ctx, newPageId, tx))
+			if err0 != nil {
+				return err0
+			}
 
+			// 如果之前有存在其他的readonlyPid，需要提示该用户该页面被删除了，让他自己决定是否要删除
+			err0 = dal.Page.UpdateReadonlyPid(ctx, data.Pid, newPageId, tx)
+
+		case conf.EditStr:
+			// 如果inputPageType是readonly的，则不允许创建
+			if inputPageType == conf.ReadOnlyPage {
+				return common.ErrBadRequest("cannot create edit link from readonly page")
+			}
+			if data.EditPid != "" {
+				return common.ErrBadRequest("edit link already exists")
+			}
+			newPageId = genEditPageId()
+
+			err0 = idExistReturnErr(dal.Page.CheckIdExist(ctx, newPageId, tx))
+			if err0 != nil {
+				return err0
+			}
+
+			err0 = dal.Page.UpdateEditPid(ctx, data.Pid, newPageId, tx)
+
+		case conf.AdminStr:
+			if data.AdminPid != "" {
+				return common.ErrBadRequest("admin link already exists")
+			}
+			if !canCreateAdminPid {
+				return common.ErrBadRequest("you are not the owner of this page, cannot create admin link")
+			}
+			newPageId = genAdminPageId()
+
+			err0 = idExistReturnErr(dal.Page.CheckIdExist(ctx, newPageId, tx))
+			if err0 != nil {
+				return err0
+			}
+
+			err0 = dal.Page.UpdateAdminPid(ctx, data.Pid, newPageId, tx)
+
+		default:
+			return common.ErrBadRequest("invalid page type")
+		}
+		return err0
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -211,4 +233,14 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 		PageType:  pageTypeStr,
 		NewPageId: newPageId,
 	}, nil
+}
+
+func idExistReturnErr(exist bool, err error) error {
+	if err != nil {
+		return err
+	}
+	if exist {
+		return common.ErrBadRequest("system fault, try again later")
+	}
+	return nil
 }

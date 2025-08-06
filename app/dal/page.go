@@ -5,6 +5,7 @@ import (
 	"forgeturl-server/api/common"
 	"forgeturl-server/conf"
 	"forgeturl-server/dal/model"
+	"forgeturl-server/dal/query"
 )
 
 type pageImpl struct {
@@ -12,14 +13,20 @@ type pageImpl struct {
 
 var Page = &pageImpl{}
 
-func (*pageImpl) Create(ctx context.Context, page *model.Page) error {
+func (*pageImpl) Create(ctx context.Context, page *model.Page, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	err := u.WithContext(ctx).Create(page)
 	return transGormErr(err)
 }
 
-func (*pageImpl) GetSelfPage(ctx context.Context, uid int64) (*model.Page, error) {
+func (*pageImpl) GetSelfPage(ctx context.Context, uid int64, tx ...*query.Query) (*model.Page, error) {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	data, err := u.WithContext(ctx).Where(u.UID.Eq(uid)).First()
 	if err != nil {
 		return nil, transGormErr(err)
@@ -28,9 +35,12 @@ func (*pageImpl) GetSelfPage(ctx context.Context, uid int64) (*model.Page, error
 }
 
 // GetPage 可以通过多种id获取页面
-func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string) (*model.Page, error) {
+func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, tx ...*query.Query) (*model.Page, error) {
 	// 这里缺少一些权限校验，比如是否是该页面的owner，是否是该页面的readonly，是否是该页面的edit，是否是该页面的admin
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	pageIdType := conf.ParseIdType(pageId)
 	switch pageIdType {
@@ -53,11 +63,45 @@ func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string) (*model.
 	return page, nil
 }
 
+// CheckIdExist 仅读取少量数据，主要是判断是否存在该id
+func (*pageImpl) CheckIdExist(ctx context.Context, pid string, tx ...*query.Query) (bool, error) {
+	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
+	do := u.WithContext(ctx).Select(u.ID, u.Pid, u.UID)
+	pageIdType := conf.ParseIdType(pid)
+	switch pageIdType {
+	case conf.OwnerPage:
+		do = do.Where(u.Pid.Eq(pid)) // 默认页面，需要是该页面
+	case conf.ReadOnlyPage:
+		do = do.Where(u.ReadonlyPid.Eq(pid))
+	case conf.EditPage:
+		do = do.Where(u.EditPid.Eq(pid))
+	case conf.AdminPage:
+		do = do.Where(u.AdminPid.Eq(pid))
+	default:
+		return false, common.ErrBadRequest("invalid page id type")
+	}
+	_, err := do.First()
+	if err != nil {
+		err = transGormErr(err)
+		if common.IsErrNotFound(err) {
+			return false, nil // 如果没有找到，返回false
+		}
+		return false, err // 如果是其他错误，返回错误
+	}
+	return true, nil
+}
+
 // GetPageBrief 通过pid获取页面，不获取content内容
-func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string) (*model.Page, error) {
+func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string, tx ...*query.Query) (*model.Page, error) {
 	// 这里缺少一些权限校验，比如是否是该页面的owner，是否是该页面的readonly，是否是该页面的edit，是否是该页面的admin
 	pageIdType := conf.ParseIdType(pageId)
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	switch pageIdType {
 	case conf.OwnerPage:
@@ -81,8 +125,11 @@ func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string) (*m
 	return page, nil
 }
 
-func (*pageImpl) CheckIsYourPage(ctx context.Context, uid int64, pageIds []string) error {
+func (*pageImpl) CheckIsYourPage(ctx context.Context, uid int64, pageIds []string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	do = do.Select(u.ID).Where(u.UID.Eq(uid), u.Pid.In(pageIds...))
 	infos, err := do.Find()
@@ -101,8 +148,11 @@ const (
 	MaskContent
 )
 
-func (*pageImpl) UpdatePage(ctx context.Context, uid, mask, version int64, pageId, title, brief, content string) error {
+func (*pageImpl) UpdatePage(ctx context.Context, uid, mask, version int64, pageId, title, brief, content string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(pageId), u.Version.Eq(version))
 	do = do.Select(u.Version)
 	if mask&MaskTitle != 0 {
@@ -130,8 +180,11 @@ func (*pageImpl) UpdatePage(ctx context.Context, uid, mask, version int64, pageI
 	return nil
 }
 
-func (*pageImpl) DeleteByPid(ctx context.Context, uid int64, pid string) error {
+func (*pageImpl) DeleteByPid(ctx context.Context, uid int64, pid string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	// 删除页面
 	_, err := do.Where(u.UID.Eq(uid), u.Pid.Eq(pid)).Delete()
@@ -142,8 +195,11 @@ func (*pageImpl) DeleteByPid(ctx context.Context, uid int64, pid string) error {
 }
 
 // CleanPage 把某个页面所有内容清除，仅该页面归属者才能清楚
-func (*pageImpl) CleanPage(ctx context.Context, uid int64, pid string) error {
+func (*pageImpl) CleanPage(ctx context.Context, uid int64, pid string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	_, err := do.Where(u.UID.Eq(uid), u.Pid.Eq(pid)).UpdateSimple(u.Content.Value(""))
 	return transGormErr(err)
@@ -153,8 +209,11 @@ func (*pageImpl) CleanPage(ctx context.Context, uid int64, pid string) error {
 // 不真删，只是把该页面链接移除
 // 需要该页面创建者，才有权限移除
 // pid只能删除不能unlink
-func (*pageImpl) UnlinkPage(ctx context.Context, uid int64, pid string) error {
+func (*pageImpl) UnlinkPage(ctx context.Context, uid int64, pid string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	do = do.Where(u.UID.Eq(uid))
 	var err error
@@ -178,22 +237,31 @@ func (*pageImpl) UnlinkPage(ctx context.Context, uid int64, pid string) error {
 	return transGormErr(err)
 }
 
-func (*pageImpl) UpdateReadonlyPid(ctx context.Context, pid, readonlyPid string) error {
+func (*pageImpl) UpdateReadonlyPid(ctx context.Context, pid, readonlyPid string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.ReadonlyPid.Value(readonlyPid))
 	return transGormErr(err)
 }
 
-func (*pageImpl) UpdateEditPid(ctx context.Context, pid, editPid string) error {
+func (*pageImpl) UpdateEditPid(ctx context.Context, pid, editPid string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.EditPid.Value(editPid))
 	return transGormErr(err)
 }
 
-func (*pageImpl) UpdateAdminPid(ctx context.Context, pid, adminPid string) error {
+func (*pageImpl) UpdateAdminPid(ctx context.Context, pid, adminPid string, tx ...*query.Query) error {
 	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
 	do := u.WithContext(ctx)
 	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.AdminPid.Value(adminPid))
 	return transGormErr(err)

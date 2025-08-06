@@ -36,6 +36,38 @@
         }
       }
     },
+    "/page/createSelfPage": {
+      "post": {
+        "tags": [
+          "空间"
+        ],
+        "summary": "创建自己页面",
+        "description": " 当getMySpace不存在自己的页面时，调用该接口创建自己的页面",
+        "operationId": "SpaceService_CreateSelfPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.CreateSelfPageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TCreateSelfPageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/page/createTmpPage": {
       "post": {
         "tags": [
@@ -303,6 +335,31 @@
           }
         }
       },
+      ".CreateSelfPageReq": {
+        "required": [
+          "title",
+          "brief"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "页面标题"
+          },
+          "brief": {
+            "type": "string",
+            "description": "页面描述"
+          }
+        }
+      },
+      ".CreateSelfPageResp": {
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          }
+        }
+      },
       ".CreateTmpPageReq": {
         "required": [
           "user_uuid"
@@ -365,7 +422,7 @@
             "items": {
               "$ref": "#/components/schemas/.PageBrief"
             },
-            "description": "我的空间下面的页面"
+            "description": "我的空间下面的页面\n 逻辑：如果没有自己的主页面，则调用接口创建自己的页面"
           }
         }
       },
@@ -386,6 +443,9 @@
         }
       },
       ".Link": {
+        "required": [
+          "title"
+        ],
         "type": "object",
         "properties": {
           "title": {
@@ -414,6 +474,10 @@
         }
       },
       ".Page": {
+        "required": [
+          "title",
+          "brief"
+        ],
         "type": "object",
         "properties": {
           "page_id": {
@@ -472,6 +536,10 @@
         }
       },
       ".PageBrief": {
+        "required": [
+          "title",
+          "brief"
+        ],
         "type": "object",
         "properties": {
           "page_id": {
@@ -596,6 +664,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/.CreatePageLinkResp"
+          }
+        }
+      },
+      ".TCreateSelfPageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.CreateSelfPageResp"
           }
         }
       },
@@ -741,6 +829,8 @@
       },
       ".UpdatePageReq": {
         "required": [
+          "title",
+          "brief",
           "mask"
         ],
         "type": "object",

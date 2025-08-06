@@ -20,9 +20,9 @@ type CreateTmpPageResp struct {
 
 type Page struct {
 	PageId string `json:"page_id"`
-	Title  string `json:"title"`
+	Title  string `json:"title" binding:"required,min=0,max=256"`
 	// 页面描述，放在页面最上方展示
-	Brief string `json:"brief"`
+	Brief string `json:"brief" binding:"required,min=0,max=1024"`
 	// 文件夹
 	Collections []*Collections `json:"collections"`
 	// 版本号，从0递增，当修改时需要传入该值
@@ -43,8 +43,8 @@ type Page struct {
 // 页面简介
 type PageBrief struct {
 	PageId string `json:"page_id,omitempty"`
-	Title  string `json:"title,omitempty"`
-	Brief  string `json:"brief,omitempty"`
+	Title  string `json:"title" binding:"required,min=0,max=256"`
+	Brief  string `json:"brief" binding:"required,min=0,max=1024"`
 	// 创建时间
 	CreateTime int64 `json:"create_time,omitempty"`
 	// 更新时间
@@ -68,7 +68,7 @@ type SubLink struct {
 }
 
 type Link struct {
-	Title string   `json:"title"`
+	Title string   `json:"title" binding:"required,min=0,max=256"`
 	Url   string   `json:"url"`
 	Tags  []string `json:"tags"`
 	// 暂不支持
@@ -104,7 +104,19 @@ type GetMySpaceResp struct {
 	// 空间名字
 	SpaceName string `json:"space_name,omitempty"`
 	// 我的空间下面的页面
+	// 逻辑：如果没有自己的主页面，则调用接口创建自己的页面
 	PageBriefs []*PageBrief `json:"page_briefs,omitempty"`
+}
+
+type CreateSelfPageReq struct {
+	// 页面标题
+	Title string `json:"title" binding:"required,min=0,max=256"`
+	// 页面描述
+	Brief string `json:"brief" binding:"required,min=0,max=1024"`
+}
+
+type CreateSelfPageResp struct {
+	PageId string `json:"page_id,omitempty"` // 新创建的页面id
 }
 
 type SavePageIdsReq struct {
@@ -121,8 +133,8 @@ type SavePageIdsResp struct {
 
 type UpdatePageReq struct {
 	PageId      string         `json:"page_id,omitempty"`
-	Title       string         `json:"title,omitempty"`
-	Brief       string         `json:"brief,omitempty"`
+	Title       string         `json:"title" binding:"required,min=0,max=256"`
+	Brief       string         `json:"brief" binding:"required,min=0,max=1024"`
 	Content     string         `json:"content,omitempty"`
 	Collections []*Collections `json:"collections,omitempty"`
 	// 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0

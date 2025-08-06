@@ -16,6 +16,15 @@ service SpaceService {
     };
   }
 
+  // 创建自己页面 || 空间
+  // 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
+  rpc CreateSelfPage(CreateSelfPageReq) returns (CreateSelfPageResp) {
+    option (google.api.http) = {
+      post: "/page/createSelfPage"
+      body: "*"
+    };
+  }
+
   // 调整我的空间下面的页面顺序 || 空间
   // 如果有新增、删除page_id，也使用该方法
   rpc SavePageIds(SavePageIdsReq) returns (SavePageIdsResp) {
@@ -94,9 +103,9 @@ message CreateTmpPageResp {// omitempty=false
 
 message Page {// omitempty=false
   string page_id = 1;
-  string title = 2;
+  string title = 2; // binding:"required,min=0,max=256"
   // 页面描述，放在页面最上方展示
-  string brief = 3;
+  string brief = 3; // binding:"required,min=0,max=1024"
   // 文件夹
   repeated Collections collections = 4;
   // 版本号，从0递增，当修改时需要传入该值
@@ -120,8 +129,8 @@ message Page {// omitempty=false
 // 页面简介
 message PageBrief {
   string page_id = 1;
-  string title = 2;
-  string brief = 3;
+  string title = 2;  // binding:"required,min=0,max=256"
+  string brief = 3; // binding:"required,min=0,max=1024"
   // 创建时间
   int64 create_time = 4;
   // 更新时间
@@ -146,7 +155,7 @@ message SubLink {
 }
 
 message Link {// omitempty=false
-  string title = 1;
+  string title = 1; // binding:"required,min=0,max=256"
   string url = 2;
   repeated string tags = 3;
   // 暂不支持
@@ -185,7 +194,19 @@ message GetMySpaceResp {
   string space_name = 2;
 
   // 我的空间下面的页面
+  // 逻辑：如果没有自己的主页面，则调用接口创建自己的页面
   repeated PageBrief page_briefs = 10;
+}
+
+message CreateSelfPageReq {
+  // 页面标题
+  string title = 2; // binding:"required,min=0,max=256"
+  // 页面描述
+  string brief = 3; // binding:"required,min=0,max=1024"
+}
+
+message CreateSelfPageResp {
+  string page_id = 1; // 新创建的页面id
 }
 
 message SavePageIdsReq {
@@ -202,8 +223,8 @@ message SavePageIdsResp {
 
 message UpdatePageReq {
   string page_id = 1;
-  string title = 2;
-  string brief = 3;
+  string title = 2; // binding:"required,min=0,max=256"
+  string brief = 3;// binding:"required,min=0,max=1024"
   string content = 4;
   repeated Collections collections = 5;
   // 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0

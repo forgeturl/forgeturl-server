@@ -37,6 +37,7 @@ func main() {
 		FilePath: []string{
 			"./page.sql",
 			"./user.sql",
+			"./user_page.sql",
 		},
 	}))
 	if err != nil {

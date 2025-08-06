@@ -17,6 +17,9 @@ type SpaceServiceHTTPServer interface {
 	// 登录状态才能拉到自己的空间
 	// 部分页面如果消失或者没权限了，需要自动移除
 	GetMySpace(*api.Context, *GetMySpaceReq) (*GetMySpaceResp, error)
+	// 创建自己页面 || 空间
+	// 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
+	CreateSelfPage(*api.Context, *CreateSelfPageReq) (*CreateSelfPageResp, error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法
 	SavePageIds(*api.Context, *SavePageIdsReq) (*SavePageIdsResp, error)
@@ -42,6 +45,7 @@ type SpaceServiceHTTPServer interface {
 func RegisterSpaceServiceHTTPServer(s *gin.Engine, srv SpaceServiceHTTPServer) {
 	r := s.Group("/")
 	r.POST("/page/getMySpace", _SpaceService_GetMySpace_HTTP_Handler(srv))         // 拉取我的空间 || 空间
+	r.POST("/page/createSelfPage", _SpaceService_CreateSelfPage_HTTP_Handler(srv)) // 创建自己页面 || 空间
 	r.POST("/page/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))       // 调整我的空间下面的页面顺序 || 空间
 	r.POST("/page/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))   // 创建临时页面 || 页面
 	r.POST("/page/getPage", _SpaceService_GetPage_HTTP_Handler(srv))               // 拉取某个页面数据 || 页面
@@ -63,6 +67,22 @@ func _SpaceService_GetMySpace_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *g
 			return
 		}
 		resp, err := srv.GetMySpace(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _SpaceService_CreateSelfPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &CreateSelfPageReq{}
+		var err error
+		ctx := api.NewContext(g)
+		err = parseReq(&ctx, req)
+		err = checkValidate(err)
+		if err != nil {
+			setRetJSON(&ctx, nil, err)
+			return
+		}
+		resp, err := srv.CreateSelfPage(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }

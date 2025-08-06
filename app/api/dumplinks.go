@@ -49,13 +49,13 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	if common.IsErrNotFound(err) {
 		// Create new page for bookmarks with proper page IDs
 		page = &model.Page{
-			UID:         uid,
-			Title:       "Chrome Bookmarks",
-			Content:     string(content),
-			Pid:         genOwnerPageId(),
-			ReadonlyPid: genReadOnlyPageId(),
-			EditPid:     genEditPageId(),
-			AdminPid:    genOwnerPageId(), // Reusing owner page ID for admin
+			UID:     uid,
+			Title:   "Chrome Bookmarks",
+			Content: string(content),
+			Pid:     genOwnerPageId(),
+			//ReadonlyPid: genReadOnlyPageId(),
+			//EditPid:     genEditPageId(),
+			//AdminPid:    genOwnerPageId(), // Reusing owner page ID for admin
 		}
 		err = dal.Page.Create(ctx.Request.Context(), page)
 		if err != nil {

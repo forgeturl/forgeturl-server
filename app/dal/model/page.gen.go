@@ -12,18 +12,18 @@ const TableNamePage = "page"
 
 // Page mapped from table <page>
 type Page struct {
-	ID          int64      `gorm:"column:id;type:bigint(20);primaryKey;autoIncrement:true;comment:auto increment id" json:"id"`                                                      // auto increment id
-	UID         int64      `gorm:"column:uid;type:bigint(20);not null;comment:page owner of uid" json:"uid"`                                                                         // page owner of uid
-	Pid         string     `gorm:"column:pid;type:varchar(16);not null;uniqueIndex:uk_pid,priority:1;comment:origin page id，start with O" json:"pid"`                                // origin page id，start with O
-	ReadonlyPid string     `gorm:"column:readonly_pid;type:varchar(16);not null;uniqueIndex:uk_readonly_pid,priority:1;comment:read only page id, start with R" json:"readonly_pid"` // read only page id, start with R
-	EditPid     string     `gorm:"column:edit_pid;type:varchar(16);not null;uniqueIndex:uk_edit_pid,priority:1;comment:edit page id, start with E" json:"edit_pid"`                  // edit page id, start with E
-	AdminPid    string     `gorm:"column:admin_pid;type:varchar(16);not null;uniqueIndex:uk_admin_pid,priority:1;comment:super admin page id, start with A" json:"admin_pid"`        // super admin page id, start with A
-	Title       string     `gorm:"column:title;type:varchar(256);not null;comment:标题" json:"title"`                                                                                  // 标题
-	Brief       string     `gorm:"column:brief;type:varchar(1024);not null;comment:简要描述" json:"brief"`                                                                               // 简要描述
-	Content     string     `gorm:"column:content;type:mediumtext;not null;comment:实体内容(文件夹、链接定义)" json:"content"`                                                                    // 实体内容(文件夹、链接定义)
-	Version     int64      `gorm:"column:version;type:bigint(20);not null;comment:版本号" json:"version"`                                                                               // 版本号
-	CreatedAt   *time.Time `gorm:"column:created_at;type:datetime;not null;index:idx_created_at,priority:1;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`                // 创建时间
-	UpdatedAt   *time.Time `gorm:"column:updated_at;type:datetime;not null;index:idx_updated_at,priority:1;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`                // 更新时间
+	ID          int64      `gorm:"column:id;type:bigint(20);primaryKey;autoIncrement:true;comment:auto increment id" json:"id"`                                                // auto increment id
+	UID         int64      `gorm:"column:uid;type:bigint(20);not null;comment:page owner of uid" json:"uid"`                                                                   // page owner of uid
+	Pid         string     `gorm:"column:pid;type:varchar(16);not null;uniqueIndex:uk_pid,priority:1;comment:origin page id，start with O" json:"pid"`                          // origin page id，start with O
+	ReadonlyPid string     `gorm:"column:readonly_pid;type:varchar(16);not null;index:uk_readonly_pid,priority:1;comment:read only page id, start with R" json:"readonly_pid"` // read only page id, start with R
+	EditPid     string     `gorm:"column:edit_pid;type:varchar(16);not null;index:uk_edit_pid,priority:1;comment:edit page id, start with E" json:"edit_pid"`                  // edit page id, start with E
+	AdminPid    string     `gorm:"column:admin_pid;type:varchar(16);not null;index:uk_admin_pid,priority:1;comment:super admin page id, start with A" json:"admin_pid"`        // super admin page id, start with A
+	Title       string     `gorm:"column:title;type:varchar(256);not null;comment:标题" json:"title"`                                                                            // 标题
+	Brief       string     `gorm:"column:brief;type:varchar(1024);not null;comment:简要描述" json:"brief"`                                                                         // 简要描述
+	Content     string     `gorm:"column:content;type:mediumtext;not null;comment:实体内容(文件夹、链接定义)" json:"content"`                                                              // 实体内容(文件夹、链接定义)
+	Version     int64      `gorm:"column:version;type:bigint(20);not null;comment:版本号" json:"version"`                                                                         // 版本号
+	CreatedAt   *time.Time `gorm:"column:created_at;type:datetime;not null;index:idx_created_at,priority:1;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`          // 创建时间
+	UpdatedAt   *time.Time `gorm:"column:updated_at;type:datetime;not null;index:idx_updated_at,priority:1;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`          // 更新时间
 }
 
 // TableName Page's table name

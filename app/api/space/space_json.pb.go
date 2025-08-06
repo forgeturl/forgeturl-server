@@ -202,6 +202,38 @@ func (m *GetMySpaceResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
+func (m *CreateSelfPageReq) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *CreateSelfPageReq) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *CreateSelfPageReq) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *CreateSelfPageReq) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *CreateSelfPageResp) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *CreateSelfPageResp) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *CreateSelfPageResp) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *CreateSelfPageResp) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
 func (m *SavePageIdsReq) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }

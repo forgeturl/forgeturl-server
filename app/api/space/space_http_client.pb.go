@@ -19,6 +19,9 @@ type SpaceServiceHTTPClient interface {
 	// 登录状态才能拉到自己的空间
 	// 部分页面如果消失或者没权限了，需要自动移除
 	GetMySpace(context.Context, *GetMySpaceReq, ...calloption.CallOption) (*TResponse[GetMySpaceResp], error)
+	// 创建自己页面 || 空间
+	// 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
+	CreateSelfPage(context.Context, *CreateSelfPageReq, ...calloption.CallOption) (*TResponse[CreateSelfPageResp], error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法
 	SavePageIds(context.Context, *SavePageIdsReq, ...calloption.CallOption) (*TResponse[SavePageIdsResp], error)
@@ -56,6 +59,22 @@ func (c *SpaceServiceHTTPClientImpl) GetMySpace(ctx context.Context, req *GetMyS
 		opt(r)
 	}
 	_, err := r.SetBody(req).SetResult(resp).Post("/page/getMySpace")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) CreateSelfPage(ctx context.Context, req *CreateSelfPageReq, opts ...calloption.CallOption) (*TResponse[CreateSelfPageResp], error) {
+	resp := &TResponse[CreateSelfPageResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/createSelfPage")
 	if err != nil {
 		return nil, err
 	}
