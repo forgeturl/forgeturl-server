@@ -20,27 +20,6 @@ func isNeedLoginPageId(pageId string) bool {
 	return true
 }
 
-func parsePageIds(pageIdStr string) (pageIds, ownerIds []string, readonlyIds []string, editIds []string, err error) {
-	err = sonic.UnmarshalString(pageIdStr, &pageIds)
-	if err != nil {
-		err = common.ErrInternalServerError(err.Error())
-		return
-	}
-
-	for _, pageId := range pageIds {
-		pType := conf.ParseIdType(pageId)
-		switch pType {
-		case conf.OwnerPage:
-			ownerIds = append(ownerIds, pageId)
-		case conf.ReadOnlyPage:
-			readonlyIds = append(readonlyIds, pageId)
-		case conf.EditPage:
-			editIds = append(editIds, pageId)
-		}
-	}
-	return
-}
-
 func toPage(uid int64, pageId string, page *model.Page) *space.Page {
 	var co []*space.Collections
 	_ = sonic.UnmarshalString(page.Content, co)

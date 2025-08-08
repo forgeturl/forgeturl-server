@@ -2,10 +2,12 @@ package api
 
 import (
 	"encoding/json"
+
 	"forgeturl-server/api/common"
 	"forgeturl-server/api/dumplinks"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
+
 	"github.com/sunmi-OS/gocore/v2/api"
 )
 
@@ -48,11 +50,13 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	_, err = dal.Page.GetSelfPage(ctx.Request.Context(), uid)
 	if common.IsErrNotFound(err) {
 		// Create new page for bookmarks with proper page IDs
+		pid := genOwnerPageId()
+		dal.UniquePid.Create(ctx, pid)
 		page = &model.Page{
 			UID:     uid,
 			Title:   "Chrome Bookmarks",
 			Content: string(content),
-			Pid:     genOwnerPageId(),
+			Pid:     pid,
 			//ReadonlyPid: genReadOnlyPageId(),
 			//EditPid:     genEditPageId(),
 			//AdminPid:    genOwnerPageId(), // Reusing owner page ID for admin

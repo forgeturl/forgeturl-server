@@ -18,9 +18,9 @@ CREATE TABLE page
 
     PRIMARY KEY (`id`),
     UNIQUE  KEY `uk_pid` (`pid`),
-    KEY `uk_readonly_pid` (`readonly_pid`), -- 需要创建id时保持唯一
-    KEY `uk_edit_pid` (`edit_pid`), -- 需要创建id时保持唯一
-    KEY `uk_admin_pid` (`admin_pid`), -- 需要创建id时保持唯一
+    KEY `idx_readonly_pid` (`readonly_pid`), -- 需要创建id时保持唯一
+    KEY `idx_edit_pid` (`edit_pid`), -- 需要创建id时保持唯一
+    KEY `idx_admin_pid` (`admin_pid`), -- 需要创建id时保持唯一
     KEY `idx_created_at` (`created_at`),
     KEY `idx_updated_at` (`updated_at`)
 );

@@ -17,24 +17,28 @@ type SpaceServiceHTTPServer interface {
 	// 登录状态才能拉到自己的空间
 	// 部分页面如果消失或者没权限了，需要自动移除
 	GetMySpace(*api.Context, *GetMySpaceReq) (*GetMySpaceResp, error)
-	// 创建自己页面 || 空间
+	// 创建页面 || 空间
 	// 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
-	CreateSelfPage(*api.Context, *CreateSelfPageReq) (*CreateSelfPageResp, error)
+	// 普通用户只能创建一个自己的页面
+	// 未来氪金用户可以创建多个
+	CreatePage(*api.Context, *CreatePageReq) (*CreatePageResp, error)
+	// 更新页面 || 页面
+	UpdatePage(*api.Context, *UpdatePageReq) (*UpdatePageResp, error)
+	// 拉取某个页面数据 || 页面
+	GetPage(*api.Context, *GetPageReq) (*GetPageResp, error)
+	// 把整个页面删除 || 页面
+	// 自己的默认页面只能清空，无法删除
+	DeletePage(*api.Context, *DeletePageReq) (*DeletePageResp, error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法
+	// 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
 	SavePageIds(*api.Context, *SavePageIdsReq) (*SavePageIdsResp, error)
-	// 创建临时页面 || 页面
+	// (暂时废弃)创建临时页面 || 页面
+	// 新：临时页面，能否只存在于浏览器本地？
 	// 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
 	// 创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母
 	// 生成算法：当前时间转换的4个字母(时分秒)
 	CreateTmpPage(*api.Context, *CreateTmpPageReq) (*CreateTmpPageResp, error)
-	// 拉取某个页面数据 || 页面
-	GetPage(*api.Context, *GetPageReq) (*GetPageResp, error)
-	// 更新页面 || 页面
-	UpdatePage(*api.Context, *UpdatePageReq) (*UpdatePageResp, error)
-	// 把整个页面删除 || 页面
-	// 自己的默认页面只能清空，无法删除
-	DeletePage(*api.Context, *DeletePageReq) (*DeletePageResp, error)
 	// 生成新页面链接 || 页面
 	CreatePageLink(*api.Context, *CreatePageLinkReq) (*CreatePageLinkResp, error)
 	// 去除页面的某种链接 || 页面
@@ -45,12 +49,12 @@ type SpaceServiceHTTPServer interface {
 func RegisterSpaceServiceHTTPServer(s *gin.Engine, srv SpaceServiceHTTPServer) {
 	r := s.Group("/")
 	r.POST("/page/getMySpace", _SpaceService_GetMySpace_HTTP_Handler(srv))         // 拉取我的空间 || 空间
-	r.POST("/page/createSelfPage", _SpaceService_CreateSelfPage_HTTP_Handler(srv)) // 创建自己页面 || 空间
-	r.POST("/page/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))       // 调整我的空间下面的页面顺序 || 空间
-	r.POST("/page/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))   // 创建临时页面 || 页面
-	r.POST("/page/getPage", _SpaceService_GetPage_HTTP_Handler(srv))               // 拉取某个页面数据 || 页面
+	r.POST("/page/createPage", _SpaceService_CreatePage_HTTP_Handler(srv))         // 创建页面 || 空间
 	r.POST("/page/updatePage", _SpaceService_UpdatePage_HTTP_Handler(srv))         // 更新页面 || 页面
+	r.POST("/page/getPage", _SpaceService_GetPage_HTTP_Handler(srv))               // 拉取某个页面数据 || 页面
 	r.POST("/page/deletePage", _SpaceService_DeletePage_HTTP_Handler(srv))         // 把整个页面删除 || 页面
+	r.POST("/page/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))       // 调整我的空间下面的页面顺序 || 空间
+	r.POST("/page/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))   // (暂时废弃)创建临时页面 || 页面
 	r.POST("/page/createPageLink", _SpaceService_CreatePageLink_HTTP_Handler(srv)) // 生成新页面链接 || 页面
 	r.POST("/page/removePageLink", _SpaceService_RemovePageLink_HTTP_Handler(srv)) // 去除页面的某种链接 || 页面
 }
@@ -71,9 +75,9 @@ func _SpaceService_GetMySpace_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *g
 	}
 }
 
-func _SpaceService_CreateSelfPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+func _SpaceService_CreatePage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
 	return func(g *gin.Context) {
-		req := &CreateSelfPageReq{}
+		req := &CreatePageReq{}
 		var err error
 		ctx := api.NewContext(g)
 		err = parseReq(&ctx, req)
@@ -82,7 +86,55 @@ func _SpaceService_CreateSelfPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(
 			setRetJSON(&ctx, nil, err)
 			return
 		}
-		resp, err := srv.CreateSelfPage(&ctx, req)
+		resp, err := srv.CreatePage(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _SpaceService_UpdatePage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &UpdatePageReq{}
+		var err error
+		ctx := api.NewContext(g)
+		err = parseReq(&ctx, req)
+		err = checkValidate(err)
+		if err != nil {
+			setRetJSON(&ctx, nil, err)
+			return
+		}
+		resp, err := srv.UpdatePage(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _SpaceService_GetPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &GetPageReq{}
+		var err error
+		ctx := api.NewContext(g)
+		err = parseReq(&ctx, req)
+		err = checkValidate(err)
+		if err != nil {
+			setRetJSON(&ctx, nil, err)
+			return
+		}
+		resp, err := srv.GetPage(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _SpaceService_DeletePage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &DeletePageReq{}
+		var err error
+		ctx := api.NewContext(g)
+		err = parseReq(&ctx, req)
+		err = checkValidate(err)
+		if err != nil {
+			setRetJSON(&ctx, nil, err)
+			return
+		}
+		resp, err := srv.DeletePage(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }
@@ -115,54 +167,6 @@ func _SpaceService_CreateTmpPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g
 			return
 		}
 		resp, err := srv.CreateTmpPage(&ctx, req)
-		setRetJSON(&ctx, resp, err)
-	}
-}
-
-func _SpaceService_GetPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
-	return func(g *gin.Context) {
-		req := &GetPageReq{}
-		var err error
-		ctx := api.NewContext(g)
-		err = parseReq(&ctx, req)
-		err = checkValidate(err)
-		if err != nil {
-			setRetJSON(&ctx, nil, err)
-			return
-		}
-		resp, err := srv.GetPage(&ctx, req)
-		setRetJSON(&ctx, resp, err)
-	}
-}
-
-func _SpaceService_UpdatePage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
-	return func(g *gin.Context) {
-		req := &UpdatePageReq{}
-		var err error
-		ctx := api.NewContext(g)
-		err = parseReq(&ctx, req)
-		err = checkValidate(err)
-		if err != nil {
-			setRetJSON(&ctx, nil, err)
-			return
-		}
-		resp, err := srv.UpdatePage(&ctx, req)
-		setRetJSON(&ctx, resp, err)
-	}
-}
-
-func _SpaceService_DeletePage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
-	return func(g *gin.Context) {
-		req := &DeletePageReq{}
-		var err error
-		ctx := api.NewContext(g)
-		err = parseReq(&ctx, req)
-		err = checkValidate(err)
-		if err != nil {
-			setRetJSON(&ctx, nil, err)
-			return
-		}
-		resp, err := srv.DeletePage(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }

@@ -108,34 +108,24 @@ type GetMySpaceResp struct {
 	PageBriefs []*PageBrief `json:"page_briefs,omitempty"`
 }
 
-type CreateSelfPageReq struct {
+type CreatePageReq struct {
 	// 页面标题
 	Title string `json:"title" binding:"required,min=0,max=256"`
 	// 页面描述
 	Brief string `json:"brief" binding:"required,min=0,max=1024"`
+	// 页面中的文件夹
+	Collections []*Collections `json:"collections,omitempty"`
 }
 
-type CreateSelfPageResp struct {
-	PageId string `json:"page_id,omitempty"` // 新创建的页面id
-}
-
-type SavePageIdsReq struct {
-	// 用户id
-	Uid int64 `json:"uid,omitempty"`
-	// 调整后页面id的顺序
-	PageIds []string `json:"page_ids,omitempty"`
-}
-
-type SavePageIdsResp struct {
-	// 调整后页面id的顺序
-	PageIds []string `json:"page_ids,omitempty"`
+type CreatePageResp struct {
+	PageId  string `json:"page_id,omitempty"` // 新创建的页面id
+	Version int64  `json:"version,omitempty"`
 }
 
 type UpdatePageReq struct {
 	PageId      string         `json:"page_id,omitempty"`
 	Title       string         `json:"title" binding:"required,min=0,max=256"`
 	Brief       string         `json:"brief" binding:"required,min=0,max=1024"`
-	Content     string         `json:"content,omitempty"`
 	Collections []*Collections `json:"collections,omitempty"`
 	// 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0
 	Version int64 `json:"version,omitempty" binding:"min=0"`
@@ -148,6 +138,19 @@ type UpdatePageReq struct {
 
 type UpdatePageResp struct {
 	UpdateTime int64 `json:"update_time,omitempty"`
+	Version    int64 `json:"version,omitempty"`
+}
+
+type SavePageIdsReq struct {
+	// 用户id
+	Uid int64 `json:"uid,omitempty"`
+	// 调整后页面id的顺序
+	PageIds []string `json:"page_ids" binding:"dive,required,min=1,max=3"`
+}
+
+type SavePageIdsResp struct {
+	// 调整后页面id的顺序
+	PageIds []string `json:"page_ids,omitempty"`
 }
 
 type DeletePageReq struct {

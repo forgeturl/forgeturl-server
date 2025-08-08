@@ -202,67 +202,35 @@ func (m *GetMySpaceResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
-func (m *CreateSelfPageReq) Marshal() ([]byte, error) {
+func (m *CreatePageReq) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }
 
-func (m *CreateSelfPageReq) MarshalString() (string, error) {
+func (m *CreatePageReq) MarshalString() (string, error) {
 	return sonic.MarshalString(m)
 }
 
-func (m *CreateSelfPageReq) Unmarshal(buf []byte) error {
+func (m *CreatePageReq) Unmarshal(buf []byte) error {
 	return sonic.Unmarshal(buf, m)
 }
 
-func (m *CreateSelfPageReq) UnmarshalString(str string) error {
+func (m *CreatePageReq) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
-func (m *CreateSelfPageResp) Marshal() ([]byte, error) {
+func (m *CreatePageResp) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }
 
-func (m *CreateSelfPageResp) MarshalString() (string, error) {
+func (m *CreatePageResp) MarshalString() (string, error) {
 	return sonic.MarshalString(m)
 }
 
-func (m *CreateSelfPageResp) Unmarshal(buf []byte) error {
+func (m *CreatePageResp) Unmarshal(buf []byte) error {
 	return sonic.Unmarshal(buf, m)
 }
 
-func (m *CreateSelfPageResp) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
-func (m *SavePageIdsReq) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *SavePageIdsReq) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *SavePageIdsReq) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *SavePageIdsReq) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
-func (m *SavePageIdsResp) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *SavePageIdsResp) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *SavePageIdsResp) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *SavePageIdsResp) UnmarshalString(str string) error {
+func (m *CreatePageResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
@@ -295,6 +263,38 @@ func (m *UpdatePageResp) Unmarshal(buf []byte) error {
 }
 
 func (m *UpdatePageResp) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *SavePageIdsReq) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *SavePageIdsReq) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *SavePageIdsReq) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *SavePageIdsReq) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *SavePageIdsResp) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *SavePageIdsResp) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *SavePageIdsResp) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *SavePageIdsResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 

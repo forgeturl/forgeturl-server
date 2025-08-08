@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+
 	"forgeturl-server/api/common"
 	"forgeturl-server/conf"
 	"forgeturl-server/dal/model"
@@ -22,12 +23,27 @@ func (*pageImpl) Create(ctx context.Context, page *model.Page, tx ...*query.Quer
 	return transGormErr(err)
 }
 
+// GetSelfPage 获取用户的默认页面
+// 这个页面是用户的默认页面，通常是用户的个人主页
 func (*pageImpl) GetSelfPage(ctx context.Context, uid int64, tx ...*query.Query) (*model.Page, error) {
 	u := Q.Page
 	if len(tx) > 0 {
 		u = tx[0].Page
 	}
 	data, err := u.WithContext(ctx).Where(u.UID.Eq(uid)).First()
+	if err != nil {
+		return nil, transGormErr(err)
+	}
+	return data, nil
+}
+
+// GetAllSelfPages 获取用户所有页面
+func (*pageImpl) GetAllSelfPages(ctx context.Context, uid int64, tx ...*query.Query) ([]*model.Page, error) {
+	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
+	data, err := u.WithContext(ctx).Where(u.UID.Eq(uid)).Order(u.ID.Asc()).Find()
 	if err != nil {
 		return nil, transGormErr(err)
 	}

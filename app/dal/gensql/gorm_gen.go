@@ -38,6 +38,7 @@ func main() {
 			"./page.sql",
 			"./user.sql",
 			"./user_page.sql",
+			"./unique_pid.sql",
 		},
 	}))
 	if err != nil {

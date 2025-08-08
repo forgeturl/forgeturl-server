@@ -6,6 +6,29 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /page/createPage:
+        post:
+            tags:
+                - 空间
+            summary: 创建页面
+            description: |4-
+                 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
+                 普通用户只能创建一个自己的页面
+                 未来氪金用户可以创建多个
+            operationId: SpaceService_CreatePage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.CreatePageReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.TCreatePageResp'
     /page/createPageLink:
         post:
             tags:
@@ -25,32 +48,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.TCreatePageLinkResp'
-    /page/createSelfPage:
-        post:
-            tags:
-                - 空间
-            summary: 创建自己页面
-            description: ' 当getMySpace不存在自己的页面时，调用该接口创建自己的页面'
-            operationId: SpaceService_CreateSelfPage
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/.CreateSelfPageReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/.TCreateSelfPageResp'
     /page/createTmpPage:
         post:
             tags:
                 - 页面
-            summary: 创建临时页面
+            summary: (暂时废弃)创建临时页面
             description: |4-
+                 新：临时页面，能否只存在于浏览器本地？
                  非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
                  创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母
                  生成算法：当前时间转换的4个字母(时分秒)
@@ -154,7 +158,9 @@ paths:
             tags:
                 - 空间
             summary: 调整我的空间下面的页面顺序
-            description: ' 如果有新增、删除page_id，也使用该方法'
+            description: |4-
+                 如果有新增、删除page_id，也使用该方法
+                 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
             operationId: SpaceService_SavePageIds
             requestBody:
                 content:
@@ -224,7 +230,7 @@ components:
                 page_type:
                     type: string
                     description: 页面类型
-        .CreateSelfPageReq:
+        .CreatePageReq:
             required:
                 - title
                 - brief
@@ -236,11 +242,19 @@ components:
                 brief:
                     type: string
                     description: 页面描述
-        .CreateSelfPageResp:
+                collections:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.Collections'
+                    description: 页面中的文件夹
+        .CreatePageResp:
             type: object
             properties:
                 page_id:
                     type: string
+                version:
+                    type: integer
+                    format: int64
         .CreateTmpPageReq:
             required:
                 - user_uuid
@@ -413,6 +427,8 @@ components:
             type: object
             properties: {}
         .SavePageIdsReq:
+            required:
+                - page_ids
             type: object
             properties:
                 uid:
@@ -455,7 +471,7 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.CreatePageLinkResp'
-        .TCreateSelfPageResp:
+        .TCreatePageResp:
             required:
                 - code
                 - msg
@@ -468,7 +484,7 @@ components:
                 msg:
                     type: string
                 data:
-                    $ref: '#/components/schemas/.CreateSelfPageResp'
+                    $ref: '#/components/schemas/.CreatePageResp'
         .TCreateTmpPageResp:
             required:
                 - code
@@ -580,8 +596,6 @@ components:
                     type: string
                 brief:
                     type: string
-                content:
-                    type: string
                 collections:
                     type: array
                     items:
@@ -602,6 +616,9 @@ components:
             type: object
             properties:
                 update_time:
+                    type: integer
+                    format: int64
+                version:
                     type: integer
                     format: int64
 tags:

@@ -19,24 +19,28 @@ type SpaceServiceHTTPClient interface {
 	// 登录状态才能拉到自己的空间
 	// 部分页面如果消失或者没权限了，需要自动移除
 	GetMySpace(context.Context, *GetMySpaceReq, ...calloption.CallOption) (*TResponse[GetMySpaceResp], error)
-	// 创建自己页面 || 空间
+	// 创建页面 || 空间
 	// 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
-	CreateSelfPage(context.Context, *CreateSelfPageReq, ...calloption.CallOption) (*TResponse[CreateSelfPageResp], error)
+	// 普通用户只能创建一个自己的页面
+	// 未来氪金用户可以创建多个
+	CreatePage(context.Context, *CreatePageReq, ...calloption.CallOption) (*TResponse[CreatePageResp], error)
+	// 更新页面 || 页面
+	UpdatePage(context.Context, *UpdatePageReq, ...calloption.CallOption) (*TResponse[UpdatePageResp], error)
+	// 拉取某个页面数据 || 页面
+	GetPage(context.Context, *GetPageReq, ...calloption.CallOption) (*TResponse[GetPageResp], error)
+	// 把整个页面删除 || 页面
+	// 自己的默认页面只能清空，无法删除
+	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法
+	// 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
 	SavePageIds(context.Context, *SavePageIdsReq, ...calloption.CallOption) (*TResponse[SavePageIdsResp], error)
-	// 创建临时页面 || 页面
+	// (暂时废弃)创建临时页面 || 页面
+	// 新：临时页面，能否只存在于浏览器本地？
 	// 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
 	// 创建完成后得到一个随机页面id(比如 240626-abcd)，不使用lo等字符串，只使用其他字母
 	// 生成算法：当前时间转换的4个字母(时分秒)
 	CreateTmpPage(context.Context, *CreateTmpPageReq, ...calloption.CallOption) (*TResponse[CreateTmpPageResp], error)
-	// 拉取某个页面数据 || 页面
-	GetPage(context.Context, *GetPageReq, ...calloption.CallOption) (*TResponse[GetPageResp], error)
-	// 更新页面 || 页面
-	UpdatePage(context.Context, *UpdatePageReq, ...calloption.CallOption) (*TResponse[UpdatePageResp], error)
-	// 把整个页面删除 || 页面
-	// 自己的默认页面只能清空，无法删除
-	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
 	// 生成新页面链接 || 页面
 	CreatePageLink(context.Context, *CreatePageLinkReq, ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error)
 	// 去除页面的某种链接 || 页面
@@ -68,13 +72,61 @@ func (c *SpaceServiceHTTPClientImpl) GetMySpace(ctx context.Context, req *GetMyS
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) CreateSelfPage(ctx context.Context, req *CreateSelfPageReq, opts ...calloption.CallOption) (*TResponse[CreateSelfPageResp], error) {
-	resp := &TResponse[CreateSelfPageResp]{}
+func (c *SpaceServiceHTTPClientImpl) CreatePage(ctx context.Context, req *CreatePageReq, opts ...calloption.CallOption) (*TResponse[CreatePageResp], error) {
+	resp := &TResponse[CreatePageResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/createSelfPage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/createPage")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) UpdatePage(ctx context.Context, req *UpdatePageReq, opts ...calloption.CallOption) (*TResponse[UpdatePageResp], error) {
+	resp := &TResponse[UpdatePageResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/updatePage")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) GetPage(ctx context.Context, req *GetPageReq, opts ...calloption.CallOption) (*TResponse[GetPageResp], error) {
+	resp := &TResponse[GetPageResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/getPage")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) DeletePage(ctx context.Context, req *DeletePageReq, opts ...calloption.CallOption) (*TResponse[DeletePageResp], error) {
+	resp := &TResponse[DeletePageResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/page/deletePage")
 	if err != nil {
 		return nil, err
 	}
@@ -107,54 +159,6 @@ func (c *SpaceServiceHTTPClientImpl) CreateTmpPage(ctx context.Context, req *Cre
 		opt(r)
 	}
 	_, err := r.SetBody(req).SetResult(resp).Post("/page/createTmpPage")
-	if err != nil {
-		return nil, err
-	}
-	if resp.Code != 1 {
-		err = ecode.NewV2(int(resp.Code), resp.Msg)
-	}
-	return resp, err
-}
-
-func (c *SpaceServiceHTTPClientImpl) GetPage(ctx context.Context, req *GetPageReq, opts ...calloption.CallOption) (*TResponse[GetPageResp], error) {
-	resp := &TResponse[GetPageResp]{}
-	r := c.hh.Client.R().SetContext(ctx)
-	for _, opt := range opts {
-		opt(r)
-	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/getPage")
-	if err != nil {
-		return nil, err
-	}
-	if resp.Code != 1 {
-		err = ecode.NewV2(int(resp.Code), resp.Msg)
-	}
-	return resp, err
-}
-
-func (c *SpaceServiceHTTPClientImpl) UpdatePage(ctx context.Context, req *UpdatePageReq, opts ...calloption.CallOption) (*TResponse[UpdatePageResp], error) {
-	resp := &TResponse[UpdatePageResp]{}
-	r := c.hh.Client.R().SetContext(ctx)
-	for _, opt := range opts {
-		opt(r)
-	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/updatePage")
-	if err != nil {
-		return nil, err
-	}
-	if resp.Code != 1 {
-		err = ecode.NewV2(int(resp.Code), resp.Msg)
-	}
-	return resp, err
-}
-
-func (c *SpaceServiceHTTPClientImpl) DeletePage(ctx context.Context, req *DeletePageReq, opts ...calloption.CallOption) (*TResponse[DeletePageResp], error) {
-	resp := &TResponse[DeletePageResp]{}
-	r := c.hh.Client.R().SetContext(ctx)
-	for _, opt := range opts {
-		opt(r)
-	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/deletePage")
 	if err != nil {
 		return nil, err
 	}

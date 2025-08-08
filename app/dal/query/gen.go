@@ -16,44 +16,49 @@ import (
 )
 
 var (
-	Q        = new(Query)
-	Page     *page
-	User     *user
-	UserPage *userPage
+	Q         = new(Query)
+	Page      *page
+	UniquePid *uniquePid
+	User      *user
+	UserPage  *userPage
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Page = &Q.Page
+	UniquePid = &Q.UniquePid
 	User = &Q.User
 	UserPage = &Q.UserPage
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:       db,
-		Page:     newPage(db, opts...),
-		User:     newUser(db, opts...),
-		UserPage: newUserPage(db, opts...),
+		db:        db,
+		Page:      newPage(db, opts...),
+		UniquePid: newUniquePid(db, opts...),
+		User:      newUser(db, opts...),
+		UserPage:  newUserPage(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Page     page
-	User     user
-	UserPage userPage
+	Page      page
+	UniquePid uniquePid
+	User      user
+	UserPage  userPage
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:       db,
-		Page:     q.Page.clone(db),
-		User:     q.User.clone(db),
-		UserPage: q.UserPage.clone(db),
+		db:        db,
+		Page:      q.Page.clone(db),
+		UniquePid: q.UniquePid.clone(db),
+		User:      q.User.clone(db),
+		UserPage:  q.UserPage.clone(db),
 	}
 }
 
@@ -67,24 +72,27 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:       db,
-		Page:     q.Page.replaceDB(db),
-		User:     q.User.replaceDB(db),
-		UserPage: q.UserPage.replaceDB(db),
+		db:        db,
+		Page:      q.Page.replaceDB(db),
+		UniquePid: q.UniquePid.replaceDB(db),
+		User:      q.User.replaceDB(db),
+		UserPage:  q.UserPage.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Page     *pageDo
-	User     *userDo
-	UserPage *userPageDo
+	Page      *pageDo
+	UniquePid *uniquePidDo
+	User      *userDo
+	UserPage  *userPageDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Page:     q.Page.WithContext(ctx),
-		User:     q.User.WithContext(ctx),
-		UserPage: q.UserPage.WithContext(ctx),
+		Page:      q.Page.WithContext(ctx),
+		UniquePid: q.UniquePid.WithContext(ctx),
+		User:      q.User.WithContext(ctx),
+		UserPage:  q.UserPage.WithContext(ctx),
 	}
 }
 

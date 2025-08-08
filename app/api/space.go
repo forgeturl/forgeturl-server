@@ -5,6 +5,7 @@ import (
 	"forgeturl-server/api/space"
 	"forgeturl-server/conf"
 	"forgeturl-server/dal"
+	"forgeturl-server/dal/model"
 	"forgeturl-server/dal/query"
 	"forgeturl-server/pkg/middleware"
 
@@ -40,15 +41,23 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 		return nil, err
 	}
 
-	pageIdsStr, err := sonic.MarshalString(pageIds)
-	if err != nil {
-		return nil, common.ErrBadRequest(err.Error())
-	}
-	err = dal.User.UpdatePageIds(ctx, uid, pageIdsStr)
+	newPageIds := make([]string, 0, len(pageIds))
+	err = dal.Q.Transaction(func(tx *query.Query) error {
+		err0 := dal.UserPage.SaveUserPageIds(ctx, uid, pageIds, tx)
+		if err0 != nil {
+			return err0
+		}
+
+		newPageIds, err0 = dal.UserPage.GetUserPageIds(ctx, uid, tx)
+		if err0 != nil {
+			return err0
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	return &space.SavePageIdsResp{}, nil
+	return &space.SavePageIdsResp{PageIds: newPageIds}, nil
 }
 
 // GetMySpace 只需要给个大概
@@ -64,13 +73,15 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 		PageBriefs: make([]*space.PageBrief, 0),
 	}
 
-	pageIds := make([]string, 0)
-	_ = sonic.UnmarshalString(userInfo.PageIds, &pageIds)
+	pageIds, err := dal.UserPage.GetUserPageIds(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, pageId := range pageIds {
-		page, err := dal.Page.GetPageBrief(ctx, uid, pageId)
-		if err != nil {
-			return nil, err
+		page, err0 := dal.Page.GetPageBrief(ctx, uid, pageId)
+		if err0 != nil {
+			return nil, err0
 		}
 		pageResp := toPageBrief(uid, pageId, page)
 		resp.PageBriefs = append(resp.PageBriefs, pageResp)
@@ -89,7 +100,6 @@ func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (
 	}
 
 	// 拉取某个页面数据
-
 	page, err := dal.Page.GetPage(ctx, uid, pageId)
 	if err != nil {
 		return nil, err
@@ -106,6 +116,71 @@ func (s spaceServiceImpl) CreateTmpPage(context *api.Context, req *space.CreateT
 	panic("implement me")
 }
 
+func (s spaceServiceImpl) CreateSelfPage(context *api.Context, req *space.CreatePageReq) (*space.CreatePageResp, error) {
+	// 首先搜下，他有几个页面
+	ctx := context.Request.Context()
+	// 获取某个页面数据
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
+
+	content, err := sonic.MarshalString(req.Collections)
+	if err != nil {
+		return nil, err
+	}
+
+	var pageId string
+	startVersion := int64(0)
+	err = dal.Q.Transaction(func(tx *query.Query) error {
+		page, err0 := dal.Page.GetSelfPage(ctx, uid, tx)
+		if err0 == nil && page != nil && page.ID > 0 {
+			return common.ErrBadRequest("You already have a self page, cannot create more")
+		}
+		if !common.IsErrNotFound(err0) {
+			if err0 != nil {
+				return err0
+			}
+		}
+
+		pageId = genOwnerPageId()
+		err0 = dal.UniquePid.Create(ctx, uid, pageId, tx)
+		if err0 != nil {
+			return err0
+		}
+
+		err0 = dal.Page.Create(ctx, &model.Page{
+			UID:     uid,
+			Pid:     pageId,
+			Title:   req.Title,
+			Brief:   req.Brief,
+			Content: content,
+			Version: startVersion,
+		}, tx)
+		if err0 != nil {
+			return err0
+		}
+		pageIds, err0 := dal.UserPage.GetUserPageIds(ctx, uid, tx)
+		if err0 != nil {
+			return err0
+		}
+		pageIds = append(pageIds, pageId)
+		err0 = dal.UserPage.SaveUserPageIds(ctx, uid, pageIds, tx)
+		if err0 != nil {
+			return err0
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &space.CreatePageResp{
+		PageId:  pageId,
+		Version: startVersion,
+	}, nil
+}
+
 func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePageReq) (*space.UpdatePageResp, error) {
 	ctx := context.Request.Context()
 	uid := middleware.GetLoginUid(context)
@@ -113,7 +188,11 @@ func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePage
 		return nil, common.ErrNeedLogin("")
 	}
 
-	err := dal.Page.UpdatePage(ctx, uid, req.Mask, req.Version, req.PageId, req.Title, req.Brief, req.Content)
+	content, err := sonic.MarshalString(req.Collections)
+	if err != nil {
+		return nil, err
+	}
+	err = dal.Page.UpdatePage(ctx, uid, req.Mask, req.Version, req.PageId, req.Title, req.Brief, content)
 	if err != nil {
 		return nil, err
 	}
