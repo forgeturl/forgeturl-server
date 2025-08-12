@@ -7,6 +7,7 @@ require (
 	github.com/bytedance/sonic v1.12.2
 	github.com/gin-contrib/pprof v1.5.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/google/uuid v1.6.0
 	github.com/guoming0000/protoc-gen-go-gin v1.2.3
 	github.com/markbates/goth v1.81.0
 	github.com/prometheus/client_golang v1.19.0

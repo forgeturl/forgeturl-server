@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"forgeturl-server/pkg/middleware"
 	"forgeturl-server/route"
+	"time"
 
 	"github.com/sunmi-OS/gocore/v2/api"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
@@ -35,8 +37,17 @@ func RunApi(c *cli.Context) error {
 		api.WithServerDebug(!utils.IsRelease()),
 		api.WithServerHost(viper.C.GetString("network.ApiServiceHost")),
 		api.WithServerPort(viper.C.GetInt("network.ApiServicePort")),
-		api.WithOpenTrace(true),
+		api.WithServerTimeout(time.Minute*5),
+		api.WithOpenTrace(false),
 	)
+	gs.Gin.Use(middleware.ServerLogging(
+		middleware.WithSlowThreshold(10000),
+		middleware.WithHideReqBodyLogsPath(map[string]bool{
+			"/dumplinks/importBookmarks": true,
+			"/dumplinks/exportBookmarks": true,
+		}, true),
+	))
+
 	// init route
 	route.Routes(gs.Gin)
 	gs.Start()

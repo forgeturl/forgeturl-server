@@ -40,6 +40,10 @@ type SpaceServiceHTTPServer interface {
 	// 生成算法：当前时间转换的4个字母(时分秒)
 	CreateTmpPage(*api.Context, *CreateTmpPageReq) (*CreateTmpPageResp, error)
 	// 生成新页面链接 || 页面
+	// 1.当前页面若是你的，则你可以创建 readonly edit admin链接
+	// 2.如果你有该页面的adminId，则可以创建 readonly edit链接
+	// 3. 其他情况会被拒绝
+	// 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
 	CreatePageLink(*api.Context, *CreatePageLinkReq) (*CreatePageLinkResp, error)
 	// 去除页面的某种链接 || 页面
 	// 把页面的只读链接、编辑链接删除

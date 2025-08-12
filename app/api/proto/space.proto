@@ -75,6 +75,10 @@ service SpaceService {
   }
 
   // 生成新页面链接 || 页面
+  // 1.当前页面若是你的，则你可以创建 readonly edit admin链接
+  // 2.如果你有该页面的adminId，则可以创建 readonly edit链接
+  // 3. 其他情况会被拒绝
+  // 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
   rpc CreatePageLink(CreatePageLinkReq) returns (CreatePageLinkResp) {
     option (google.api.http) = {
       post: "/page/createPageLink"
@@ -93,7 +97,6 @@ service SpaceService {
 
 }
 
-
 message CreateTmpPageReq {
   // 客户侧唯一识别码
   string user_uuid = 1; // binding:"required,min=1,max=32"
@@ -110,7 +113,7 @@ message Page {// omitempty=false
   string title = 2; // binding:"required,min=0,max=256"
   // 页面描述，放在页面最上方展示
   string brief = 3; // binding:"required,min=0,max=1024"
-  // 文件夹
+  // 有一堆文件夹
   repeated Collections collections = 4;
   // 版本号，从0递增，当修改时需要传入该值
   int64 version = 5;
@@ -131,7 +134,7 @@ message Page {// omitempty=false
 }
 
 // 页面简介
-message PageBrief {
+message PageBrief { // omitempty=false
   string page_id = 1;
   string title = 2;  // binding:"required,min=0,max=256"
   string brief = 3; // binding:"required,min=0,max=1024"
@@ -145,24 +148,26 @@ message PageBrief {
   PageConf page_conf = 8;
 }
 
-
 message Collections {// omitempty=false
-  // 文件夹中有多个链接
+  // 每个文件夹里，有多个链接
   repeated Link links = 1;
 }
 
 message SubLink {
-  // 右上角角标
-  string corner = 1;
+  // 展示的文字
+  string sub_title = 1;
   // 链接
-  string url =2;
+  string sub_url =2;
 }
 
 message Link {// omitempty=false
+  // 链接的展示的标题
   string title = 1; // binding:"required,min=0,max=256"
+  // 链接的地址
   string url = 2;
+  // 链接的标签
   repeated string tags = 3;
-  // 暂不支持
+  // 链接的图标地址(暂不支持)
   string photo_url = 4;
 
   // 子链接
@@ -183,7 +188,7 @@ message GetPageReq {
   string page_id = 1;
 }
 
-message GetPageResp {
+message GetPageResp { // omitempty=false
   Page page = 1;
 }
 
@@ -192,7 +197,7 @@ message GetMySpaceReq {
   int64 uid = 1;
 }
 
-message GetMySpaceResp {
+message GetMySpaceResp { // omitempty=false
   // 空间名字
   string space_name = 2;
 
@@ -210,9 +215,10 @@ message CreatePageReq {
   repeated Collections collections = 3;
 }
 
-message CreatePageResp {
+message CreatePageResp { // omitempty=false
   string page_id = 1; // 新创建的页面id
   int64 version = 2;
+  repeated string page_ids = 3; // 新创建的页面id列表
 }
 
 message UpdatePageReq {
@@ -229,7 +235,7 @@ message UpdatePageReq {
   int64 mask = 7; // binding:"required,min=1,max=7"
 }
 
-message UpdatePageResp {
+message UpdatePageResp { // omitempty=false
   int64 update_time = 2;
   int64 version = 3;
 }
@@ -241,7 +247,7 @@ message SavePageIdsReq {
   repeated string page_ids = 2; // binding:"dive,required,min=1,max=3"
 }
 
-message SavePageIdsResp {
+message SavePageIdsResp { // omitempty=false
   // 调整后页面id的顺序
   repeated string page_ids = 2;
 }
@@ -250,7 +256,7 @@ message DeletePageReq {
   string page_id = 1;
 }
 
-message DeletePageResp {
+message DeletePageResp { // omitempty=false
 }
 
 message RemovePageLinkReq {

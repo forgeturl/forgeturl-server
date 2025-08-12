@@ -34,6 +34,11 @@ paths:
             tags:
                 - 页面
             summary: 生成新页面链接
+            description: |4-
+                 1.当前页面若是你的，则你可以创建 readonly edit admin链接
+                 2.如果你有该页面的adminId，则可以创建 readonly edit链接
+                 3. 其他情况会被拒绝
+                 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
             operationId: SpaceService_CreatePageLink
             requestBody:
                 content:
@@ -255,6 +260,10 @@ components:
                 version:
                     type: integer
                     format: int64
+                page_ids:
+                    type: array
+                    items:
+                        type: string
         .CreateTmpPageReq:
             required:
                 - user_uuid

@@ -116,7 +116,7 @@ func (s spaceServiceImpl) CreateTmpPage(context *api.Context, req *space.CreateT
 	panic("implement me")
 }
 
-func (s spaceServiceImpl) CreateSelfPage(context *api.Context, req *space.CreatePageReq) (*space.CreatePageResp, error) {
+func (s spaceServiceImpl) CreatePage(context *api.Context, req *space.CreatePageReq) (*space.CreatePageResp, error) {
 	// 首先搜下，他有几个页面
 	ctx := context.Request.Context()
 	// 获取某个页面数据
@@ -132,6 +132,7 @@ func (s spaceServiceImpl) CreateSelfPage(context *api.Context, req *space.Create
 
 	var pageId string
 	startVersion := int64(0)
+	var pageIds []string
 	err = dal.Q.Transaction(func(tx *query.Query) error {
 		page, err0 := dal.Page.GetSelfPage(ctx, uid, tx)
 		if err0 == nil && page != nil && page.ID > 0 {
@@ -150,25 +151,31 @@ func (s spaceServiceImpl) CreateSelfPage(context *api.Context, req *space.Create
 		}
 
 		err0 = dal.Page.Create(ctx, &model.Page{
-			UID:     uid,
-			Pid:     pageId,
-			Title:   req.Title,
-			Brief:   req.Brief,
-			Content: content,
-			Version: startVersion,
+			UID:         uid,
+			Pid:         pageId,
+			ReadonlyPid: "",
+			EditPid:     "",
+			AdminPid:    "",
+			Title:       req.Title,
+			Brief:       req.Brief,
+			Content:     content,
+			Version:     startVersion,
 		}, tx)
 		if err0 != nil {
 			return err0
 		}
-		pageIds, err0 := dal.UserPage.GetUserPageIds(ctx, uid, tx)
+
+		pageIds, err0 = dal.UserPage.GetUserPageIds(ctx, uid, tx)
 		if err0 != nil {
 			return err0
 		}
-		pageIds = append(pageIds, pageId)
+
+		pageIds = append([]string{pageId}, pageIds...)
 		err0 = dal.UserPage.SaveUserPageIds(ctx, uid, pageIds, tx)
 		if err0 != nil {
 			return err0
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -178,6 +185,7 @@ func (s spaceServiceImpl) CreateSelfPage(context *api.Context, req *space.Create
 	return &space.CreatePageResp{
 		PageId:  pageId,
 		Version: startVersion,
+		PageIds: pageIds,
 	}, nil
 }
 
@@ -228,11 +236,10 @@ func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.Remove
 }
 
 func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.CreatePageLinkReq) (*space.CreatePageLinkResp, error) {
-	// 当前页面是你的，则你可以创建 readonly edit admin链接
-	// 当前如果你有该页面的adminId，则可以创建 readonly edit链接
-	// 其他情况会被拒绝
-
-	// 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
+	// 1.当前页面若是你的，则你可以创建 readonly edit admin链接
+	// 2.如果你有该页面的adminId，则可以创建 readonly edit链接
+	// 3. 其他情况会被拒绝
+	// 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
 	ctx := context.Request.Context()
 	uid := middleware.GetLoginUid(context)
 	if uid == 0 {

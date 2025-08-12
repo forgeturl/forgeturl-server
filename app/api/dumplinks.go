@@ -51,7 +51,7 @@ func (d dumplinksSerivceImpl) ImportBookmarks(ctx *api.Context, req *dumplinks.I
 	if common.IsErrNotFound(err) {
 		// Create new page for bookmarks with proper page IDs
 		pid := genOwnerPageId()
-		dal.UniquePid.Create(ctx, pid)
+		dal.UniquePid.Create(ctx, uid, pid)
 		page = &model.Page{
 			UID:     uid,
 			Title:   "Chrome Bookmarks",

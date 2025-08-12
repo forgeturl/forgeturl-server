@@ -14,10 +14,12 @@ import (
 func initConf() {
 
 	switch utils.GetRunTime() {
-	case "local":
-		nacos.SetLocalConfig(conf.LocalConfig)
+	case utils.LocalEnv:
+		nacos.SetLocalConfigFile("conf/local.toml")
+	case utils.TestEnv:
+		nacos.SetLocalConfigFile("conf/test.toml")
 	default:
-		nacos.SetLocalConfig(conf.OnlConfig)
+		nacos.SetLocalConfigFile("conf/onl.toml")
 	}
 
 	vt := nacos.GetViper()

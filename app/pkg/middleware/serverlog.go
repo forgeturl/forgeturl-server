@@ -6,13 +6,12 @@ import (
 	"math"
 	"net"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/google/uuid"
 	"github.com/sunmi-OS/gocore/v2/glog"
 	"github.com/sunmi-OS/gocore/v2/utils"
 )
@@ -83,8 +82,13 @@ func ServerLogging(options ...Option) gin.HandlerFunc {
 		if traceid == "" { // 如果找不到x-b3-traceid，用x-request-id
 			traceid = c.GetHeader(utils.XRequestId)
 		}
+		if traceid == "" { // 还找不到，自己生成一个大写的traceid
+			traceid = NewUUID()
+			traceid = strings.ToUpper(traceid)
+		}
 		ctx := utils.SetMetaData(c.Request.Context(), utils.XB3TraceId, traceid)
 		c.Request = c.Request.WithContext(ctx)
+		c.Writer.Header().Set("X-AppName", utils.GetAppName())
 
 		c.Next()
 
@@ -113,15 +117,9 @@ func ServerLogging(options ...Option) gin.HandlerFunc {
 			respBytes = []byte(hideBody)
 		}
 
-		sendBytes := mustPositive(float64(c.Writer.Size()))
-		recvBytes := mustPositive(float64(r.ContentLength))
 		reqAppname := r.Header.Get(utils.XAppName)
 		statusCode := c.Writer.Status()
-		serverRecvBytes.WithLabelValues(path, reqAppname).Add(recvBytes)
-		serverSendBytes.WithLabelValues(path, reqAppname).Add(sendBytes)
-		serverReqCodeTotal.WithLabelValues(path, reqAppname, strconv.FormatInt(int64(statusCode), 10)).Inc()
 		costms := time.Since(start).Milliseconds()
-		serverReqDur.WithLabelValues(path, reqAppname).Observe(float64(costms))
 
 		if op.hideLogsWithPath[path] {
 			return
@@ -266,6 +264,16 @@ func WithHideBodyLogsPath(hideBodyLogsWithPath map[string]bool, isMerge bool) Op
 	}
 }
 
+func WithHideReqBodyLogsPath(hideBodyLogsWithPath map[string]bool, isMerge bool) Option {
+	return func(o *option) {
+		if isMerge {
+			o.hideReqBodyWithPath = mergeMap(o.hideReqBodyWithPath, hideBodyLogsWithPath)
+		} else {
+			o.hideReqBodyWithPath = hideBodyLogsWithPath
+		}
+	}
+}
+
 // WithAllowShowHeaders 只展示某些header
 func WithAllowShowHeaders(allowHeaders []string) Option {
 	return func(o *option) {
@@ -305,39 +313,6 @@ type option struct {
 
 type Option func(op *option)
 
-const (
-	serverNamespace = "http_server"
-)
-
-var (
-	serverReqDur = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: serverNamespace,
-		Subsystem: "requests",
-		Name:      "duration_ms",
-		Help:      "http server requests duration(ms).",
-		Buckets:   []float64{5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000},
-	}, []string{"path", "caller"})
-	serverReqCodeTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: serverNamespace,
-		Subsystem: "requests",
-		Name:      "code_total",
-		Help:      "http server requests error count.",
-	}, []string{"path", "caller", "code"})
-	serverSendBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: serverNamespace,
-		Subsystem: "bandwith",
-		Name:      "send",
-	}, []string{"path", "caller"})
-	serverRecvBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: serverNamespace,
-		Subsystem: "bandwith",
-		Name:      "recv",
-	}, []string{"path", "caller"})
-)
-
-func init() {
-	prometheus.MustRegister(serverReqDur)
-	prometheus.MustRegister(serverReqCodeTotal)
-	prometheus.MustRegister(serverSendBytes)
-	prometheus.MustRegister(serverRecvBytes)
+func NewUUID() string {
+	return strings.ReplaceAll(uuid.New().String(), "-", "")
 }

@@ -42,17 +42,17 @@ type Page struct {
 
 // 页面简介
 type PageBrief struct {
-	PageId string `json:"page_id,omitempty"`
+	PageId string `json:"page_id"`
 	Title  string `json:"title" binding:"required,min=0,max=256"`
 	Brief  string `json:"brief" binding:"required,min=0,max=1024"`
 	// 创建时间
-	CreateTime int64 `json:"create_time,omitempty"`
+	CreateTime int64 `json:"create_time"`
 	// 更新时间
-	UpdateTime int64 `json:"update_time,omitempty"`
+	UpdateTime int64 `json:"update_time"`
 	// 是否是自己的页面
-	IsSelf bool `json:"is_self,omitempty"`
+	IsSelf bool `json:"is_self"`
 	// 页面配置
-	PageConf *PageConf `json:"page_conf,omitempty"`
+	PageConf *PageConf `json:"page_conf"`
 }
 
 type Collections struct {
@@ -92,7 +92,7 @@ type GetPageReq struct {
 }
 
 type GetPageResp struct {
-	Page *Page `json:"page,omitempty"`
+	Page *Page `json:"page"`
 }
 
 type GetMySpaceReq struct {
@@ -102,10 +102,10 @@ type GetMySpaceReq struct {
 
 type GetMySpaceResp struct {
 	// 空间名字
-	SpaceName string `json:"space_name,omitempty"`
+	SpaceName string `json:"space_name"`
 	// 我的空间下面的页面
 	// 逻辑：如果没有自己的主页面，则调用接口创建自己的页面
-	PageBriefs []*PageBrief `json:"page_briefs,omitempty"`
+	PageBriefs []*PageBrief `json:"page_briefs"`
 }
 
 type CreatePageReq struct {
@@ -118,8 +118,9 @@ type CreatePageReq struct {
 }
 
 type CreatePageResp struct {
-	PageId  string `json:"page_id,omitempty"` // 新创建的页面id
-	Version int64  `json:"version,omitempty"`
+	PageId  string   `json:"page_id"` // 新创建的页面id
+	Version int64    `json:"version"`
+	PageIds []string `json:"page_ids"` // 新创建的页面id列表
 }
 
 type UpdatePageReq struct {
@@ -137,8 +138,8 @@ type UpdatePageReq struct {
 }
 
 type UpdatePageResp struct {
-	UpdateTime int64 `json:"update_time,omitempty"`
-	Version    int64 `json:"version,omitempty"`
+	UpdateTime int64 `json:"update_time"`
+	Version    int64 `json:"version"`
 }
 
 type SavePageIdsReq struct {
@@ -150,7 +151,7 @@ type SavePageIdsReq struct {
 
 type SavePageIdsResp struct {
 	// 调整后页面id的顺序
-	PageIds []string `json:"page_ids,omitempty"`
+	PageIds []string `json:"page_ids"`
 }
 
 type DeletePageReq struct {

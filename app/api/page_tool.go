@@ -1,7 +1,6 @@
 package api
 
 import (
-	"forgeturl-server/api/common"
 	"forgeturl-server/api/space"
 	"forgeturl-server/conf"
 	"forgeturl-server/dal/model"

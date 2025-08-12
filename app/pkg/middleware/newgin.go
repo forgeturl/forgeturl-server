@@ -20,7 +20,7 @@ func NewGin() *gin.Engine {
 	if utils.GetRunTime() != utils.LocalEnv {
 		r.Use(gin.Recovery())
 	}
-	r.Use(ServerLogging(WithSlowThreshold(1000)))
+	r.Use(ServerLogging(WithSlowThreshold(5000)))
 
 	r.Any("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome GoCore Service")

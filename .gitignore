@@ -1,4 +1,6 @@
-forgeturl.sqlite
+app/conf/test.toml
+app/conf/onl.toml
+
 .idea
 nacos
 runtime
