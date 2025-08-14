@@ -5,7 +5,7 @@
     "version": "0.0.1"
   },
   "paths": {
-    "/page/createPage": {
+    "/space/createPage": {
       "post": {
         "tags": [
           "空间"
@@ -37,7 +37,7 @@
         }
       }
     },
-    "/page/createPageLink": {
+    "/space/createPageLink": {
       "post": {
         "tags": [
           "页面"
@@ -69,7 +69,7 @@
         }
       }
     },
-    "/page/createTmpPage": {
+    "/space/createTmpPage": {
       "post": {
         "tags": [
           "页面"
@@ -101,7 +101,7 @@
         }
       }
     },
-    "/page/deletePage": {
+    "/space/deletePage": {
       "post": {
         "tags": [
           "页面"
@@ -133,7 +133,7 @@
         }
       }
     },
-    "/page/getMySpace": {
+    "/space/getMySpace": {
       "post": {
         "tags": [
           "空间"
@@ -165,7 +165,7 @@
         }
       }
     },
-    "/page/getPage": {
+    "/space/getPage": {
       "post": {
         "tags": [
           "页面"
@@ -196,7 +196,37 @@
         }
       }
     },
-    "/page/removePageLink": {
+    "/space/getUserInfo": {
+      "post": {
+        "tags": [
+          "SpaceService"
+        ],
+        "operationId": "SpaceService_GetUserInfo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.GetUserInfoReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TGetUserInfoResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/space/removePageLink": {
       "post": {
         "tags": [
           "页面"
@@ -228,7 +258,7 @@
         }
       }
     },
-    "/page/savePageIds": {
+    "/space/savePageIds": {
       "post": {
         "tags": [
           "空间"
@@ -260,7 +290,7 @@
         }
       }
     },
-    "/page/updatePage": {
+    "/space/updatePage": {
       "post": {
         "tags": [
           "页面"
@@ -302,7 +332,7 @@
             "items": {
               "$ref": "#/components/schemas/.Link"
             },
-            "description": "文件夹中有多个链接"
+            "description": "每个文件夹里，有多个链接"
           }
         }
       },
@@ -460,6 +490,71 @@
           }
         }
       },
+      ".GetUserInfoReq": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
+          }
+        }
+      },
+      ".GetUserInfoResp": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "integer",
+            "description": "用户id",
+            "format": "int64"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "展示名称"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "用户头像"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱"
+          },
+          "status": {
+            "type": "integer",
+            "description": "用户状态 normal 0,suspended 2,deleted 4",
+            "format": "int32"
+          },
+          "last_login_time": {
+            "type": "integer",
+            "description": "上一次登录时间",
+            "format": "int64"
+          },
+          "is_admin": {
+            "type": "integer",
+            "description": "是否是管理员 0:普通用户 1:管理员",
+            "format": "int32"
+          },
+          "provider": {
+            "type": "string",
+            "description": "账号注册来源"
+          },
+          "create_time": {
+            "type": "integer",
+            "description": "用户创建时间",
+            "format": "int64"
+          },
+          "update_time": {
+            "type": "integer",
+            "description": "用户更新时间",
+            "format": "int64"
+          }
+        }
+      },
       ".Link": {
         "required": [
           "title"
@@ -467,20 +562,23 @@
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "链接的展示的标题"
           },
           "url": {
-            "type": "string"
+            "type": "string",
+            "description": "链接的地址"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "链接的标签"
           },
           "photo_url": {
             "type": "string",
-            "description": "暂不支持"
+            "description": "链接的图标地址(暂不支持)"
           },
           "sub_links": {
             "type": "array",
@@ -513,7 +611,7 @@
             "items": {
               "$ref": "#/components/schemas/.Collections"
             },
-            "description": "文件夹"
+            "description": "有一堆文件夹"
           },
           "version": {
             "type": "integer",
@@ -658,11 +756,11 @@
       ".SubLink": {
         "type": "object",
         "properties": {
-          "corner": {
+          "sub_title": {
             "type": "string",
-            "description": "右上角角标"
+            "description": "展示的文字"
           },
-          "url": {
+          "sub_url": {
             "type": "string",
             "description": "链接"
           }
@@ -785,6 +883,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/.GetPageResp"
+          }
+        }
+      },
+      ".TGetUserInfoResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.GetUserInfoResp"
           }
         }
       },

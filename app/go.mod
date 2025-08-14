@@ -10,8 +10,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/guoming0000/protoc-gen-go-gin v1.2.3
 	github.com/markbates/goth v1.81.0
-	github.com/prometheus/client_golang v1.19.0
+	github.com/redis/go-redis/v9 v9.5.5
 	github.com/sunmi-OS/gocore/v2 v2.1.56
+	github.com/ulule/limiter/v3 v3.11.2
 	github.com/urfave/cli/v2 v2.27.2
 	golang.org/x/oauth2 v0.17.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80
@@ -42,6 +43,7 @@ require (
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -86,6 +88,7 @@ require (
 	github.com/pingcap/log v1.1.0 // indirect
 	github.com/pingcap/tidb/pkg/parser v0.0.0-20240407083020-62d6f4737bfb // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect

@@ -137,35 +137,3 @@ func (m *ConnectorCallbackResp) Unmarshal(buf []byte) error {
 func (m *ConnectorCallbackResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
-
-func (m *GetUserInfoReq) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *GetUserInfoReq) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *GetUserInfoReq) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *GetUserInfoReq) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
-func (m *GetUserInfoResp) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *GetUserInfoResp) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *GetUserInfoResp) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *GetUserInfoResp) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}

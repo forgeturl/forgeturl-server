@@ -6,12 +6,19 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 
 service SpaceService {
+  rpc GetUserInfo(GetUserInfoReq) returns (TGetUserInfoResp) {
+    option (google.api.http) = {
+      post: "/space/getUserInfo"
+      body: "*"
+    };
+  }
+
   // 拉取我的空间 || 空间
   // 登录状态才能拉到自己的空间
   // 部分页面如果消失或者没权限了，需要自动移除
   rpc GetMySpace(GetMySpaceReq) returns (TGetMySpaceResp) {
     option (google.api.http) = {
-      post: "/page/getMySpace"
+      post: "/space/getMySpace"
       body: "*"
     };
   }
@@ -22,7 +29,7 @@ service SpaceService {
   // 未来氪金用户可以创建多个
   rpc CreatePage(CreatePageReq) returns (TCreatePageResp) {
     option (google.api.http) = {
-      post: "/page/createPage"
+      post: "/space/createPage"
       body: "*"
     };
   }
@@ -30,7 +37,7 @@ service SpaceService {
   // 更新页面 || 页面
   rpc UpdatePage(UpdatePageReq) returns (TUpdatePageResp) {
     option (google.api.http) = {
-      post: "/page/updatePage"
+      post: "/space/updatePage"
       body: "*"
     };
   }
@@ -38,7 +45,7 @@ service SpaceService {
   // 拉取某个页面数据 || 页面
   rpc GetPage(GetPageReq) returns (TGetPageResp) {
     option (google.api.http) = {
-      post: "/page/getPage"
+      post: "/space/getPage"
       body: "*"
     };
   }
@@ -47,7 +54,7 @@ service SpaceService {
   // 自己的默认页面只能清空，无法删除
   rpc DeletePage(DeletePageReq) returns (TDeletePageResp) {
     option (google.api.http) = {
-      post: "/page/deletePage"
+      post: "/space/deletePage"
       body: "*"
     };
   }
@@ -57,7 +64,7 @@ service SpaceService {
   // 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
   rpc SavePageIds(SavePageIdsReq) returns (TSavePageIdsResp) {
     option (google.api.http) = {
-      post: "/page/savePageIds"
+      post: "/space/savePageIds"
       body: "*"
     };
   }
@@ -69,7 +76,7 @@ service SpaceService {
   // 生成算法：当前时间转换的4个字母(时分秒)
   rpc CreateTmpPage(CreateTmpPageReq) returns (TCreateTmpPageResp) {
     option (google.api.http) = {
-      post: "/page/createTmpPage"
+      post: "/space/createTmpPage"
       body: "*"
     };
   }
@@ -81,7 +88,7 @@ service SpaceService {
   // 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
   rpc CreatePageLink(CreatePageLinkReq) returns (TCreatePageLinkResp) {
     option (google.api.http) = {
-      post: "/page/createPageLink"
+      post: "/space/createPageLink"
       body: "*"
     };
   }
@@ -90,13 +97,43 @@ service SpaceService {
   // 把页面的只读链接、编辑链接删除
   rpc RemovePageLink(RemovePageLinkReq) returns (TRemovePageLinkResp) {
     option (google.api.http) = {
-      post: "/page/removePageLink"
+      post: "/space/removePageLink"
       body: "*"
     };
   }
-
 }
 
+message GetUserInfoReq {
+  // 用户id
+  int64 uid = 1;
+}
+
+message GetUserInfoResp { // omitempty=false
+  // 用户id
+  int64 uid = 1;
+  // 展示名称
+  string display_name = 2;
+  // 用户名
+  string username = 3;
+  // 用户头像
+  string avatar = 4;
+  // 用户邮箱
+  string email = 5;
+
+  // 用户状态 normal 0,suspended 2,deleted 4
+  int32 status = 10;
+  // 上一次登录时间
+  int64 last_login_time = 11;
+  // 是否是管理员 0:普通用户 1:管理员
+  int32 is_admin = 12;
+  // 账号注册来源
+  string provider = 13;
+
+  // 用户创建时间
+  int64 create_time = 20;
+  // 用户更新时间
+  int64 update_time = 21;
+}
 
 message CreateTmpPageReq {
   // 客户侧唯一识别码
@@ -114,7 +151,7 @@ message Page {// omitempty=false
   string title = 2; // binding:"required,min=0,max=256"
   // 页面描述，放在页面最上方展示
   string brief = 3; // binding:"required,min=0,max=1024"
-  // 文件夹
+  // 有一堆文件夹
   repeated Collections collections = 4;
   // 版本号，从0递增，当修改时需要传入该值
   int64 version = 5;
@@ -149,24 +186,26 @@ message PageBrief { // omitempty=false
   PageConf page_conf = 8;
 }
 
-
 message Collections {// omitempty=false
-  // 文件夹中有多个链接
+  // 每个文件夹里，有多个链接
   repeated Link links = 1;
 }
 
 message SubLink {
-  // 右上角角标
-  string corner = 1;
+  // 展示的文字
+  string sub_title = 1;
   // 链接
-  string url =2;
+  string sub_url =2;
 }
 
 message Link {// omitempty=false
+  // 链接的展示的标题
   string title = 1; // binding:"required,min=0,max=256"
+  // 链接的地址
   string url = 2;
+  // 链接的标签
   repeated string tags = 3;
-  // 暂不支持
+  // 链接的图标地址(暂不支持)
   string photo_url = 4;
 
   // 子链接
@@ -282,6 +321,11 @@ message CreatePageLinkResp { // omitempty=false
   string page_type = 2; // binding:"oneof=readonly edit admin"
 }
 
+message TGetUserInfoResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   GetUserInfoResp data = 3; // binding:"required"
+}
 message TGetMySpaceResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"

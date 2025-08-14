@@ -5,7 +5,6 @@ import (
 	"forgeturl-server/api/login"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
-	"forgeturl-server/pkg/middleware"
 
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -125,43 +124,4 @@ func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.Con
 		Avatar:      userInfo.Avatar,
 		Email:       userInfo.Email,
 	}, nil
-}
-
-func (l loginServiceImpl) GetUserInfo(context *api.Context, req *login.GetUserInfoReq) (*login.GetUserInfoResp, error) {
-	// 已登录才能获取到详情，否则拉拉取不到
-	ctx := context.Request.Context()
-	uid := req.Uid
-	loginUid := middleware.GetLoginUid(context)
-	userInfo, err := dal.User.Get(ctx, uid)
-	if err != nil {
-		return nil, err
-	}
-
-	// 如果是自己，则返回内容多些
-	info := &login.GetUserInfoResp{
-		Uid:           uid,
-		DisplayName:   userInfo.DisplayName,
-		Username:      userInfo.Username,
-		Avatar:        userInfo.Avatar,
-		Email:         userInfo.Email,
-		Status:        userInfo.Status,
-		LastLoginTime: userInfo.LastLoginDate.Unix(),
-		IsAdmin:       userInfo.IsAdmin,
-		Provider:      userInfo.Provider,
-		CreateTime:    userInfo.CreatedAt.Unix(),
-		UpdateTime:    userInfo.UpdatedAt.Unix(),
-	}
-
-	// 如果不是自己，则返回内容少些
-	if loginUid != uid {
-		info.Email = ""
-		info.Provider = ""
-		info.Username = ""
-		info.LastLoginTime = 0
-		info.IsAdmin = 0
-		info.CreateTime = 0
-		info.UpdateTime = 0
-	}
-
-	return info, nil
 }

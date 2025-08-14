@@ -25,12 +25,6 @@ service LoginService {
     };
   };
 
-  rpc GetUserInfo(GetUserInfoReq) returns (TGetUserInfoResp) {
-    option (google.api.http) = {
-      post: "/page/getUserInfo"
-      body: "*"
-    };
-  }
 }
 
 message LoginReq {
@@ -85,38 +79,6 @@ message ConnectorCallbackResp {
     string email = 5;
 }
 
-message GetUserInfoReq {
-  // 用户id
-  int64 uid = 1;
-}
-
-message GetUserInfoResp {
-  // 用户id
-  int64 uid = 1;
-  // 展示名称
-  string display_name = 2;
-  // 用户名
-  string username = 3;
-  // 用户头像
-  string avatar = 4;
-  // 用户邮箱
-  string email = 5;
-
-  // 用户状态 normal 0,suspended 2,deleted 4
-  int32 status = 10;
-  // 上一次登录时间
-  int64 last_login_time = 11;
-  // 是否是管理员 0:普通用户 1:管理员
-  int32 is_admin = 12;
-  // 账号注册来源
-  string provider = 13;
-
-  // 用户创建时间
-  int64 create_time = 20;
-  // 用户更新时间
-  int64 update_time = 21;
-}
-
 message TConnectorResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
@@ -126,9 +88,4 @@ message TConnectorCallbackResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
    ConnectorCallbackResp data = 3; // binding:"required"
-}
-message TGetUserInfoResp {
-   int32 code = 1; // binding:"required"
-   string msg = 2; // binding:"required"
-   GetUserInfoResp data = 3; // binding:"required"
 }

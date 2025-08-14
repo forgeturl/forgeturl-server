@@ -20,3 +20,7 @@ host = "127.0.0.1"
 port = ":6379"
 auth = ""
 encryption = 0
+
+[redisDB]
+userCache = 0
+lock = 1

@@ -15,6 +15,7 @@ import (
 
 // SpaceServiceHTTPClient is the client API for SpaceService service.
 type SpaceServiceHTTPClient interface {
+	GetUserInfo(context.Context, *GetUserInfoReq, ...calloption.CallOption) (*TResponse[GetUserInfoResp], error)
 	// 拉取我的空间 || 空间
 	// 登录状态才能拉到自己的空间
 	// 部分页面如果消失或者没权限了，需要自动移除
@@ -60,13 +61,29 @@ func NewSpaceServiceHTTPClient(hh *http_request.HttpClient) SpaceServiceHTTPClie
 	return &SpaceServiceHTTPClientImpl{hh: hh}
 }
 
+func (c *SpaceServiceHTTPClientImpl) GetUserInfo(ctx context.Context, req *GetUserInfoReq, opts ...calloption.CallOption) (*TResponse[GetUserInfoResp], error) {
+	resp := &TResponse[GetUserInfoResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/getUserInfo")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
 func (c *SpaceServiceHTTPClientImpl) GetMySpace(ctx context.Context, req *GetMySpaceReq, opts ...calloption.CallOption) (*TResponse[GetMySpaceResp], error) {
 	resp := &TResponse[GetMySpaceResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/getMySpace")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/getMySpace")
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +99,7 @@ func (c *SpaceServiceHTTPClientImpl) CreatePage(ctx context.Context, req *Create
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/createPage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/createPage")
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +115,7 @@ func (c *SpaceServiceHTTPClientImpl) UpdatePage(ctx context.Context, req *Update
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/updatePage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/updatePage")
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +131,7 @@ func (c *SpaceServiceHTTPClientImpl) GetPage(ctx context.Context, req *GetPageRe
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/getPage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/getPage")
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +147,7 @@ func (c *SpaceServiceHTTPClientImpl) DeletePage(ctx context.Context, req *Delete
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/deletePage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/deletePage")
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +163,7 @@ func (c *SpaceServiceHTTPClientImpl) SavePageIds(ctx context.Context, req *SaveP
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/savePageIds")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/savePageIds")
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +179,7 @@ func (c *SpaceServiceHTTPClientImpl) CreateTmpPage(ctx context.Context, req *Cre
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/createTmpPage")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/createTmpPage")
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +195,7 @@ func (c *SpaceServiceHTTPClientImpl) CreatePageLink(ctx context.Context, req *Cr
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/createPageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/createPageLink")
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +211,7 @@ func (c *SpaceServiceHTTPClientImpl) RemovePageLink(ctx context.Context, req *Re
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/page/removePageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/removePageLink")
 	if err != nil {
 		return nil, err
 	}

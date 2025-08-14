@@ -36,6 +36,8 @@ func Init() error {
 
 	Q = query.Use(db)
 
+	initRedis()
+
 	return nil
 }
 

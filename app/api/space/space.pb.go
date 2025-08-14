@@ -7,6 +7,36 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
+type GetUserInfoReq struct {
+	// 用户id
+	Uid int64 `json:"uid,omitempty"`
+}
+
+type GetUserInfoResp struct {
+	// 用户id
+	Uid int64 `json:"uid"`
+	// 展示名称
+	DisplayName string `json:"display_name"`
+	// 用户名
+	Username string `json:"username"`
+	// 用户头像
+	Avatar string `json:"avatar"`
+	// 用户邮箱
+	Email string `json:"email"`
+	// 用户状态 normal 0,suspended 2,deleted 4
+	Status int32 `json:"status"`
+	// 上一次登录时间
+	LastLoginTime int64 `json:"last_login_time"`
+	// 是否是管理员 0:普通用户 1:管理员
+	IsAdmin int32 `json:"is_admin"`
+	// 账号注册来源
+	Provider string `json:"provider"`
+	// 用户创建时间
+	CreateTime int64 `json:"create_time"`
+	// 用户更新时间
+	UpdateTime int64 `json:"update_time"`
+}
+
 type CreateTmpPageReq struct {
 	// 客户侧唯一识别码
 	UserUuid string `json:"user_uuid" binding:"required,min=1,max=32"`
@@ -23,7 +53,7 @@ type Page struct {
 	Title  string `json:"title" binding:"required,min=0,max=256"`
 	// 页面描述，放在页面最上方展示
 	Brief string `json:"brief" binding:"required,min=0,max=1024"`
-	// 文件夹
+	// 有一堆文件夹
 	Collections []*Collections `json:"collections"`
 	// 版本号，从0递增，当修改时需要传入该值
 	Version int64 `json:"version"`
@@ -56,22 +86,25 @@ type PageBrief struct {
 }
 
 type Collections struct {
-	// 文件夹中有多个链接
+	// 每个文件夹里，有多个链接
 	Links []*Link `json:"links"`
 }
 
 type SubLink struct {
-	// 右上角角标
-	Corner string `json:"corner,omitempty"`
+	// 展示的文字
+	SubTitle string `json:"sub_title,omitempty"`
 	// 链接
-	Url string `json:"url,omitempty"`
+	SubUrl string `json:"sub_url,omitempty"`
 }
 
 type Link struct {
-	Title string   `json:"title" binding:"required,min=0,max=256"`
-	Url   string   `json:"url"`
-	Tags  []string `json:"tags"`
-	// 暂不支持
+	// 链接的展示的标题
+	Title string `json:"title" binding:"required,min=0,max=256"`
+	// 链接的地址
+	Url string `json:"url"`
+	// 链接的标签
+	Tags []string `json:"tags"`
+	// 链接的图标地址(暂不支持)
 	PhotoUrl string `json:"photo_url"`
 	// 子链接
 	SubLinks []*SubLink `json:"sub_links"`
