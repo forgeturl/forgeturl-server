@@ -4,13 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	"forgeturl-server/api/common"
 	"forgeturl-server/pkg/ratelimiter"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
 	gredis "github.com/sunmi-OS/gocore/v2/db/redis"
 	"github.com/sunmi-OS/gocore/v2/glog"
+)
+
+const (
+	// LoginTimeout 登录过期时间
+	LoginTimeout = time.Hour * 24 * 180
 )
 
 type cacheImpl struct {
@@ -70,4 +77,15 @@ func (c *cacheImpl) GetXToken(ctx context.Context, key string) int64 {
 		return 0
 	}
 	return cast.ToInt64(val)
+}
+
+func (c *cacheImpl) SetXToken(ctx context.Context, key string, uid int64) error {
+	if key == "" || uid == 0 {
+		return common.ErrInternalServerError("invalid key or uid")
+	}
+	err := c.user.Set(ctx, key, uid, LoginTimeout).Err()
+	if err != nil {
+		return common.ErrInternalServerError(fmt.Sprintf("set x-token failed, key: %s, uid: %d, err: %v", key, uid, err))
+	}
+	return nil
 }
