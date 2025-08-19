@@ -1,7 +1,7 @@
-CREATE TABLE user
+CREATE TABLE `user`
 (
     `id`            BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT 'auto increment ID',
-    `display_name`  VARCHAR(64) DEFAULT '' NOT NULL COMMENT 'display name of user',
+    `display_name`  VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' NOT NULL COMMENT 'display name of user',
     `username`      VARCHAR(64) DEFAULT '' NOT NULL,
     `email`         VARCHAR(100) NOT NULL COMMENT 'email from provider',
     `avatar`        VARCHAR(1024) DEFAULT '' NOT NULL COMMENT 'user avatar url',
@@ -22,3 +22,6 @@ CREATE TABLE user
     UNIQUE KEY `uk_provider_external_id` (`provider`, `external_id`)
 );
 
+
+# ALTER TABLE `user`
+#     MODIFY  `display_name`  VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' NOT NULL COMMENT 'display name of user';

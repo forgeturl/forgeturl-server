@@ -33,6 +33,7 @@ const (
 	ERR_NOT_SUPPORT                     = 40002
 	ERR_UPDATE_MISS_NEED_REFRESH_PAGE   = 40003
 	ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST = 40004
+	ERR_NOT_SUPPORT_CHARACTERS          = 40005
 )
 
 var (
@@ -58,6 +59,7 @@ var (
 		ERR_NOT_SUPPORT:                     "The operation is not supported",
 		ERR_UPDATE_MISS_NEED_REFRESH_PAGE:   "This page has been modified, please refresh and try again!",
 		ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST: "This page is not yours or not exist",
+		ERR_NOT_SUPPORT_CHARACTERS:          "The input contains unsupported characters.",
 	}
 )
 
@@ -172,6 +174,11 @@ func ErrUpdateMissNeedRefreshPage(msg ...string) *ecode.ErrorV2 {
 // code: 40004 msg: "This page is not yours or not exist"
 func ErrNotYourPageOrPageNotExist(msg ...string) *ecode.ErrorV2 {
 	return makeNewErr(ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST, msg...)
+}
+
+// code: 40005 msg: "The input contains unsupported characters."
+func ErrNotSupportCharacters(msg ...string) *ecode.ErrorV2 {
+	return makeNewErr(ERR_NOT_SUPPORT_CHARACTERS, msg...)
 }
 
 func IsErrCommonUnknown(err error) bool {
@@ -464,6 +471,20 @@ func IsErrNotYourPageOrPageNotExist(err error) bool {
 func IsErrNotYourPageOrPageNotExistDEEP(err error) bool {
 	if se := new(ecode.ErrorV2); errors.As(err, &se) {
 		return se.Code() == ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST && se.Message() == ErrMap[ERR_NOT_YOUR_PAGE_OR_PAGE_NOT_EXIST]
+	}
+	return false
+}
+
+func IsErrNotSupportCharacters(err error) bool {
+	if se := new(ecode.ErrorV2); errors.As(err, &se) {
+		return se.Code() == ERR_NOT_SUPPORT_CHARACTERS
+	}
+	return false
+}
+
+func IsErrNotSupportCharactersDEEP(err error) bool {
+	if se := new(ecode.ErrorV2); errors.As(err, &se) {
+		return se.Code() == ERR_NOT_SUPPORT_CHARACTERS && se.Message() == ErrMap[ERR_NOT_SUPPORT_CHARACTERS]
 	}
 	return false
 }

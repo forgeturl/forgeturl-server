@@ -351,20 +351,24 @@ components:
             properties:
                 uid:
                     type: integer
-                    description: 用户id
+                    description: |-
+                        以下是任何人，都能通过接口调用得到
+                         用户id
                     format: int64
                 display_name:
                     type: string
                     description: 展示名称
-                username:
-                    type: string
-                    description: 用户名
                 avatar:
                     type: string
                     description: 用户头像
                 email:
                     type: string
                     description: 用户邮箱
+                username:
+                    type: string
+                    description: |-
+                        以下是登录态，且账号是自己才能获取到
+                         用户名
                 status:
                     type: integer
                     description: 用户状态 normal 0,suspended 2,deleted 4

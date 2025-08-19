@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"forgeturl-server/api/common"
 	"forgeturl-server/dal/query"
@@ -41,16 +42,22 @@ func Init() error {
 	return nil
 }
 
+const (
+	SkipErrStack = 3 // skip 3 stack frames to get the caller function name
+)
+
 func transGormErr(err error) error {
 	if err == nil {
 		return nil
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return core.WrapError(common.ErrNotFound(), funcName(3))
+		return core.WrapError(common.ErrNotFound(), funcName(SkipErrStack))
 	} else if errors.Is(err, gorm.ErrDuplicatedKey) {
-		return core.WrapError(common.ErrConflict(err.Error()), funcName(3))
+		return core.WrapError(common.ErrConflict(err.Error()), funcName(SkipErrStack))
+	} else if strings.Contains(err.Error(), "Error 3988 (HY000)") {
+		return core.WrapError(common.ErrNotSupportCharacters(err.Error()), funcName(SkipErrStack))
 	} else {
-		return core.WrapError(common.ErrInternalServerError(err.Error()), funcName(3))
+		return core.WrapError(common.ErrInternalServerError(err.Error()), funcName(SkipErrStack))
 	}
 }
 

@@ -32,12 +32,13 @@ func (s spaceServiceImpl) GetUserInfo(context *api.Context, req *space.GetUserIn
 
 	// 如果是自己，则返回内容多些
 	info := &space.GetUserInfoResp{
-		Uid:           uid,
-		DisplayName:   userInfo.DisplayName,
+		Uid:         uid,
+		DisplayName: userInfo.DisplayName,
+		Avatar:      userInfo.Avatar,
+		Status:      userInfo.Status,
+
 		Username:      userInfo.Username,
-		Avatar:        userInfo.Avatar,
 		Email:         userInfo.Email,
-		Status:        userInfo.Status,
 		LastLoginTime: userInfo.LastLoginDate.Unix(),
 		IsAdmin:       userInfo.IsAdmin,
 		Provider:      userInfo.Provider,
@@ -47,11 +48,11 @@ func (s spaceServiceImpl) GetUserInfo(context *api.Context, req *space.GetUserIn
 
 	// 如果不是自己，则返回内容少些
 	if loginUid != uid {
-		info.Email = ""
-		info.Provider = ""
 		info.Username = ""
+		info.Email = ""
 		info.LastLoginTime = 0
 		info.IsAdmin = 0
+		info.Provider = ""
 		info.CreateTime = 0
 		info.UpdateTime = 0
 	}
@@ -239,6 +240,12 @@ func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePage
 	if err != nil {
 		return nil, err
 	}
+	// 先看下页面是否存在，且是自己的
+	err = dal.Page.CheckIsYourPage(ctx, uid, []string{req.PageId})
+	if err != nil {
+		return nil, err
+	}
+
 	err = dal.Page.UpdatePage(ctx, uid, req.Mask, req.Version, req.PageId, req.Title, req.Brief, content)
 	if err != nil {
 		return nil, err

@@ -13,16 +13,18 @@ type GetUserInfoReq struct {
 }
 
 type GetUserInfoResp struct {
+	// 以下是任何人，都能通过接口调用得到
 	// 用户id
 	Uid int64 `json:"uid"`
 	// 展示名称
 	DisplayName string `json:"display_name"`
-	// 用户名
-	Username string `json:"username"`
 	// 用户头像
 	Avatar string `json:"avatar"`
 	// 用户邮箱
 	Email string `json:"email"`
+	// 以下是登录态，且账号是自己才能获取到
+	// 用户名
+	Username string `json:"username"`
 	// 用户状态 normal 0,suspended 2,deleted 4
 	Status int32 `json:"status"`
 	// 上一次登录时间

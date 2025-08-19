@@ -169,6 +169,7 @@ func (*pageImpl) UpdatePage(ctx context.Context, uid, mask, version int64, pageI
 	if len(tx) > 0 {
 		u = tx[0].Page
 	}
+
 	do := u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(pageId), u.Version.Eq(version))
 	do = do.Select(u.Version)
 	if mask&MaskTitle != 0 {
