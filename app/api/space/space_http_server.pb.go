@@ -84,14 +84,7 @@ func _SpaceService_GetUserInfo_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *
 func _SpaceService_GetMySpace_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
 	return func(g *gin.Context) {
 		req := &GetMySpaceReq{}
-		var err error
 		ctx := api.NewContext(g)
-		err = parseReq(&ctx, req)
-		err = checkValidate(err)
-		if err != nil {
-			setRetJSON(&ctx, nil, err)
-			return
-		}
 		resp, err := srv.GetMySpace(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}

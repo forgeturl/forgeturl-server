@@ -17,7 +17,7 @@ func (*userPageImpl) GetUserPageIds(ctx context.Context, uid int64, tx ...*query
 		u = tx[0].UserPage
 	}
 	pageids := make([]string, 0)
-	err := u.WithContext(ctx).Where(u.ID.Eq(uid)).Order(u.Sort.Asc()).Scan(&pageids)
+	err := u.WithContext(ctx).Select(u.Pid).Where(u.UID.Eq(uid)).Order(u.Sort.Asc()).Scan(&pageids)
 	if err != nil {
 		return nil, transGormErr(err)
 	}
@@ -30,7 +30,7 @@ func (*userPageImpl) SaveUserPageIds(ctx context.Context, uid int64, pageids []s
 		u = tx[0].UserPage
 	}
 	// 先删除旧的
-	_, err := u.WithContext(ctx).Where(u.ID.Eq(uid)).Delete()
+	_, err := u.WithContext(ctx).Where(u.UID.Eq(uid)).Delete()
 	if err != nil {
 		return transGormErr(err)
 	}
@@ -38,7 +38,7 @@ func (*userPageImpl) SaveUserPageIds(ctx context.Context, uid int64, pageids []s
 	datas := make([]*model.UserPage, 0, len(pageids))
 	for idx, pageid := range pageids {
 		datas = append(datas, &model.UserPage{
-			ID:   uid,
+			UID:  uid,
 			Pid:  pageid,
 			Sort: int64(idx),
 		})

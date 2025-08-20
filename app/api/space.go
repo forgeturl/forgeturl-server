@@ -103,7 +103,8 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 // GetMySpace 只需要给个大概
 func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpaceReq) (*space.GetMySpaceResp, error) {
 	ctx := context.Request.Context()
-	uid := req.Uid
+	// 获取某个页面数据
+	uid := middleware.GetLoginUid(context)
 	userInfo, err := dal.User.Get(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -311,7 +312,7 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 			}
 			newPageId = genReadOnlyPageId()
 
-			err0 = idExistReturnErr(dal.Page.CheckIdExist(ctx, newPageId, tx))
+			err0 = dal.UniquePid.Create(ctx, uid, newPageId, tx)
 			if err0 != nil {
 				return err0
 			}
@@ -329,7 +330,7 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 			}
 			newPageId = genEditPageId()
 
-			err0 = idExistReturnErr(dal.Page.CheckIdExist(ctx, newPageId, tx))
+			err0 = dal.UniquePid.Create(ctx, uid, newPageId, tx)
 			if err0 != nil {
 				return err0
 			}
@@ -345,7 +346,7 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 			}
 			newPageId = genAdminPageId()
 
-			err0 = idExistReturnErr(dal.Page.CheckIdExist(ctx, newPageId, tx))
+			err0 = dal.UniquePid.Create(ctx, uid, newPageId, tx)
 			if err0 != nil {
 				return err0
 			}
@@ -365,14 +366,4 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 		PageType:  pageTypeStr,
 		NewPageId: newPageId,
 	}, nil
-}
-
-func idExistReturnErr(exist bool, err error) error {
-	if err != nil {
-		return err
-	}
-	if exist {
-		return common.ErrBadRequest("system fault, try again later")
-	}
-	return nil
 }

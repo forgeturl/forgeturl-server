@@ -7,6 +7,8 @@ import (
 	"forgeturl-server/conf"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/dal/query"
+
+	"gorm.io/gen"
 )
 
 type pageImpl struct {
@@ -77,37 +79,6 @@ func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, tx ...*q
 		return nil, transGormErr(err)
 	}
 	return page, nil
-}
-
-// CheckIdExist 仅读取少量数据，主要是判断是否存在该id
-func (*pageImpl) CheckIdExist(ctx context.Context, pid string, tx ...*query.Query) (bool, error) {
-	u := Q.Page
-	if len(tx) > 0 {
-		u = tx[0].Page
-	}
-	do := u.WithContext(ctx).Select(u.ID, u.Pid, u.UID)
-	pageIdType := conf.ParseIdType(pid)
-	switch pageIdType {
-	case conf.OwnerPage:
-		do = do.Where(u.Pid.Eq(pid)) // 默认页面，需要是该页面
-	case conf.ReadOnlyPage:
-		do = do.Where(u.ReadonlyPid.Eq(pid))
-	case conf.EditPage:
-		do = do.Where(u.EditPid.Eq(pid))
-	case conf.AdminPage:
-		do = do.Where(u.AdminPid.Eq(pid))
-	default:
-		return false, common.ErrBadRequest("invalid page id type")
-	}
-	_, err := do.First()
-	if err != nil {
-		err = transGormErr(err)
-		if common.IsErrNotFound(err) {
-			return false, nil // 如果没有找到，返回false
-		}
-		return false, err // 如果是其他错误，返回错误
-	}
-	return true, nil
 }
 
 // GetPageBrief 通过pid获取页面，不获取content内容
@@ -236,22 +207,29 @@ func (*pageImpl) UnlinkPage(ctx context.Context, uid int64, pid string, tx ...*q
 	var err error
 
 	pT := conf.ParseIdType(pid)
+	var result gen.ResultInfo
 	switch pT {
 	case conf.OwnerPage:
 		// 不允许unlink
 		return common.ErrNotSupport()
 	case conf.ReadOnlyPage:
-		_, err = do.Where(u.ReadonlyPid.Eq(pid)).UpdateSimple(u.ReadonlyPid.Value(""))
+		result, err = do.Where(u.ReadonlyPid.Eq(pid)).UpdateSimple(u.ReadonlyPid.Value(""))
 	case conf.EditPage:
-		_, err = do.Where(u.EditPid.Eq(pid)).UpdateSimple(u.EditPid.Value(""))
+		result, err = do.Where(u.EditPid.Eq(pid)).UpdateSimple(u.EditPid.Value(""))
 	case conf.TempPage:
 		// 临时页面不需要unlink
 		return common.ErrNotSupport()
 	case conf.AdminPage:
-		_, err = do.Where(u.AdminPid.Eq(pid)).UpdateSimple(u.AdminPid.Value(""))
-
+		result, err = do.Where(u.AdminPid.Eq(pid)).UpdateSimple(u.AdminPid.Value(""))
 	}
-	return transGormErr(err)
+	if err != nil {
+		return transGormErr(err)
+	}
+	if result.RowsAffected == 0 {
+		return common.ErrNotYourPageOrLinkNotExist()
+	}
+
+	return nil
 }
 
 func (*pageImpl) UpdateReadonlyPid(ctx context.Context, pid, readonlyPid string, tx ...*query.Query) error {

@@ -450,13 +450,7 @@
       },
       ".GetMySpaceReq": {
         "type": "object",
-        "properties": {
-          "uid": {
-            "type": "integer",
-            "description": "用户id",
-            "format": "int64"
-          }
-        }
+        "properties": {}
       },
       ".GetMySpaceResp": {
         "type": "object",
@@ -727,11 +721,6 @@
         ],
         "type": "object",
         "properties": {
-          "uid": {
-            "type": "integer",
-            "description": "用户id",
-            "format": "int64"
-          },
           "page_ids": {
             "type": "array",
             "items": {

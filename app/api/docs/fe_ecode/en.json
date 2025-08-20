@@ -1,11 +1,12 @@
 {
   "error.0": "common unknown",
   "error.400": "Bad request",
-  "error.40001": "need login",
+  "error.40001": "Need login",
   "error.40002": "The operation is not supported",
   "error.40003": "This page has been modified, please refresh and try again!",
   "error.40004": "This page is not yours or not exist",
   "error.40005": "The input contains unsupported characters.",
+  "error.40006": "This page is not yours or page link not exist",
   "error.401": "Not authorized",
   "error.403": "Forbidden",
   "error.404": "Not found",

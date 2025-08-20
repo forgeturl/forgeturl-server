@@ -131,8 +131,6 @@ type GetPageResp struct {
 }
 
 type GetMySpaceReq struct {
-	// 用户id
-	Uid int64 `json:"uid,omitempty"`
 }
 
 type GetMySpaceResp struct {
@@ -178,10 +176,8 @@ type UpdatePageResp struct {
 }
 
 type SavePageIdsReq struct {
-	// 用户id
-	Uid int64 `json:"uid,omitempty"`
 	// 调整后页面id的顺序
-	PageIds []string `json:"page_ids" binding:"dive,required,min=1,max=3"`
+	PageIds []string `json:"page_ids" binding:"required,min=1,max=3"`
 }
 
 type SavePageIdsResp struct {

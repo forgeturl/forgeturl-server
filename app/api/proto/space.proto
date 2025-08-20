@@ -233,8 +233,6 @@ message GetPageResp { // omitempty=false
 }
 
 message GetMySpaceReq {
-  // 用户id
-  int64 uid = 1;
 }
 
 message GetMySpaceResp { // omitempty=false
@@ -281,10 +279,8 @@ message UpdatePageResp { // omitempty=false
 }
 
 message SavePageIdsReq {
-  // 用户id
-  int64 uid = 1;
   // 调整后页面id的顺序
-  repeated string page_ids = 2; // binding:"dive,required,min=1,max=3"
+  repeated string page_ids = 1; // binding:"required,min=1,max=3"
 }
 
 message SavePageIdsResp { // omitempty=false
