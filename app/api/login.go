@@ -52,47 +52,9 @@ func (l loginServiceImpl) Connector(context *api.Context, req *login.ConnectorRe
 
 func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
 	ctx := context.Request.Context()
-	providerName, err := gothic.GetProviderName(context.Request)
+	user, err := gothic.CompleteUserAuth(context.Writer, context.Request)
 	if err != nil {
 		return nil, common.ErrNotAuthenticated(err.Error())
-	}
-
-	provider, err := goth.GetProvider(providerName)
-	if err != nil {
-		return nil, common.ErrNotAuthenticated("invalid provider name")
-	}
-
-	value, err := gothic.GetFromSession(providerName, context.Request)
-	if err != nil {
-		return nil, err
-	}
-	defer gothic.Logout(context.Writer, context.Request)
-
-	sess, err := provider.UnmarshalSession(value)
-	if err != nil {
-		return nil, err
-	}
-
-	params := context.Request.URL.Query()
-	if params.Encode() == "" && context.Request.Method == "POST" {
-		context.Request.ParseForm()
-		params = context.Request.Form
-	}
-
-	_, err = sess.Authorize(provider, params)
-	if err != nil {
-		return nil, err
-	}
-
-	// 这已经偷偷塞到cookie里中去了
-	err = gothic.StoreInSession(providerName, sess.Marshal(), context.Request, context.Writer)
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := provider.FetchUser(sess)
-	if err != nil {
-		return nil, err
 	}
 
 	// 处理用户信息

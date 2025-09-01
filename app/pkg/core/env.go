@@ -1,40 +1,15 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
-	"os"
+	"github.com/sunmi-OS/gocore/v2/utils"
 )
-
-var zone string
-
-const (
-	TestEnv = "test"
-	ProdEnv = "prod"
-)
-
-// IsTestEnv 是否是测试环境
-// 线上环境必须赋值ZONE环境变量
-func IsTestEnv() bool {
-	if zone == "" {
-		zone = os.Getenv("ZONE")
-		if zone == "" {
-			zone = TestEnv
-		}
-	}
-
-	if zone == TestEnv {
-		return true
-	}
-	return false
-}
-
-func IsProdEnv() bool {
-	return !IsTestEnv()
-}
 
 func FillDomain(path string) string {
-	if IsTestEnv() {
-		return "http://" + viper.C.GetString("base.domain") + path
+	if utils.IsLocal() {
+		return fmt.Sprintf("http://%s:%s%s", viper.C.GetString("base.domain"), viper.C.GetString("network.ApiServicePort"), path)
 	}
 	return "https://" + viper.C.GetString("base.domain") + path
 }

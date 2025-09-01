@@ -5,12 +5,13 @@ import (
 
 	"forgeturl-server/pkg/core"
 
-	"github.com/boj/redistore"
+	"github.com/forgeturl/redistore"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 	"github.com/markbates/goth/providers/wechat"
+	"github.com/sunmi-OS/gocore/v2/utils"
 )
 
 const (
@@ -24,10 +25,7 @@ func Init() {
 
 	maxAge := 86400 * 30 // 30 days
 	isProd := false
-	store, _ := redistore.NewRediStore(10, "tcp", ":6379", "", "")
-	// key := "redis-key"
-	// store := sessions.NewCookieStore([]byte(key))
-	// store.MaxAge(maxAge)
+	store, _ := redistore.NewRediStore(10, "tcp", ":6379", "", "", []byte("fg-key"))
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
 	store.Options.Secure = isProd
@@ -39,15 +37,13 @@ func Init() {
 		google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), core.FillDomain("/login/connector/google")),
 		wechat.New(os.Getenv("WECHAT_KEY"), os.Getenv("WECHAT_SECRET"), core.FillDomain("/login/connector/wechat"), wechat.WECHAT_LANG_CN),
 	}
-	if core.IsTestEnv() {
+	if utils.IsLocal() {
 		viders = append(viders, github.New(clientKey, clientSecret, core.FillDomain("/login/connector/callback/")))
 	}
 	goth.UseProviders(viders...)
 
-	g, err := goth.GetProvider("google")
+	_, err := goth.GetProvider("google")
 	if err != nil {
 		panic(err)
 	}
-	_ = g
-
 }

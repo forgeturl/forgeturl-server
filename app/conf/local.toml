@@ -1,7 +1,7 @@
 [base]
 debug = true
 logLevel = "info" # when online can set to error
-domain = "localhost:8080"
+domain = "http://localhost"
 
 [mysql]
 Host = "127.0.0.1"

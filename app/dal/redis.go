@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"forgeturl-server/api/common"
-	"forgeturl-server/pkg/ratelimiter"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
 	gredis "github.com/sunmi-OS/gocore/v2/db/redis"
 	"github.com/sunmi-OS/gocore/v2/glog"
+	"github.com/sunmi-OS/gocore/v2/lib/ratelimiter"
 )
 
 const (

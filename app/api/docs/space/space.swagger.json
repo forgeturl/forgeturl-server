@@ -5,6 +5,38 @@
     "version": "0.0.1"
   },
   "paths": {
+    "/space/addPageLink": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "生成新页面链接",
+        "description": " 1.当前页面若是你的，则你可以创建 readonly edit admin链接\n 2.如果你有该页面的adminId，则可以创建 readonly edit链接\n 3. 其他情况会被拒绝\n 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。",
+        "operationId": "SpaceService_AddPageLink",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.AddPageLinkReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TAddPageLinkResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/space/createPage": {
       "post": {
         "tags": [
@@ -30,38 +62,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/.TCreatePageResp"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/space/createPageLink": {
-      "post": {
-        "tags": [
-          "页面"
-        ],
-        "summary": "生成新页面链接",
-        "description": " 1.当前页面若是你的，则你可以创建 readonly edit admin链接\n 2.如果你有该页面的adminId，则可以创建 readonly edit链接\n 3. 其他情况会被拒绝\n 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。",
-        "operationId": "SpaceService_CreatePageLink",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/.CreatePageLinkReq"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/.TCreatePageLinkResp"
                 }
               }
             }
@@ -106,8 +106,7 @@
         "tags": [
           "页面"
         ],
-        "summary": "把整个页面删除",
-        "description": " 自己的默认页面只能清空，无法删除",
+        "summary": "删除页面",
         "operationId": "SpaceService_DeletePage",
         "requestBody": {
           "content": {
@@ -324,19 +323,7 @@
   },
   "components": {
     "schemas": {
-      ".Collections": {
-        "type": "object",
-        "properties": {
-          "links": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/.Link"
-            },
-            "description": "每个文件夹里，有多个链接"
-          }
-        }
-      },
-      ".CreatePageLinkReq": {
+      ".AddPageLinkReq": {
         "required": [
           "page_id",
           "page_type"
@@ -353,7 +340,7 @@
           }
         }
       },
-      ".CreatePageLinkResp": {
+      ".AddPageLinkResp": {
         "type": "object",
         "properties": {
           "new_page_id": {
@@ -363,6 +350,18 @@
           "page_type": {
             "type": "string",
             "description": "页面类型"
+          }
+        }
+      },
+      ".Collections": {
+        "type": "object",
+        "properties": {
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/.Link"
+            },
+            "description": "每个文件夹里，有多个链接"
           }
         }
       },
@@ -755,7 +754,7 @@
           }
         }
       },
-      ".TCreatePageLinkResp": {
+      ".TAddPageLinkResp": {
         "required": [
           "code",
           "msg",
@@ -771,7 +770,7 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/.CreatePageLinkResp"
+            "$ref": "#/components/schemas/.AddPageLinkResp"
           }
         }
       },

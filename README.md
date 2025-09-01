@@ -1,7 +1,6 @@
 # 概述
 
-## 非登录态
-非登录态：
+# 非登录态
 getPage 
 getUserInfo(暂无场景)
 
@@ -93,7 +92,7 @@ curl '127.0.0.1:80/space/updatePage' -d '{
 curl '127.0.0.1:80/space/deletePage' -d '{"page_id": "test_page_id"}' -H 'content-type: application/json' -H 'X-Token: test'
 
 # 创建页面链接
-curl '127.0.0.1:80/space/createPageLink' -d '{
+curl '127.0.0.1:80/space/addPageLink' -d '{
   "page_id": "test_page_id",
   "page_type": "readonly"
 }' -H 'content-type: application/json' -H 'X-Token: test'

@@ -260,11 +260,27 @@ func (s spaceServiceImpl) DeletePage(context *api.Context, req *space.DeletePage
 	if uid == 0 {
 		return nil, common.ErrNeedLogin("")
 	}
+	pid := req.PageId
 
-	err := dal.Page.DeleteByPid(ctx, uid, req.PageId)
+	err := dal.Q.Transaction(func(tx *query.Query) error {
+		err0 := dal.Page.DeleteByPid(ctx, uid, pid, tx)
+		if err0 != nil {
+			return err0
+		}
+
+		_, err0 = dal.UserPage.DeleteUserPageId(ctx, uid, pid, tx)
+		if err0 != nil {
+			return err0
+		}
+
+		// 还有一个unique_pid先保留，不删除
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	return &space.DeletePageResp{}, nil
 }
 
@@ -275,14 +291,28 @@ func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.Remove
 		return nil, common.ErrNeedLogin("")
 	}
 
-	err := dal.Page.UnlinkPage(ctx, uid, req.PageId)
+	err := dal.Q.Transaction(func(tx *query.Query) error {
+		// 只有创建者可以移除该页面，其他人移除会报错
+		err0 := dal.Page.UnlinkPage(ctx, uid, req.PageId)
+		if err0 != nil {
+			return err0
+		}
+
+		_, err0 = dal.UserPage.BatchRemovePageLink(ctx, req.PageId, tx)
+		if err0 != nil {
+			return err0
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	return &space.RemovePageLinkResp{}, nil
 }
 
-func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.CreatePageLinkReq) (*space.CreatePageLinkResp, error) {
+func (s spaceServiceImpl) AddPageLink(context *api.Context, req *space.AddPageLinkReq) (*space.AddPageLinkResp, error) {
 	// 1.当前页面若是你的，则你可以创建 readonly edit admin链接
 	// 2.如果你有该页面的adminId，则可以创建 readonly edit链接
 	// 3. 其他情况会被拒绝
@@ -362,7 +392,7 @@ func (s spaceServiceImpl) CreatePageLink(context *api.Context, req *space.Create
 		return nil, err
 	}
 
-	return &space.CreatePageLinkResp{
+	return &space.AddPageLinkResp{
 		PageType:  pageTypeStr,
 		NewPageId: newPageId,
 	}, nil

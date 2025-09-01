@@ -115,11 +115,11 @@ type Link struct {
 type PageConf struct {
 	// 页面类型：只读、可编辑可删除、可编辑不可删除
 	// 只读
-	ReadOnly bool `json:"read_only,omitempty"`
+	ReadOnly bool `json:"read_only"`
 	// 可编辑
-	CanEdit bool `json:"can_edit,omitempty"`
+	CanEdit bool `json:"can_edit"`
 	// 可删除
-	CanDelete bool `json:"can_delete,omitempty"`
+	CanDelete bool `json:"can_delete"`
 }
 
 type GetPageReq struct {
@@ -199,7 +199,7 @@ type RemovePageLinkReq struct {
 type RemovePageLinkResp struct {
 }
 
-type CreatePageLinkReq struct {
+type AddPageLinkReq struct {
 	// 原始页面id
 	PageId string `json:"page_id" binding:"required,min=1,max=64"`
 	// 生成只读、编辑、超级权限的链接
@@ -207,7 +207,7 @@ type CreatePageLinkReq struct {
 	PageType string `json:"page_type" binding:"required,oneof=readonly edit admin"`
 }
 
-type CreatePageLinkResp struct {
+type AddPageLinkResp struct {
 	// 只读 http://2049links.com/share_readonly/R加密字符串1
 	// 可编辑页面：http://2049links.com/share_editable/E加密字符串2
 	// 超级权限页面：http://2049links.com/share_admin/A加密字符串3

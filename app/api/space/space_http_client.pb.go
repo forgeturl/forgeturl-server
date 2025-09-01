@@ -29,8 +29,7 @@ type SpaceServiceHTTPClient interface {
 	UpdatePage(context.Context, *UpdatePageReq, ...calloption.CallOption) (*TResponse[UpdatePageResp], error)
 	// 拉取某个页面数据 || 页面
 	GetPage(context.Context, *GetPageReq, ...calloption.CallOption) (*TResponse[GetPageResp], error)
-	// 把整个页面删除 || 页面
-	// 自己的默认页面只能清空，无法删除
+	// 删除页面 || 页面
 	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法
@@ -47,7 +46,7 @@ type SpaceServiceHTTPClient interface {
 	// 2.如果你有该页面的adminId，则可以创建 readonly edit链接
 	// 3. 其他情况会被拒绝
 	// 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
-	CreatePageLink(context.Context, *CreatePageLinkReq, ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error)
+	AddPageLink(context.Context, *AddPageLinkReq, ...calloption.CallOption) (*TResponse[AddPageLinkResp], error)
 	// 去除页面的某种链接 || 页面
 	// 把页面的只读链接、编辑链接删除
 	RemovePageLink(context.Context, *RemovePageLinkReq, ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error)
@@ -189,13 +188,13 @@ func (c *SpaceServiceHTTPClientImpl) CreateTmpPage(ctx context.Context, req *Cre
 	return resp, err
 }
 
-func (c *SpaceServiceHTTPClientImpl) CreatePageLink(ctx context.Context, req *CreatePageLinkReq, opts ...calloption.CallOption) (*TResponse[CreatePageLinkResp], error) {
-	resp := &TResponse[CreatePageLinkResp]{}
+func (c *SpaceServiceHTTPClientImpl) AddPageLink(ctx context.Context, req *AddPageLinkReq, opts ...calloption.CallOption) (*TResponse[AddPageLinkResp], error) {
+	resp := &TResponse[AddPageLinkResp]{}
 	r := c.hh.Client.R().SetContext(ctx)
 	for _, opt := range opts {
 		opt(r)
 	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/space/createPageLink")
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/addPageLink")
 	if err != nil {
 		return nil, err
 	}

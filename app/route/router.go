@@ -13,4 +13,5 @@ func Routes(router *gin.Engine) {
 	space.RegisterSpaceServiceHTTPServer(router, api.NewSpaceService())
 	login.RegisterLoginServiceHTTPServer(router, api.NewLoginService())
 	dumplinks.RegisterDumplinksServiceHTTPServer(router, api.NewDumplinksService())
+
 }

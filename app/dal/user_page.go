@@ -2,9 +2,13 @@ package dal
 
 import (
 	"context"
+	"forgeturl-server/api/common"
+	"forgeturl-server/conf"
 
 	"forgeturl-server/dal/model"
 	"forgeturl-server/dal/query"
+
+	"gorm.io/gen"
 )
 
 type userPageImpl struct{}
@@ -49,4 +53,36 @@ func (*userPageImpl) SaveUserPageIds(ctx context.Context, uid int64, pageids []s
 		return transGormErr(err)
 	}
 	return nil
+}
+
+func (*userPageImpl) DeleteUserPageId(ctx context.Context, uid int64, pageid string, tx ...*query.Query) (int64, error) {
+	u := Q.UserPage
+	if len(tx) > 0 {
+		u = tx[0].UserPage
+	}
+	result, err := u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(pageid)).Delete()
+	if err != nil {
+		return 0, transGormErr(err)
+	}
+	return result.RowsAffected, nil
+}
+
+func (*userPageImpl) BatchRemovePageLink(ctx context.Context, pageid string, tx ...*query.Query) (int64, error) {
+	// 批量删除pageid
+	u := Q.UserPage
+	if len(tx) > 0 {
+		u = tx[0].UserPage
+	}
+	pT := conf.ParseIdType(pageid)
+	var result gen.ResultInfo
+	if pT == conf.OwnerPage {
+		// 删除该页面，必须是通过uid删除
+		return 0, common.ErrNotSupport()
+	}
+
+	result, err := u.WithContext(ctx).Where(u.Pid.Eq(pageid)).Delete()
+	if err != nil {
+		return 0, transGormErr(err)
+	}
+	return result.RowsAffected, nil
 }

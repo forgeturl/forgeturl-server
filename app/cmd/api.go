@@ -5,10 +5,10 @@ import (
 	"forgeturl-server/route"
 	"time"
 
+	"github.com/sunmi-OS/gocore-contrib/smartgzip"
 	"github.com/sunmi-OS/gocore/v2/api"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
 	"github.com/sunmi-OS/gocore/v2/utils"
-
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,6 +46,11 @@ func RunApi(c *cli.Context) error {
 			"/dumplinks/importBookmarks": true,
 			"/dumplinks/exportBookmarks": true,
 		}, true),
+	))
+
+	gs.Gin.Use(smartgzip.GzipOnly(
+		"/space/getPage",
+		"/space/getMySpace",
 	))
 
 	// init route

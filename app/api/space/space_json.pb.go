@@ -394,34 +394,34 @@ func (m *RemovePageLinkResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
-func (m *CreatePageLinkReq) Marshal() ([]byte, error) {
+func (m *AddPageLinkReq) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }
 
-func (m *CreatePageLinkReq) MarshalString() (string, error) {
+func (m *AddPageLinkReq) MarshalString() (string, error) {
 	return sonic.MarshalString(m)
 }
 
-func (m *CreatePageLinkReq) Unmarshal(buf []byte) error {
+func (m *AddPageLinkReq) Unmarshal(buf []byte) error {
 	return sonic.Unmarshal(buf, m)
 }
 
-func (m *CreatePageLinkReq) UnmarshalString(str string) error {
+func (m *AddPageLinkReq) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
-func (m *CreatePageLinkResp) Marshal() ([]byte, error) {
+func (m *AddPageLinkResp) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }
 
-func (m *CreatePageLinkResp) MarshalString() (string, error) {
+func (m *AddPageLinkResp) MarshalString() (string, error) {
 	return sonic.MarshalString(m)
 }
 
-func (m *CreatePageLinkResp) Unmarshal(buf []byte) error {
+func (m *AddPageLinkResp) Unmarshal(buf []byte) error {
 	return sonic.Unmarshal(buf, m)
 }
 
-func (m *CreatePageLinkResp) UnmarshalString(str string) error {
+func (m *AddPageLinkResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
