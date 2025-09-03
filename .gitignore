@@ -1,11 +1,26 @@
 app/conf/test.toml
 app/conf/onl.toml
 
-.idea
-nacos
-runtime
-main
-*.exe
-/nacos/
+# idea ignore
+.idea/
+.vscode/
+.vendor/
+*.ipr
+*.iml
+*.iws
+nacos/
 
+# system ignore
 .DS_Store
+Thumbs.db
+
+# temp ignore
+*.log
+*.cache
+*.diff
+*.exe
+*.patch
+*.tmp
+*.pyc
+main
+
