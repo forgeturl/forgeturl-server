@@ -10,8 +10,8 @@
 ## 安装依赖
 
 ```bash
-cd /Users/lxy/Desktop/Git/forgeturl-server/app/tests
-pip install -r requirements.txt
+cd /Users/lxy/Desktop/Git/forgeturl-server/tests
+pip3 install -r requirements.txt
 ```
 
 ## 运行测试

@@ -6,6 +6,7 @@ import (
 	"forgeturl-server/pkg/middleware"
 	"forgeturl-server/route"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sunmi-OS/gocore-contrib/smartgzip"
 	"github.com/sunmi-OS/gocore/v2/api"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
@@ -41,6 +42,8 @@ func RunApi(c *cli.Context) error {
 		api.WithServerTimeout(time.Minute*5),
 		api.WithOpenTrace(false),
 	)
+	gin.DefaultWriter = middleware.NewGlogWriterDebug()
+	gin.DefaultErrorWriter = middleware.NewGlogWriterError()
 	gs.Gin.Use(middleware.ServerLogging(
 		middleware.WithSlowThreshold(10000),
 		middleware.WithHideReqBodyLogsPath(map[string]bool{

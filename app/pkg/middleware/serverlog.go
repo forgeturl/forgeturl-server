@@ -89,6 +89,7 @@ func ServerLogging(options ...Option) gin.HandlerFunc {
 		ctx := utils.SetMetaData(c.Request.Context(), utils.XB3TraceId, traceid)
 		c.Request = c.Request.WithContext(ctx)
 		c.Writer.Header().Set("X-AppName", utils.GetAppName())
+		c.Writer.Header().Set("X-B3-TraceId", traceid)
 
 		c.Next()
 

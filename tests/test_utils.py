@@ -3,10 +3,11 @@
 提供测试过程中需要的通用功能
 """
 import json
+import requests
 from typing import Dict, Any, Optional
 
 
-class TestDataManager:
+class DataManager:
     """测试数据管理器"""
     
     def __init__(self):
@@ -89,5 +90,64 @@ class ResponseValidator:
         return True
 
 
+class TraceUtils:
+    """链路追踪工具类"""
+    
+    @staticmethod
+    def extract_trace_id(response: requests.Response) -> Optional[str]:
+        """从响应头中提取trace id"""
+        # 尝试多种可能的header名称
+        possible_headers = ['x-b3-traceid', 'X-B3-TraceId', 'X-B3-TRACEID', 'x-trace-id', 'X-Trace-Id']
+        for header in possible_headers:
+            trace_id = response.headers.get(header)
+            if trace_id:
+                return trace_id
+        return None
+    
+    @staticmethod
+    def format_trace_info(endpoint: str, response: requests.Response, trace_id: str = None) -> str:
+        """格式化trace信息输出"""
+        if trace_id is None:
+            trace_id = TraceUtils.extract_trace_id(response)
+        
+        if trace_id:
+            return (f"\n{'='*60}\n"
+                   f"[TRACE INFO] 接口: {endpoint}\n"
+                   f"[TRACE INFO] TraceID: {trace_id}\n"
+                   f"[TRACE INFO] 状态码: {response.status_code}\n"
+                   f"[TRACE INFO] 响应时间: {response.elapsed.total_seconds():.3f}s\n"
+                   f"{'='*60}")
+        else:
+            return (f"\n{'='*60}\n"
+                   f"[TRACE INFO] 接口: {endpoint}\n"
+                   f"[TRACE INFO] TraceID: 未找到\n"
+                   f"[TRACE INFO] 状态码: {response.status_code}\n"
+                   f"[TRACE INFO] 响应时间: {response.elapsed.total_seconds():.3f}s\n"
+                   f"{'='*60}")
+    
+    @staticmethod
+    def log_request_details(endpoint: str, data: Dict[str, Any], headers: Dict[str, str], response: requests.Response):
+        """记录详细的请求信息"""
+        trace_id = TraceUtils.extract_trace_id(response)
+        
+        print(f"\n{'='*60}")
+        print(f"[REQUEST] 接口: {endpoint}")
+        print(f"[REQUEST] 请求数据: {json.dumps(data, ensure_ascii=False, indent=2)}")
+        print(f"[REQUEST] 请求头: {json.dumps(headers, ensure_ascii=False, indent=2)}")
+        print(f"[RESPONSE] 状态码: {response.status_code}")
+        print(f"[RESPONSE] TraceID: {trace_id or '未找到'}")
+        print(f"[RESPONSE] 响应时间: {response.elapsed.total_seconds():.3f}s")
+        
+        # 如果响应不是很长，也打印响应内容
+        try:
+            response_text = response.text
+            if len(response_text) < 1000:  # 只打印小于1000字符的响应
+                response_data = response.json()
+                print(f"[RESPONSE] 响应内容: {json.dumps(response_data, ensure_ascii=False, indent=2)}")
+        except:
+            pass
+        print(f"{'='*60}")
+
+
 # 全局测试数据管理器实例
-test_data_manager = TestDataManager()
+test_data_manager = DataManager()

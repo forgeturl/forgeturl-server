@@ -1,3 +1,4 @@
+tests/allure-results/
 app/conf/test.toml
 app/conf/onl.toml
 

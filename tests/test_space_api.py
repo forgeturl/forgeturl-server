@@ -1,6 +1,12 @@
 """
 Space API 接口测试
 基于 README.md 中定义的测试用例进行接口测试
+
+优化说明:
+- 所有HTTP请求现在会自动打印响应头中的 x-b3-traceid
+- 提供了两种API调用方式:
+  1. api_client.post() - 默认方式，打印基本的trace信息
+  2. api_client.post_with_detailed_log() - 详细方式，打印完整的请求和响应信息
 """
 import pytest
 import allure
@@ -27,21 +33,29 @@ class TestSpaceAPI:
         """非登录态，可以拉取到用户信息"""
         with allure.step("发送非登录态获取用户信息请求"):
             data = {"uid": self.test_user_id}
-            response = self.api_client.post("/space/getUserInfo", data, headers_no_login)
+            response = self.api_client.post_with_detailed_log("/space/getUserInfo", data, headers_no_login)
         
         with allure.step("验证响应状态和数据"):
             assert response.status_code == 200
             response_data = response.json()
             
+            # 验证API响应结构
+            assert "code" in response_data
+            assert "data" in response_data
+            assert response_data["code"] == 1
+            
+            # 获取实际的用户数据
+            user_data = response_data["data"]
+            
             # 验证基本字段存在
-            assert "uid" in response_data
-            assert "display_name" in response_data
-            assert "avatar" in response_data
-            assert "email" in response_data
+            assert "uid" in user_data
+            assert "display_name" in user_data
+            assert "avatar" in user_data
+            assert "email" in user_data
             
             # 非登录态不应该返回敏感信息
-            assert "username" not in response_data or response_data.get("username") == ""
-            assert "status" not in response_data or response_data.get("status") == 0
+            assert "username" not in user_data or user_data.get("username") == ""
+            assert "status" not in user_data or user_data.get("status") == 0
     
     @allure.story("页面信息") 
     @allure.title("测试2: 非登录态获取页面数据")
@@ -69,17 +83,25 @@ class TestSpaceAPI:
             assert response.status_code == 200
             response_data = response.json()
             
+            # 验证API响应结构
+            assert "code" in response_data
+            assert "data" in response_data
+            assert response_data["code"] == 1
+            
+            # 获取实际的用户数据
+            user_data = response_data["data"]
+            
             # 验证基本字段
-            assert "uid" in response_data
-            assert "display_name" in response_data
-            assert "avatar" in response_data
-            assert "email" in response_data
+            assert "uid" in user_data
+            assert "display_name" in user_data
+            assert "avatar" in user_data
+            assert "email" in user_data
             
             # 登录态应该返回详细信息
-            assert "username" in response_data
-            assert "status" in response_data
-            assert "create_time" in response_data
-            assert "update_time" in response_data
+            assert "username" in user_data
+            assert "status" in user_data
+            assert "create_time" in user_data
+            assert "update_time" in user_data
     
     @allure.story("我的空间")
     @allure.title("测试4: 登录态拉取我的空间")
@@ -94,8 +116,16 @@ class TestSpaceAPI:
             assert response.status_code == 200
             response_data = response.json()
             
+            # 验证API响应结构
+            assert "code" in response_data
+            assert "data" in response_data
+            assert response_data["code"] == 1
+            
+            # 获取实际的空间数据
+            space_data = response_data["data"]
+            
             # 验证我的空间数据结构
-            assert "space_name" in response_data or "page_briefs" in response_data
+            assert "space_name" in space_data or "page_briefs" in space_data
     
     @allure.story("页面管理")
     @allure.title("测试5a: 非登录态创建页面失败")
@@ -116,7 +146,8 @@ class TestSpaceAPI:
     def test_05b_create_page_with_login_success(self, headers_with_login, sample_page_data):
         """登录态，创建页面，创建的页面id在返回json的page_id字段里"""
         with allure.step("发送登录态创建页面请求"):
-            response = self.api_client.post("/space/createPage", sample_page_data, headers_with_login)
+            # 使用详细日志版本来展示完整的请求信息
+            response = self.api_client.post_with_detailed_log("/space/createPage", sample_page_data, headers_with_login)
         
         with allure.step("验证成功响应"):
             assert response.status_code == 200
