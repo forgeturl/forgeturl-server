@@ -56,7 +56,11 @@ jobs:
           ssh-private-key: ${{ secrets.ECS_KEY }}
 
       - name: Add ECS host to known_hosts
-        run: ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+          # 测试 SSH 连接
+          echo "Testing SSH connection..."
+          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'"
 
       - name: Deploy to Test Environment
         run: |
@@ -77,9 +81,9 @@ jobs:
       - name: Wait for manual approval
         uses: trstringer/manual-approval@v1
         with:
+          secret: ${{ github.TOKEN }}
           approvers: your-github-username
           minimum-approvals: 1
-          timeout-minutes: 1440
           issue-title: "Approve deploy to production (blue-green)"
           issue-body: "请确认测试环境无误后，批准发布到生产环境。"
 
@@ -89,7 +93,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: app/go.mod
           cache: true
 
       - name: Build Go binary
@@ -106,11 +110,16 @@ jobs:
           ssh-private-key: ${{ secrets.ECS_KEY }}
 
       - name: Add ECS host to known_hosts
-        run: ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+          # 测试 SSH 连接
+          echo "Testing SSH connection..."
+          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'"
 
       - name: Blue-Green Deployment
         run: |
-          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+          # 确定目标部署目录
+          TARGET_DIR=$(ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
             set -e
             APP_DIR=/data/app/forgeturl-server/prod
             BLUE=\$APP_DIR/main-blue
@@ -118,21 +127,29 @@ jobs:
             CURRENT=\$(readlink \$APP_DIR/main || echo \"\")
 
             if [ \"\$CURRENT\" = \"\$BLUE\" ]; then
-              TARGET=\$GREEN
+              echo \$GREEN
             else
-              TARGET=\$BLUE
+              echo \$BLUE
             fi
-
-            echo \"Deploying to \$TARGET ...\"
-            rsync -avz --delete ./ ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:\$TARGET
-
-            echo \"Switching symlink...\"
-            ln -sfn \$TARGET \$APP_DIR/main
-
+          ")
+          
+          echo "Deploying to $TARGET_DIR..."
+          
+          # 同步代码到目标目录
+          rsync -avz --delete ./ ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:$TARGET_DIR
+          
+          # 切换软链接并重启服务
+          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            set -e
+            APP_DIR=/data/app/forgeturl-server/prod
+            
+            echo \"Switching symlink to $TARGET_DIR...\"
+            ln -sfn $TARGET_DIR \$APP_DIR/main
+            
             echo \"Restarting service...\"
             sudo systemctl restart forgeturl-server-prod.service
-
-            echo \"✅ Deployment complete. Now running from \$TARGET\"
+            
+            echo \"✅ Deployment complete. Now running from $TARGET_DIR\"
           "
 
   # =============================
@@ -150,7 +167,11 @@ jobs:
           ssh-private-key: ${{ secrets.ECS_KEY }}
 
       - name: Add ECS host to known_hosts
-        run: ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
+          # 测试 SSH 连接
+          echo "Testing SSH connection..."
+          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'"
 
       - name: Detect Current Version
         run: |
