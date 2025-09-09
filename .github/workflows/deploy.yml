@@ -58,9 +58,20 @@ jobs:
       - name: Add ECS host to known_hosts
         run: |
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
-          # 测试 SSH 连接
-          echo "Testing SSH connection..."
-          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'"
+          
+      - name: Debug SSH Configuration
+        run: |
+          echo "=== SSH Debug Information ==="
+          echo "SSH Agent PID: $SSH_AGENT_PID"
+          echo "SSH Auth Sock: $SSH_AUTH_SOCK"
+          echo "Available SSH keys:"
+          ssh-add -l || echo "No keys found in ssh-agent"
+          echo ""
+          echo "SSH Client Version:"
+          ssh -V
+          echo ""
+          echo "Testing SSH connection with verbose output:"
+          ssh -vvv -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'" 2>&1 | head -50 || echo "SSH connection failed"
 
       - name: Deploy to Test Environment
         run: |
