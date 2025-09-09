@@ -73,10 +73,42 @@ jobs:
           echo "Testing SSH connection with verbose output:"
           ssh -vvv -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'" 2>&1 | head -50 || echo "SSH connection failed"
 
+      - name: Prepare Server Environment
+        run: |
+          # 设置环境变量避免 tput 警告
+          export TERM=xterm-256color
+          
+          # 检查并安装 rsync
+          echo "Checking rsync on server..."
+          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
+            if ! command -v rsync &> /dev/null; then
+              echo 'rsync not found, installing...'
+              sudo apt-get update -qq
+              sudo apt-get install -y rsync
+              echo 'rsync installed successfully'
+            else
+              echo 'rsync already installed'
+            fi
+            rsync --version | head -1
+          "
+
       - name: Deploy to Test Environment
         run: |
+          # 设置环境变量避免 tput 警告
+          export TERM=xterm-256color
+          
+          echo "Syncing files to test environment..."
           rsync -avz --delete ./ ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/data/app/forgeturl-server/test/main
-          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "sudo systemctl restart forgeturl-server-test.service"
+          
+          echo "Restarting test service..."
+          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
+            sudo systemctl restart forgeturl-server-test.service
+            sleep 2
+            sudo systemctl status forgeturl-server-test.service --no-pager
+          "
+          
           echo "✅ Test environment deployed at /data/app/forgeturl-server/test/main"
 
   # =============================
@@ -123,14 +155,35 @@ jobs:
       - name: Add ECS host to known_hosts
         run: |
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
-          # 测试 SSH 连接
-          echo "Testing SSH connection..."
-          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'"
+          
+      - name: Prepare Production Server Environment
+        run: |
+          # 设置环境变量避免 tput 警告
+          export TERM=xterm-256color
+          
+          # 检查并安装 rsync（如果需要）
+          echo "Checking rsync on production server..."
+          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
+            if ! command -v rsync &> /dev/null; then
+              echo 'rsync not found, installing...'
+              sudo apt-get update -qq
+              sudo apt-get install -y rsync
+              echo 'rsync installed successfully'
+            else
+              echo 'rsync already available'
+            fi
+            echo 'SSH connection test successful'
+          "
 
       - name: Blue-Green Deployment
         run: |
+          # 设置环境变量避免 tput 警告
+          export TERM=xterm-256color
+          
           # 确定目标部署目录
           TARGET_DIR=$(ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
             set -e
             APP_DIR=/data/app/forgeturl-server/prod
             BLUE=\$APP_DIR/main-blue
@@ -151,6 +204,7 @@ jobs:
           
           # 切换软链接并重启服务
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
             set -e
             APP_DIR=/data/app/forgeturl-server/prod
             
@@ -159,6 +213,8 @@ jobs:
             
             echo \"Restarting service...\"
             sudo systemctl restart forgeturl-server-prod.service
+            sleep 2
+            sudo systemctl status forgeturl-server-prod.service --no-pager
             
             echo \"✅ Deployment complete. Now running from $TARGET_DIR\"
           "
@@ -180,13 +236,14 @@ jobs:
       - name: Add ECS host to known_hosts
         run: |
           ssh-keyscan -H ${{ secrets.ECS_HOST }} >> ~/.ssh/known_hosts
-          # 测试 SSH 连接
-          echo "Testing SSH connection..."
-          ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "echo 'SSH connection test successful'"
 
       - name: Detect Current Version
         run: |
+          # 设置环境变量避免 tput 警告
+          export TERM=xterm-256color
+          
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
             APP_DIR=/data/app/forgeturl-server/prod
             CURRENT=\$(readlink \$APP_DIR/main || echo \"none\")
             echo \"🔎 当前生产环境运行版本: \$CURRENT\"
@@ -194,7 +251,11 @@ jobs:
 
       - name: Rollback Deployment
         run: |
+          # 设置环境变量避免 tput 警告
+          export TERM=xterm-256color
+          
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
             set -e
             APP_DIR=/data/app/forgeturl-server/prod
             TARGET_DIR=\$APP_DIR/main-${{ github.event.inputs.target }}
@@ -209,6 +270,8 @@ jobs:
 
             echo '🚀 重启服务...'
             sudo systemctl restart forgeturl-server-prod.service
+            sleep 2
+            sudo systemctl status forgeturl-server-prod.service --no-pager
 
             echo '✅ 回滚完成，现在运行于: \$TARGET_DIR'
           "
