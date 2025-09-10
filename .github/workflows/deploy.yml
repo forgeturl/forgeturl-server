@@ -101,6 +101,40 @@ jobs:
           echo "Uploading Go binary to test environment..."
           rsync -avz ./bin/forgeturl-server ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/data/app/forgeturl-server/test/main/
           
+          echo "Uploading systemd service file..."
+          rsync -avz ./app/conf/forgeturl-service-test.service ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/data/app/forgeturl-server/test/main/conf/
+          
+          echo "Installing/updating systemd service file..."
+          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
+            SERVICE_FILE='/etc/systemd/system/forgeturl-server-test.service'
+            SOURCE_FILE='/data/app/forgeturl-server/test/main/conf/forgeturl-service-test.service'
+            
+            # 检查源文件是否存在
+            if [ ! -f \$SOURCE_FILE ]; then
+              echo '❌ Service source file not found: \$SOURCE_FILE'
+              exit 1
+            fi
+            
+            # 检查是否需要安装或更新服务文件
+            if [ ! -f \$SERVICE_FILE ]; then
+              echo '📦 Installing new service file...'
+              sudo cp \$SOURCE_FILE \$SERVICE_FILE
+              sudo systemctl daemon-reload
+              echo '✅ Service file installed'
+            else
+              # 比较文件内容
+              if ! cmp -s \$SOURCE_FILE \$SERVICE_FILE; then
+                echo '🔄 Service file content differs, updating...'
+                sudo cp \$SOURCE_FILE \$SERVICE_FILE
+                sudo systemctl daemon-reload
+                echo '✅ Service file updated'
+              else
+                echo '✅ Service file content is identical, skipping update'
+              fi
+            fi
+          "
+          
           echo "Restarting test service..."
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
             export TERM=xterm-256color
@@ -201,7 +235,40 @@ jobs:
           
           # 同步代码到目标目录
           rsync -avz ./bin/forgeturl-server ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:$TARGET_DIR/
+          
+          # 同步 systemd service 文件到目标目录
+          rsync -avz ./app/conf/forgeturl-service-prod.service ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:$TARGET_DIR/conf/
 
+          # 安装/更新生产环境的 systemd service 文件
+          ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
+            export TERM=xterm-256color
+            SERVICE_FILE='/etc/systemd/system/forgeturl-server-prod.service'
+            SOURCE_FILE='$TARGET_DIR/conf/forgeturl-service-prod.service'
+            
+            # 检查源文件是否存在
+            if [ ! -f \$SOURCE_FILE ]; then
+              echo '❌ Service source file not found: \$SOURCE_FILE'
+              exit 1
+            fi
+            
+            # 检查是否需要安装或更新服务文件
+            if [ ! -f \$SERVICE_FILE ]; then
+              echo '📦 Installing new production service file...'
+              sudo cp \$SOURCE_FILE \$SERVICE_FILE
+              sudo systemctl daemon-reload
+              echo '✅ Production service file installed'
+            else
+              # 比较文件内容
+              if ! cmp -s \$SOURCE_FILE \$SERVICE_FILE; then
+                echo '🔄 Production service file content differs, updating...'
+                sudo cp \$SOURCE_FILE \$SERVICE_FILE
+                sudo systemctl daemon-reload
+                echo '✅ Production service file updated'
+              else
+                echo '✅ Production service file content is identical, skipping update'
+              fi
+            fi
+          "
           
           # 切换软链接并重启服务
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "

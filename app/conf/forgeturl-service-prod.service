@@ -1,0 +1,13 @@
+[Unit]
+#OnFailure=server-fail-handle@%N.service
+
+[Service]
+LimitNOFILE=1048576
+WorkingDirectory=/data/app/forgeturl-server/test/main
+Environment=\"RUN_TIME=test\"
+Environment=\"APP_NAME=forgeturl-server-test\"
+ExecStart=/data/app/forget-url/test/main/forgeturl-server api start
+Restart=always
+
+[Install]
+WantedBy=default.target
