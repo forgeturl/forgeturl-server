@@ -4,8 +4,8 @@
 [Service]
 LimitNOFILE=1048576
 WorkingDirectory=/data/app/forgeturl-server/test/main
-Environment=\"RUN_TIME=test\"
-Environment=\"APP_NAME=forgeturl-server-test\"
+Environment=RUN_TIME=onl
+Environment=APP_NAME=forgeturl-server-prod
 ExecStart=/data/app/forgeturl-server/test/main/forgeturl-server api start
 Restart=always
 
