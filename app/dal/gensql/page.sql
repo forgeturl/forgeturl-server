@@ -25,11 +25,3 @@ CREATE TABLE `page`
     KEY `idx_updated_at` (`updated_at`)
 );
 
-
-
-
-# ALTER TABLE `page`
-#     MODIFY `title`     VARCHAR(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' NOT NULL COMMENT '标题';
-#
-ALTER TABLE `page`
-     MODIFY `content`    MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '实体内容(文件夹、链接定义)';

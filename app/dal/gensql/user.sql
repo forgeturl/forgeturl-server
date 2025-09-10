@@ -21,7 +21,3 @@ CREATE TABLE `user`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_provider_external_id` (`provider`, `external_id`)
 );
-
-
-# ALTER TABLE `user`
-#     MODIFY  `display_name`  VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' NOT NULL COMMENT 'display name of user';

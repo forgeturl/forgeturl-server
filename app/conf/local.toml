@@ -1,3 +1,7 @@
+[network]
+ApiServiceHost = "0.0.0.0"
+ApiServicePort = "80"
+
 [base]
 debug = true
 logLevel = "info" # when online can set to error
