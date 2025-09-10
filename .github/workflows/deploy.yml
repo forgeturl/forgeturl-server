@@ -98,8 +98,8 @@ jobs:
           # 设置环境变量避免 tput 警告
           export TERM=xterm-256color
           
-          echo "Syncing files to test environment..."
-          rsync -avz --delete ./ ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/data/app/forgeturl-server/test/main
+          echo "Uploading Go binary to test environment..."
+          rsync -avz ./bin/forgeturl-server ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/data/app/forgeturl-server/test/main/
           
           echo "Restarting test service..."
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
@@ -200,7 +200,8 @@ jobs:
           echo "Deploying to $TARGET_DIR..."
           
           # 同步代码到目标目录
-          rsync -avz --delete ./ ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:$TARGET_DIR
+          rsync -avz ./bin/forgeturl-server ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:$TARGET_DIR/
+
           
           # 切换软链接并重启服务
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
