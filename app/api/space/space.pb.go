@@ -208,7 +208,7 @@ type AddPageLinkReq struct {
 }
 
 type AddPageLinkResp struct {
-	// 只读 http://2049links.com/share_readonly/R加密字符串1
+	// 只读：http://2049links.com/share_readonly/R加密字符串1
 	// 可编辑页面：http://2049links.com/share_editable/E加密字符串2
 	// 超级权限页面：http://2049links.com/share_admin/A加密字符串3
 	NewPageId string `json:"new_page_id"`

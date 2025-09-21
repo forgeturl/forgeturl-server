@@ -92,7 +92,7 @@ service SpaceService {
     };
   }
 
-  // 去除页面的某种链接 || 页面
+  // 去除页面的某个链接 || 页面
   // 把页面的只读链接、编辑链接删除
   rpc RemovePageLink(RemovePageLinkReq) returns (TRemovePageLinkResp) {
     option (google.api.http) = {
@@ -310,7 +310,7 @@ message AddPageLinkReq {
 }
 
 message AddPageLinkResp { // omitempty=false
-  // 只读 http://2049links.com/share_readonly/R加密字符串1
+  // 只读：http://2049links.com/share_readonly/R加密字符串1
   // 可编辑页面：http://2049links.com/share_editable/E加密字符串2
   // 超级权限页面：http://2049links.com/share_admin/A加密字符串3
   string new_page_id = 1;

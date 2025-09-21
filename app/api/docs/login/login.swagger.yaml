@@ -52,6 +52,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.TConnectorCallbackResp'
+    /login/logout:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_Logout
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.LogoutReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.TLogoutResp'
 components:
     schemas:
         .ConnectorCallbackResp:
@@ -79,6 +97,12 @@ components:
                 auth_url:
                     type: string
                     description: 跳转鉴权的地址
+        .LogoutReq:
+            type: object
+            properties: {}
+        .LogoutResp:
+            type: object
+            properties: {}
         .TConnectorCallbackResp:
             required:
                 - code
@@ -107,5 +131,19 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/.ConnectorResp'
+        .TLogoutResp:
+            required:
+                - code
+                - msg
+                - data
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                msg:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/.LogoutResp'
 tags:
     - name: LoginService

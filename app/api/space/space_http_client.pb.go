@@ -47,7 +47,7 @@ type SpaceServiceHTTPClient interface {
 	// 3. 其他情况会被拒绝
 	// 4. 如果同样的链接已存在，则需要让用户RemoveLink后，再创建新的链接。避免用户以为，同一个页面可以存在多个链接。
 	AddPageLink(context.Context, *AddPageLinkReq, ...calloption.CallOption) (*TResponse[AddPageLinkResp], error)
-	// 去除页面的某种链接 || 页面
+	// 去除页面的某个链接 || 页面
 	// 把页面的只读链接、编辑链接删除
 	RemovePageLink(context.Context, *RemovePageLinkReq, ...calloption.CallOption) (*TResponse[RemovePageLinkResp], error)
 }

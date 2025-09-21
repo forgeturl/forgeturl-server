@@ -18,12 +18,14 @@ type LoginServiceHTTPServer interface {
 	Connector(*api.Context, *ConnectorReq) (*ConnectorResp, error)
 	// 第三方登录回调
 	ConnectorCallback(*api.Context, *ConnectorCallbackReq) (*ConnectorCallbackResp, error)
+	Logout(*api.Context, *LogoutReq) (*LogoutResp, error)
 }
 
 func RegisterLoginServiceHTTPServer(s *gin.Engine, srv LoginServiceHTTPServer) {
 	r := s.Group("/")
 	r.GET("/login/connector/auth/:name", _LoginService_Connector_HTTP_Handler(srv))             // 连接器登录，跳转鉴权的url
 	r.GET("/login/connector/callback/:name", _LoginService_ConnectorCallback_HTTP_Handler(srv)) // 第三方登录回调
+	r.POST("/login/logout", _LoginService_Logout_HTTP_Handler(srv))
 }
 
 func _LoginService_Connector_HTTP_Handler(srv LoginServiceHTTPServer) func(g *gin.Context) {
@@ -66,6 +68,15 @@ func _LoginService_ConnectorCallback_HTTP_Handler(srv LoginServiceHTTPServer) fu
 			return
 		}
 		resp, err := srv.ConnectorCallback(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _LoginService_Logout_HTTP_Handler(srv LoginServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &LogoutReq{}
+		ctx := api.NewContext(g)
+		resp, err := srv.Logout(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }

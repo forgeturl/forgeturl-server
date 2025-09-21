@@ -25,6 +25,13 @@ service LoginService {
     };
   };
 
+  rpc Logout(LogoutReq) returns (LogoutResp) {
+    option (google.api.http) = {
+      post: "/login/logout"
+      body: "*"
+    };
+  };
+
 }
 
 message LoginReq {
@@ -77,4 +84,10 @@ message ConnectorCallbackResp {
     string avatar = 4;
     // 用户邮箱
     string email = 5;
+}
+
+message LogoutReq {
+}
+
+message LogoutResp {
 }

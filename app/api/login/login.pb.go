@@ -58,3 +58,9 @@ type ConnectorCallbackResp struct {
 	// 用户邮箱
 	Email string `json:"email,omitempty"`
 }
+
+type LogoutReq struct {
+}
+
+type LogoutResp struct {
+}

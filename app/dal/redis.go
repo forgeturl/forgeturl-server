@@ -89,3 +89,16 @@ func (c *cacheImpl) SetXToken(ctx context.Context, key string, uid int64) error 
 	}
 	return nil
 }
+
+// DelXToken 删除token
+func (c *cacheImpl) DelXToken(ctx context.Context, key string) error {
+	if key == "" {
+		return nil
+	}
+	err := c.user.Del(ctx, key).Err()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		glog.WarnC(ctx, "del x-token failed, key: %s, err: %v", key, err)
+		return common.ErrInternalServerError("del x-token failed")
+	}
+	return nil
+}

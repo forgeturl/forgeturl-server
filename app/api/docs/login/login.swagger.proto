@@ -25,6 +25,13 @@ service LoginService {
     };
   };
 
+  rpc Logout(LogoutReq) returns (TLogoutResp) {
+    option (google.api.http) = {
+      post: "/login/logout"
+      body: "*"
+    };
+  };
+
 }
 
 message LoginReq {
@@ -79,6 +86,12 @@ message ConnectorCallbackResp {
     string email = 5;
 }
 
+message LogoutReq {
+}
+
+message LogoutResp {
+}
+
 message TConnectorResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
@@ -88,4 +101,9 @@ message TConnectorCallbackResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
    ConnectorCallbackResp data = 3; // binding:"required"
+}
+message TLogoutResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   LogoutResp data = 3; // binding:"required"
 }

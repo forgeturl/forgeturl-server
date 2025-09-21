@@ -20,6 +20,7 @@ type LoginServiceHTTPClient interface {
 	Connector(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
 	// 第三方登录回调
 	ConnectorCallback(context.Context, *ConnectorCallbackReq, ...calloption.CallOption) (*TResponse[ConnectorCallbackResp], error)
+	Logout(context.Context, *LogoutReq, ...calloption.CallOption) (*TResponse[LogoutResp], error)
 }
 
 type LoginServiceHTTPClientImpl struct {
@@ -37,4 +38,19 @@ func (c *LoginServiceHTTPClientImpl) Connector(ctx context.Context, req *Connect
 func (c *LoginServiceHTTPClientImpl) ConnectorCallback(ctx context.Context, req *ConnectorCallbackReq, opts ...calloption.CallOption) (*TResponse[ConnectorCallbackResp], error) {
 	// TODO: GET method not support
 	return nil, ecode.NewV2(-1, "GET method not support")
+}
+func (c *LoginServiceHTTPClientImpl) Logout(ctx context.Context, req *LogoutReq, opts ...calloption.CallOption) (*TResponse[LogoutResp], error) {
+	resp := &TResponse[LogoutResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/login/logout")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
 }

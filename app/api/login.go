@@ -5,6 +5,7 @@ import (
 	"forgeturl-server/api/login"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
+	"forgeturl-server/pkg/middleware"
 
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -79,6 +80,13 @@ func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.Con
 		}
 	}
 
+	uuid := middleware.NewUUID()
+	err = dal.C.SetXToken(ctx, middleware.NewUUID(), userInfo.ID)
+	if err != nil {
+		return nil, common.ErrInternalServerError("set x-token failed")
+	}
+	context.Writer.Header().Set("X-Token", uuid)
+
 	return &login.ConnectorCallbackResp{
 		Uid:         userInfo.ID,
 		DisplayName: userInfo.DisplayName,
@@ -86,4 +94,14 @@ func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.Con
 		Avatar:      userInfo.Avatar,
 		Email:       userInfo.Email,
 	}, nil
+}
+
+func (l loginServiceImpl) Logout(context *api.Context, req *login.LogoutReq) (*login.LogoutResp, error) {
+	ctx := context.Request.Context()
+	token := context.GetHeader("X-Token")
+	err := dal.C.DelXToken(ctx, token)
+	if err != nil {
+		return nil, common.ErrInternalServerError("logout failed")
+	}
+	return &login.LogoutResp{}, nil
 }

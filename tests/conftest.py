@@ -11,7 +11,8 @@ from .test_utils import TraceUtils
 @pytest.fixture(scope="session")
 def base_url():
     """基础URL"""
-    return "http://127.0.0.1:80"
+    # return "http://127.0.0.1:80"
+    return "http://test-api.brightguo.com/
 
 
 @pytest.fixture
