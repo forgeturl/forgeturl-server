@@ -6,6 +6,7 @@ import (
 	"forgeturl-server/pkg/middleware"
 	"forgeturl-server/route"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sunmi-OS/gocore-contrib/smartgzip"
 	"github.com/sunmi-OS/gocore/v2/api"
@@ -44,7 +45,18 @@ func RunApi(c *cli.Context) error {
 	)
 	gin.DefaultWriter = middleware.NewGlogWriterDebug()
 	gin.DefaultErrorWriter = middleware.NewGlogWriterError()
-	gs.Gin.Use(middleware.ServerLogging(
+
+	addMiddlewares(gs.Gin)
+
+	// init route
+	route.Routes(gs.Gin)
+	gs.Start()
+	return nil
+}
+
+func addMiddlewares(g *gin.Engine) {
+	// logging
+	g.Use(middleware.ServerLogging(
 		middleware.WithSlowThreshold(10000),
 		middleware.WithHideReqBodyLogsPath(map[string]bool{
 			"/dumplinks/importBookmarks": true,
@@ -52,14 +64,12 @@ func RunApi(c *cli.Context) error {
 		}, true),
 	))
 
-	gs.Gin.Use(smartgzip.GzipOnly(
+	// cors
+	g.Use(cors.Default())
+
+	// gzip
+	g.Use(smartgzip.GzipOnly(
 		"/space/getPage",
 		"/space/getMySpace",
 	))
-
-	// init route
-	route.Routes(gs.Gin)
-	gs.Start()
-
-	return nil
 }

@@ -15,11 +15,6 @@ import (
 
 // LoginServiceHTTPClient is the client API for LoginService service.
 type LoginServiceHTTPClient interface {
-	// 连接器登录，跳转鉴权的url
-	// https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
-	Connector(context.Context, *ConnectorReq, ...calloption.CallOption) (*TResponse[ConnectorResp], error)
-	// 第三方登录回调
-	ConnectorCallback(context.Context, *ConnectorCallbackReq, ...calloption.CallOption) (*TResponse[ConnectorCallbackResp], error)
 	Logout(context.Context, *LogoutReq, ...calloption.CallOption) (*TResponse[LogoutResp], error)
 }
 
@@ -31,14 +26,6 @@ func NewLoginServiceHTTPClient(hh *http_request.HttpClient) LoginServiceHTTPClie
 	return &LoginServiceHTTPClientImpl{hh: hh}
 }
 
-func (c *LoginServiceHTTPClientImpl) Connector(ctx context.Context, req *ConnectorReq, opts ...calloption.CallOption) (*TResponse[ConnectorResp], error) {
-	// TODO: GET method not support
-	return nil, ecode.NewV2(-1, "GET method not support")
-}
-func (c *LoginServiceHTTPClientImpl) ConnectorCallback(ctx context.Context, req *ConnectorCallbackReq, opts ...calloption.CallOption) (*TResponse[ConnectorCallbackResp], error) {
-	// TODO: GET method not support
-	return nil, ecode.NewV2(-1, "GET method not support")
-}
 func (c *LoginServiceHTTPClientImpl) Logout(ctx context.Context, req *LogoutReq, opts ...calloption.CallOption) (*TResponse[LogoutResp], error) {
 	resp := &TResponse[LogoutResp]{}
 	r := c.hh.Client.R().SetContext(ctx)

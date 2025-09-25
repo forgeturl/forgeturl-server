@@ -7,6 +7,7 @@ import (
 	"forgeturl-server/dal/model"
 	"forgeturl-server/pkg/middleware"
 
+	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/sunmi-OS/gocore/v2/api"
@@ -17,6 +18,34 @@ type loginServiceImpl struct {
 
 func NewLoginService() login.LoginServiceHTTPServer {
 	return &loginServiceImpl{}
+}
+
+func LoginAuth(l login.LoginServiceHTTPServer) gin.HandlerFunc {
+	return func(g *gin.Context) {
+		req := &login.ConnectorReq{}
+		apiCtx := api.NewContext(g)
+		err := apiCtx.ShouldBindUri(req)
+		if err != nil {
+			apiCtx.RetJSON(nil, err)
+			return
+		}
+		resp, err := l.Connector(&apiCtx, req)
+		apiCtx.RetJSON(resp, err)
+	}
+}
+
+func LoginCallback(l login.LoginServiceHTTPServer) gin.HandlerFunc {
+	return func(g *gin.Context) {
+		req := &login.ConnectorCallbackReq{}
+		apiCtx := api.NewContext(g)
+		err := apiCtx.ShouldBindUri(req)
+		if err != nil {
+			apiCtx.RetJSON(nil, err)
+			return
+		}
+		resp, err := l.ConnectorCallback(&apiCtx, req)
+		apiCtx.RetJSON(resp, err)
+	}
 }
 
 // Connector 连接器登录，跳转鉴权的url

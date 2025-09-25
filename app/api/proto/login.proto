@@ -12,18 +12,18 @@ service LoginService {
 
   // 连接器登录，跳转鉴权的url
   // https://github.com/googleapis/googleapis/blob/master/google/api/http.proto
-  rpc Connector(ConnectorReq) returns (ConnectorResp) {
-    option (google.api.http) = {
-      get: "/login/connector/auth/{name}"
-    };
-  };
-
-  // 第三方登录回调
-  rpc ConnectorCallback(ConnectorCallbackReq) returns (ConnectorCallbackResp) {
-    option (google.api.http) = {
-      get: "/login/connector/callback/{name}"
-    };
-  };
+//  rpc Connector(ConnectorReq) returns (ConnectorResp) {
+//    option (google.api.http) = {
+//      get: "/login/connector/auth/{name}"
+//    };
+//  };
+//
+//  // 第三方登录回调
+//  rpc ConnectorCallback(ConnectorCallbackReq) returns (ConnectorCallbackResp) {
+//    option (google.api.http) = {
+//      get: "/login/connector/callback/{name}"
+//    };
+//  };
 
   rpc Logout(LogoutReq) returns (LogoutResp) {
     option (google.api.http) = {
