@@ -9,7 +9,7 @@ import (
 
 func FillDomain(path string) string {
 	if utils.IsLocal() {
-		return fmt.Sprintf("http://%s:%s%s", viper.C.GetString("base.domain"), viper.C.GetString("network.ApiServicePort"), path)
+		return fmt.Sprintf("%s:%s%s", viper.C.GetString("base.domain"), viper.C.GetString("network.ApiServicePort"), path)
 	}
-	return "https://" + viper.C.GetString("base.domain") + path
+	return viper.C.GetString("base.domain") + path
 }

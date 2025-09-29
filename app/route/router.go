@@ -15,6 +15,6 @@ func Routes(router *gin.Engine) {
 	login.RegisterLoginServiceHTTPServer(router, loginService)
 	dumplinks.RegisterDumplinksServiceHTTPServer(router, api.NewDumplinksService())
 
-	router.GET("/login/connector/auth/:name", api.LoginAuth(loginService))         // 连接器登录，跳转鉴权的url
-	router.GET("/login/connector/callback/:name", api.LoginCallback(loginService)) // 第三方登录回调
+	router.GET("/login/connector/auth", api.LoginAuth(loginService))                   // 连接器登录，跳转鉴权的url
+	router.GET("/login/connector/callback/:provider", api.LoginCallback(loginService)) // 第三方登录回调
 }

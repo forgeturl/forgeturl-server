@@ -11,13 +11,6 @@ import (
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 	"github.com/markbates/goth/providers/wechat"
-	"github.com/sunmi-OS/gocore/v2/utils"
-)
-
-const (
-	// 使用goth例子中的clientKey和clientSecret，仅用于测试，非自己申请
-	clientKey    = "dfc0084166d0ef8a9aac"
-	clientSecret = "75a7af7446b893707299595d1a4718b7c81174a8"
 )
 
 func Init() {
@@ -34,11 +27,12 @@ func Init() {
 	gothic.Store = store
 	viders := []goth.Provider{
 		//facebook.New(),
-		google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), core.FillDomain("/login/connector/google")),
-		wechat.New(os.Getenv("WECHAT_KEY"), os.Getenv("WECHAT_SECRET"), core.FillDomain("/login/connector/wechat"), wechat.WECHAT_LANG_CN),
+		google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), core.FillDomain("/login/connector/callback/google")),
+		wechat.New(os.Getenv("WECHAT_KEY"), os.Getenv("WECHAT_SECRET"), core.FillDomain("/login/connector/callback/wechat"), wechat.WECHAT_LANG_CN),
 	}
-	if utils.IsLocal() {
-		viders = append(viders, github.New(clientKey, clientSecret, core.FillDomain("/login/connector/callback/")))
+	// Add GitHub provider if environment variables are set
+	if os.Getenv("GITHUB_KEY") != "" && os.Getenv("GITHUB_SECRET") != "" {
+		viders = append(viders, github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), core.FillDomain("/login/connector/callback/github")))
 	}
 	goth.UseProviders(viders...)
 

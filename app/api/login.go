@@ -24,12 +24,9 @@ func LoginAuth(l login.LoginServiceHTTPServer) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		req := &login.ConnectorReq{}
 		apiCtx := api.NewContext(g)
-		err := apiCtx.ShouldBindUri(req)
-		if err != nil {
-			apiCtx.RetJSON(nil, err)
-			return
-		}
-		resp, err := l.Connector(&apiCtx, req)
+		req.Provider = apiCtx.Query("provider")
+		req.Code = apiCtx.Query("code")
+		resp, err := Connector(&apiCtx, req)
 		apiCtx.RetJSON(resp, err)
 	}
 }
@@ -38,21 +35,19 @@ func LoginCallback(l login.LoginServiceHTTPServer) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		req := &login.ConnectorCallbackReq{}
 		apiCtx := api.NewContext(g)
-		err := apiCtx.ShouldBindUri(req)
-		if err != nil {
-			apiCtx.RetJSON(nil, err)
-			return
-		}
-		resp, err := l.ConnectorCallback(&apiCtx, req)
+		// Get provider name from path parameter
+		req.Provider = apiCtx.Param("provider")
+		apiCtx.Request.SetPathValue("provider", req.Provider)
+		resp, err := ConnectorCallback(&apiCtx, req)
 		apiCtx.RetJSON(resp, err)
 	}
 }
 
 // Connector 连接器登录，跳转鉴权的url
-func (l loginServiceImpl) Connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
-	providerName, err := gothic.GetProviderName(context.Request)
-	if err != nil {
-		return nil, common.ErrNotAuthenticated(err.Error())
+func Connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
+	providerName := req.Provider
+	if providerName == "" {
+		return nil, common.ErrNotAuthenticated("you must select a provider")
 	}
 
 	provider, err := goth.GetProvider(providerName)
@@ -80,9 +75,9 @@ func (l loginServiceImpl) Connector(context *api.Context, req *login.ConnectorRe
 	}, nil
 }
 
-func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
-	ctx := context.Request.Context()
-	user, err := gothic.CompleteUserAuth(context.Writer, context.Request)
+func ConnectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
+	ctx := apiCtx.Request.Context()
+	user, err := gothic.CompleteUserAuth(apiCtx.Writer, apiCtx.Request)
 	if err != nil {
 		return nil, common.ErrNotAuthenticated(err.Error())
 	}
@@ -114,7 +109,7 @@ func (l loginServiceImpl) ConnectorCallback(context *api.Context, req *login.Con
 	if err != nil {
 		return nil, common.ErrInternalServerError("set x-token failed")
 	}
-	context.Writer.Header().Set("X-Token", uuid)
+	apiCtx.Writer.Header().Set("X-Token", uuid)
 
 	return &login.ConnectorCallbackResp{
 		Uid:         userInfo.ID,
