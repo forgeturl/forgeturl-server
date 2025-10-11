@@ -6,11 +6,13 @@ import (
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/pkg/middleware"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/sunmi-OS/gocore/v2/api"
+	"github.com/sunmi-OS/gocore/v2/glog"
 )
 
 type loginServiceImpl struct {
@@ -26,7 +28,7 @@ func LoginAuth(l login.LoginServiceHTTPServer) gin.HandlerFunc {
 		apiCtx := api.NewContext(g)
 		req.Provider = apiCtx.Query("provider")
 		req.Code = apiCtx.Query("code")
-		resp, err := Connector(&apiCtx, req)
+		resp, err := connector(&apiCtx, req)
 		apiCtx.RetJSON(resp, err)
 	}
 }
@@ -38,13 +40,13 @@ func LoginCallback(l login.LoginServiceHTTPServer) gin.HandlerFunc {
 		// Get provider name from path parameter
 		req.Provider = apiCtx.Param("provider")
 		apiCtx.Request.SetPathValue("provider", req.Provider)
-		resp, err := ConnectorCallback(&apiCtx, req)
+		resp, err := connectorCallback(&apiCtx, req)
 		apiCtx.RetJSON(resp, err)
 	}
 }
 
-// Connector 连接器登录，跳转鉴权的url
-func Connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
+// connector 连接器登录，跳转鉴权的url
+func connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorResp, error) {
 	providerName := req.Provider
 	if providerName == "" {
 		return nil, common.ErrNotAuthenticated("you must select a provider")
@@ -75,7 +77,8 @@ func Connector(context *api.Context, req *login.ConnectorReq) (*login.ConnectorR
 	}, nil
 }
 
-func ConnectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
+func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*login.ConnectorCallbackResp, error) {
+	// 未来这里可以增加，上一次登录时间的记录
 	ctx := apiCtx.Request.Context()
 	user, err := gothic.CompleteUserAuth(apiCtx.Writer, apiCtx.Request)
 	if err != nil {
@@ -84,6 +87,7 @@ func ConnectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 
 	// 处理用户信息
 	userInfo, err := dal.User.GetByExternalID(ctx, user.UserID)
+	isNewUser := false
 	if err != nil {
 		if common.IsErrNotFound(err) {
 			// 创建新用户
@@ -99,17 +103,26 @@ func ConnectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 				return nil, err
 			}
 			userInfo = newUser
+			isNewUser = true
 		} else {
 			return nil, err
 		}
 	}
+	uid := userInfo.ID
 
 	uuid := middleware.NewUUID()
 	err = dal.C.SetXToken(ctx, middleware.NewUUID(), userInfo.ID)
 	if err != nil {
 		return nil, common.ErrInternalServerError("set x-token failed")
 	}
+	lastLoginTime := time.Now()
 	apiCtx.Writer.Header().Set("X-Token", uuid)
+	// 更新登录时间
+	err = dal.User.UpdateLastLoginTime(ctx, uid, lastLoginTime)
+	if err != nil {
+		glog.ErrorC(ctx, "update last login time failed, err:%s", err.Error())
+		err = nil
+	}
 
 	return &login.ConnectorCallbackResp{
 		Uid:         userInfo.ID,
@@ -117,6 +130,7 @@ func ConnectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 		Username:    userInfo.Username,
 		Avatar:      userInfo.Avatar,
 		Email:       userInfo.Email,
+		IsNewUser:   isNewUser,
 	}, nil
 }
 

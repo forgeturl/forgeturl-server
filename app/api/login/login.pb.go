@@ -31,9 +31,9 @@ type RegisterResp struct {
 
 type ConnectorReq struct {
 	// 连接器名称：如weixin、google
-	Provider string `json:"provider,omitempty"` // uri:"id"
+	Provider string `json:"provider,omitempty"`
 	// 连接器的入参
-	Code string `json:"code,omitempty"` // uri:"code"
+	Code string `json:"code,omitempty"`
 }
 
 type ConnectorResp struct {
@@ -57,6 +57,8 @@ type ConnectorCallbackResp struct {
 	Avatar string `json:"avatar,omitempty"`
 	// 用户邮箱
 	Email string `json:"email,omitempty"`
+	// 是否是新用户
+	IsNewUser bool `json:"is_new_user,omitempty"`
 }
 
 type LogoutReq struct {

@@ -58,9 +58,9 @@ message RegisterResp {
 
 message ConnectorReq {
   // 连接器名称：如weixin、google
-  string provider = 2; // uri:"id"
+  string provider = 2;
   // 连接器的入参
-  string code = 1; // uri:"code"
+  string code = 1;
 }
 
 message ConnectorResp {
@@ -84,6 +84,8 @@ message ConnectorCallbackResp {
     string avatar = 4;
     // 用户邮箱
     string email = 5;
+    // 是否是新用户
+    bool is_new_user = 6;
 }
 
 message LogoutReq {
