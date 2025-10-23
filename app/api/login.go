@@ -91,12 +91,14 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 	if err != nil {
 		if common.IsErrNotFound(err) {
 			// 创建新用户
+			now := time.Now()
 			newUser := &model.User{
-				DisplayName: user.Name,
-				Username:    user.NickName,
-				Email:       user.Email,
-				ExternalID:  user.UserID,
-				Avatar:      user.AvatarURL,
+				DisplayName:   user.Name,
+				Username:      user.NickName,
+				Email:         user.Email,
+				ExternalID:    user.UserID,
+				Avatar:        user.AvatarURL,
+				LastLoginDate: now,
 			}
 			err = dal.User.Create(ctx, newUser)
 			if err != nil {

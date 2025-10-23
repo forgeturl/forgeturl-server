@@ -14,8 +14,8 @@ const TableNameUser = "user"
 
 // User mapped from table <user>
 type User struct {
-	ID            int64          `gorm:"column:id;type:bigint(20);primaryKey;autoIncrement:true;comment:auto increment ID" json:"id"`    // auto increment ID
-	DisplayName   string         `gorm:"column:display_name;type:varchar(64);not null;comment:display name of user" json:"display_name"` // display name of user
+	ID            int64          `gorm:"column:id;type:bigint(20);primaryKey;autoIncrement:true;comment:auto increment ID" json:"id"`                          // auto increment ID
+	DisplayName   string         `gorm:"column:display_name;type:varchar(64) character set utf8mb4;not null;comment:display name of user" json:"display_name"` // display name of user
 	Username      string         `gorm:"column:username;type:varchar(64);not null" json:"username"`
 	Email         string         `gorm:"column:email;type:varchar(100);not null;comment:email from provider" json:"email"`                         // email from provider
 	Avatar        string         `gorm:"column:avatar;type:varchar(1024);not null;comment:user avatar url" json:"avatar"`                          // user avatar url
