@@ -25,7 +25,7 @@ type User struct {
 	ExternalID    string         `gorm:"column:external_id;type:varchar(255);not null;uniqueIndex:uk_provider_external_id,priority:2;comment:login source unique id(gmail sub 255char//weixin unionid 28char)" json:"external_id"` // login source unique id(gmail sub 255char//weixin unionid 28char)
 	IPInfo        string         `gorm:"column:ip_info;type:varchar(255);not null" json:"ip_info"`
 	IsAdmin       int32          `gorm:"column:is_admin;type:tinyint(4);not null" json:"is_admin"`
-	SuspendedAt   time.Time      `gorm:"column:suspended_at;type:datetime" json:"suspended_at"`
+	SuspendedAt   *time.Time      `gorm:"column:suspended_at;type:datetime" json:"suspended_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:datetime" json:"deleted_at"`
 	CreatedAt     *time.Time     `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:create time" json:"created_at"` // create time
 	UpdatedAt     *time.Time     `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:update time" json:"updated_at"` // update time
