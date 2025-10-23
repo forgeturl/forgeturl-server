@@ -64,8 +64,27 @@ func addMiddlewares(g *gin.Engine) {
 		}, true),
 	))
 
-	// cors
-	g.Use(cors.Default())
+	// cors - 自定义配置以支持 withCredentials
+	var allowOrigins []string
+	switch utils.GetRunTime() {
+	case utils.LocalEnv:
+		allowOrigins = []string{"http://127.0.0.1:3000", "http://localhost:3000", "http://127.0.0.1", "http://localhost"}
+	case utils.TestEnv:
+		allowOrigins = []string{"https://test-api.brightguo.com"}
+	case utils.ReleaseEnv:
+		allowOrigins = []string{"https://api.brightguo.com"}
+	default:
+		allowOrigins = []string{"http://127.0.0.1:3000", "http://localhost:3000", "http://127.0.0.1", "http://localhost"}
+	}
+	corsConfig := cors.Config{
+		AllowOrigins:     allowOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Token", "X-Forget-Cookie"},
+		ExposeHeaders:    []string{"Content-Length", "X-Token", "X-Forget-Cookie"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}
+	g.Use(cors.New(corsConfig))
 
 	// gzip
 	g.Use(smartgzip.GzipOnly(

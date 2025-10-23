@@ -27,12 +27,12 @@ func Init() {
 	gothic.Store = store
 	viders := []goth.Provider{
 		//facebook.New(),
-		google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), core.FillDomain("/login/connector/callback/google")),
-		wechat.New(os.Getenv("WECHAT_KEY"), os.Getenv("WECHAT_SECRET"), core.FillDomain("/login/connector/callback/wechat"), wechat.WECHAT_LANG_CN),
+		google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), core.FillDomain("/auth/callback/google")),
+		wechat.New(os.Getenv("WECHAT_KEY"), os.Getenv("WECHAT_SECRET"), core.FillDomain("/auth/callback/wechat"), wechat.WECHAT_LANG_CN),
 	}
 	// Add GitHub provider if environment variables are set
 	if os.Getenv("GITHUB_KEY") != "" && os.Getenv("GITHUB_SECRET") != "" {
-		viders = append(viders, github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), core.FillDomain("/login/connector/callback/github")))
+		viders = append(viders, github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), core.FillDomain("/auth/callback/github")))
 	}
 	goth.UseProviders(viders...)
 
