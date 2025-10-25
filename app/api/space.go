@@ -76,7 +76,7 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 			ownerIds = append(ownerIds, pageId)
 		}
 	}
-	err := dal.Page.CheckIsYourPage(ctx, uid, ownerIds)
+	err := dal.Page.MustBeYourPage(ctx, uid, ownerIds)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (s spaceServiceImpl) GetPage(context *api.Context, req *space.GetPageReq) (
 		return nil, err
 	}
 
-	pageResp := toPage(uid, pageId, page)
+	pageResp := toPage(ctx, uid, pageId, page)
 	return &space.GetPageResp{Page: pageResp}, nil
 }
 
@@ -231,23 +231,35 @@ func (s spaceServiceImpl) CreatePage(context *api.Context, req *space.CreatePage
 }
 
 func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePageReq) (*space.UpdatePageResp, error) {
+	// 当req.PageId是自己的或者是可编辑的，或者是admin都可以允许编辑
 	ctx := context.Request.Context()
 	uid := middleware.GetLoginUid(context)
 	if uid == 0 {
 		return nil, common.ErrNeedLogin("")
+	}
+	pid := req.PageId
+
+	// 检查编辑权限：
+	// 1. 如果是admin，直接允许
+	// 2. 如果页面类型是可编辑的（EditPage或AdminPage），允许
+	// 3. 如果页面是自己的（OwnerPage），需要检查是否属于当前用户
+	userInfo, err := dal.User.Get(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	var ownerPid string
+	ownerPid, err = canEditPage(ctx, userInfo, pid)
+	if err != nil {
+		return nil, err
 	}
 
 	content, err := sonic.MarshalString(req.Collections)
 	if err != nil {
 		return nil, err
 	}
-	// 先看下页面是否存在，且是自己的
-	err = dal.Page.CheckIsYourPage(ctx, uid, []string{req.PageId})
-	if err != nil {
-		return nil, err
-	}
 
-	err = dal.Page.UpdatePage(ctx, uid, req.Mask, req.Version, req.PageId, req.Title, req.Brief, content)
+	err = dal.Page.UpdatePage(ctx, req.Mask, req.Version, ownerPid, req.Title, req.Brief, content)
 	if err != nil {
 		return nil, err
 	}
@@ -262,18 +274,34 @@ func (s spaceServiceImpl) DeletePage(context *api.Context, req *space.DeletePage
 	}
 	pid := req.PageId
 
-	err := dal.Q.Transaction(func(tx *query.Query) error {
-		err0 := dal.Page.DeleteByPid(ctx, uid, pid, tx)
+	userInfo, err := dal.User.Get(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	err = canDeletePage(ctx, userInfo, pid)
+	if err != nil {
+		return nil, err
+	}
+
+	err = dal.Q.Transaction(func(tx *query.Query) error {
+		// 读取页面数据，确认页面存在
+		page, err0 := dal.Page.GetPageBrief(ctx, uid, pid, tx)
 		if err0 != nil {
 			return err0
 		}
 
-		_, err0 = dal.UserPage.DeleteUserPageId(ctx, uid, pid, tx)
+		// 删除所有有该页面的用户关联
+		err0 = dal.UserPage.RealDeletePage(ctx, page, tx)
 		if err0 != nil {
 			return err0
 		}
 
-		// 还有一个unique_pid先保留，不删除
+		// 删除页面本身
+		err0 = dal.Page.DeleteByPid(ctx, uid, pid, tx)
+		if err0 != nil {
+			return err0
+		}
 
 		return nil
 	})

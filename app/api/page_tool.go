@@ -1,12 +1,16 @@
 package api
 
 import (
+	"context"
+	"forgeturl-server/api/common"
 	"forgeturl-server/api/space"
 	"forgeturl-server/conf"
+	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/pkg/maths"
 
 	"github.com/bytedance/sonic"
+	"github.com/sunmi-OS/gocore/v2/glog"
 )
 
 func isNeedLoginPageId(pageId string) bool {
@@ -19,9 +23,12 @@ func isNeedLoginPageId(pageId string) bool {
 	return true
 }
 
-func toPage(uid int64, pageId string, page *model.Page) *space.Page {
-	var co []*space.Collections
-	_ = sonic.UnmarshalString(page.Content, co)
+func toPage(ctx context.Context, uid int64, pageId string, page *model.Page) *space.Page {
+	co := make([]*space.Collections, 0)
+	err0 := sonic.UnmarshalString(page.Content, &co)
+	if err0 != nil {
+		glog.WarnC(ctx, "unmarshal content failed: err0 %v pageId:%v", err0, page.Pid)
+	}
 	isSelf := page.UID == uid
 	pageResp := &space.Page{
 		// PageId:      page.Pid,
@@ -33,6 +40,7 @@ func toPage(uid int64, pageId string, page *model.Page) *space.Page {
 		UpdateTime:  page.UpdatedAt.Unix(),
 		IsSelf:      isSelf,
 		PageConf:    &space.PageConf{},
+		Version:     page.Version,
 	}
 
 	if page.ReadonlyPid == pageId {
@@ -108,4 +116,41 @@ func genEditPageId() string {
 
 func genAdminPageId() string {
 	return maths.GenPageID(string(conf.AdminPrefix))
+}
+
+func canEditPage(ctx context.Context, userInfo *model.User, pageId string) (string, error) {
+	uid := userInfo.ID
+	pageType := conf.ParseIdType(pageId)
+	if pageType.IsReadOnlyPage() {
+		return "", common.ErrNotSupport("cannot edit readonly page")
+	}
+	// 其他情况都可以编辑
+
+	page, err := dal.Page.GetPageBrief(ctx, uid, pageId)
+	if err != nil {
+		return "", err
+	}
+	// 如果是自己的页面，特别校验下归属
+	if pageType.IsOwnPage() {
+		if page.UID != uid {
+			return "", common.ErrNotYourPageOrPageNotExist()
+		}
+	}
+	// 如果能编辑，返回原始pid，给后续内部接口更新使用
+	return page.Pid, nil
+}
+
+func canDeletePage(ctx context.Context, userInfo *model.User, pageId string) error {
+	uid := userInfo.ID
+	pageType := conf.ParseIdType(pageId)
+	if !pageType.IsOwnPage() {
+		// 只读和可编辑类型的页面不支持删除
+		return common.ErrBadRequest("This page type does not support deletion")
+	}
+	// 如果是自己的页面，需要验证所有权
+	err0 := dal.Page.MustBeYourPage(ctx, uid, []string{pageId})
+	if err0 != nil {
+		return common.ErrBadRequest("You don't have permission to edit this page")
+	}
+	return nil
 }

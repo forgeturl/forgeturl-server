@@ -17,7 +17,8 @@ import (
 
 const (
 	// LoginTimeout 登录过期时间
-	LoginTimeout = time.Hour * 24 * 180
+	LoginTimeout   = time.Hour * 24 * 180
+	RdsTokenPrefix = "auth:tk"
 )
 
 type cacheImpl struct {
@@ -68,7 +69,8 @@ func (c *cacheImpl) GetXToken(ctx context.Context, key string) int64 {
 	if key == "" {
 		return 0
 	}
-	val, err := c.user.Get(ctx, key).Result()
+	tk := GetTokenKey(key)
+	val, err := c.user.Get(ctx, tk).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return 0
@@ -83,10 +85,12 @@ func (c *cacheImpl) SetXToken(ctx context.Context, key string, uid int64) error 
 	if key == "" || uid == 0 {
 		return common.ErrInternalServerError("invalid key or uid")
 	}
-	err := c.user.Set(ctx, key, uid, LoginTimeout).Err()
+	tk := GetTokenKey(key)
+	err := c.user.Set(ctx, tk, uid, LoginTimeout).Err()
 	if err != nil {
 		return common.ErrInternalServerError(fmt.Sprintf("set x-token failed, key: %s, uid: %d, err: %v", key, uid, err))
 	}
+	glog.InfoC(ctx, "set x-token, key: %s, uid: %d", key, uid)
 	return nil
 }
 
@@ -95,10 +99,16 @@ func (c *cacheImpl) DelXToken(ctx context.Context, key string) error {
 	if key == "" {
 		return nil
 	}
-	err := c.user.Del(ctx, key).Err()
+	tk := GetTokenKey(key)
+	err := c.user.Del(ctx, tk).Err()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		glog.WarnC(ctx, "del x-token failed, key: %s, err: %v", key, err)
+		glog.WarnC(ctx, "del x-token failed, key: %s, err: %v", tk, err)
 		return common.ErrInternalServerError("del x-token failed")
 	}
+	glog.InfoC(ctx, "del x-token, key: %s", key)
 	return nil
+}
+
+func GetTokenKey(key string) string {
+	return RdsTokenPrefix + ":" + key
 }

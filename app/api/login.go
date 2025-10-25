@@ -113,7 +113,7 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 	uid := userInfo.ID
 
 	uuid := middleware.NewUUID()
-	err = dal.C.SetXToken(ctx, middleware.NewUUID(), userInfo.ID)
+	err = dal.C.SetXToken(ctx, uuid, userInfo.ID)
 	if err != nil {
 		return nil, common.ErrInternalServerError("set x-token failed")
 	}

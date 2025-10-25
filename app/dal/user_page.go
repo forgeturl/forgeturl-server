@@ -2,9 +2,9 @@ package dal
 
 import (
 	"context"
+
 	"forgeturl-server/api/common"
 	"forgeturl-server/conf"
-
 	"forgeturl-server/dal/model"
 	"forgeturl-server/dal/query"
 
@@ -65,6 +65,28 @@ func (*userPageImpl) DeleteUserPageId(ctx context.Context, uid int64, pageid str
 		return 0, transGormErr(err)
 	}
 	return result.RowsAffected, nil
+}
+
+func (*userPageImpl) RealDeletePage(ctx context.Context, page *model.Page, tx ...*query.Query) error {
+	u := Q.UserPage
+	if len(tx) > 0 {
+		u = tx[0].UserPage
+	}
+	do := u.WithContext(ctx).Where(u.Pid.Eq(page.Pid))
+	if page.ReadonlyPid != "" {
+		do = do.Or(u.Pid.Eq(page.ReadonlyPid))
+	}
+	if page.EditPid != "" {
+		do = do.Or(u.Pid.Eq(page.EditPid))
+	}
+	if page.AdminPid != "" {
+		do = do.Or(u.Pid.Eq(page.AdminPid))
+	}
+	_, err := do.Delete()
+	if err != nil {
+		return transGormErr(err)
+	}
+	return nil
 }
 
 func (*userPageImpl) BatchRemovePageLink(ctx context.Context, pageid string, tx ...*query.Query) (int64, error) {

@@ -367,8 +367,7 @@
       },
       ".CreatePageReq": {
         "required": [
-          "title",
-          "brief"
+          "title"
         ],
         "type": "object",
         "properties": {

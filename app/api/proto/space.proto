@@ -50,7 +50,10 @@ service SpaceService {
     };
   }
 
-  // 删除页面 || 页面
+  // 真删除页面 || 页面
+  // 删除后，所有该页面数据都会消失，所有人都无法打开该页面
+  // 页面创建者可以删除该页面
+  // admin和管理员暂时不支持删除该页面
   rpc DeletePage(DeletePageReq) returns (DeletePageResp) {
     option (google.api.http) = {
       post: "/space/deletePage"
@@ -247,7 +250,7 @@ message CreatePageReq {
   // 页面标题
   string title = 1; // binding:"required,min=0,max=256"
   // 页面描述
-  string brief = 2; // binding:"required,min=0,max=1024"
+  string brief = 2; // binding:"min=0,max=1024"
   // 页面中的文件夹
   repeated Collections collections = 3;
 }

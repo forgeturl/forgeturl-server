@@ -247,7 +247,7 @@ message CreatePageReq {
   // 页面标题
   string title = 1; // binding:"required,min=0,max=256"
   // 页面描述
-  string brief = 2; // binding:"required,min=0,max=1024"
+  string brief = 2; // binding:"min=0,max=1024"
   // 页面中的文件夹
   repeated Collections collections = 3;
 }

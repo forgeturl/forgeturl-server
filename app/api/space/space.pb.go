@@ -145,7 +145,7 @@ type CreatePageReq struct {
 	// 页面标题
 	Title string `json:"title" binding:"required,min=0,max=256"`
 	// 页面描述
-	Brief string `json:"brief" binding:"required,min=0,max=1024"`
+	Brief string `json:"brief,omitempty" binding:"min=0,max=1024"`
 	// 页面中的文件夹
 	Collections []*Collections `json:"collections,omitempty"`
 }

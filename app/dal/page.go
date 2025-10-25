@@ -9,6 +9,7 @@ import (
 	"forgeturl-server/dal/query"
 
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 type pageImpl struct {
@@ -112,7 +113,7 @@ func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string, tx 
 	return page, nil
 }
 
-func (*pageImpl) CheckIsYourPage(ctx context.Context, uid int64, pageIds []string, tx ...*query.Query) error {
+func (*pageImpl) MustBeYourPage(ctx context.Context, uid int64, pageIds []string, tx ...*query.Query) error {
 	u := Q.Page
 	if len(tx) > 0 {
 		u = tx[0].Page
@@ -135,23 +136,29 @@ const (
 	MaskContent
 )
 
-func (*pageImpl) UpdatePage(ctx context.Context, uid, mask, version int64, pageId, title, brief, content string, tx ...*query.Query) error {
+func (*pageImpl) UpdatePage(ctx context.Context, mask, version int64, ownerPageId, title, brief, content string, tx ...*query.Query) error {
 	u := Q.Page
 	if len(tx) > 0 {
 		u = tx[0].Page
 	}
 
-	do := u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(pageId), u.Version.Eq(version))
-	do = do.Select(u.Version)
+	do := u.WithContext(ctx).Where(u.Pid.Eq(ownerPageId), u.Version.Eq(version))
+
+	// 收集需要更新的字段
+	fields := []field.Expr{u.Version}
 	if mask&MaskTitle != 0 {
-		do = do.Select(u.Title)
+		fields = append(fields, u.Title)
 	}
 	if mask&MaskBrief != 0 {
-		do = do.Select(u.Brief)
+		fields = append(fields, u.Brief)
 	}
 	if mask&MaskContent != 0 {
-		do = do.Select(u.Content)
+		fields = append(fields, u.Content)
 	}
+
+	// 一次性选择所有需要更新的字段
+	do = do.Select(fields...)
+
 	info, err := do.Updates(&model.Page{
 		Title:   title,
 		Brief:   brief,
@@ -168,6 +175,7 @@ func (*pageImpl) UpdatePage(ctx context.Context, uid, mask, version int64, pageI
 	return nil
 }
 
+// DeleteByPid 可以通过adminPid、Pid进行页面删除
 func (*pageImpl) DeleteByPid(ctx context.Context, uid int64, pid string, tx ...*query.Query) error {
 	u := Q.Page
 	if len(tx) > 0 {
@@ -175,7 +183,18 @@ func (*pageImpl) DeleteByPid(ctx context.Context, uid int64, pid string, tx ...*
 	}
 	do := u.WithContext(ctx)
 	// 删除页面
-	_, err := do.Where(u.UID.Eq(uid), u.Pid.Eq(pid)).Delete()
+	pT := conf.ParseIdType(pid)
+	switch pT {
+	case conf.OwnerPage:
+		// 只能通过owner页面删除
+		do = do.Where(u.UID.Eq(uid), u.Pid.Eq(pid))
+	case conf.AdminPage:
+		// 通过admin页面删除
+		do = do.Where(u.UID.Eq(uid), u.AdminPid.Eq(pid))
+	default:
+		return common.ErrNotSupport()
+	}
+	_, err := do.Delete()
 	if err != nil {
 		return transGormErr(err)
 	}

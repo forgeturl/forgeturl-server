@@ -255,7 +255,6 @@ components:
         .CreatePageReq:
             required:
                 - title
-                - brief
             type: object
             properties:
                 title:
