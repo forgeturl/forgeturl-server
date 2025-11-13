@@ -55,6 +55,9 @@ func RunApi(c *cli.Context) error {
 }
 
 func addMiddlewares(g *gin.Engine) {
+	g.Use(middleware.IgnoreNotExistPath())
+	g.Use(middleware.MustLocalIp())
+
 	// logging
 	g.Use(middleware.ServerLogging(
 		middleware.WithSlowThreshold(10000),

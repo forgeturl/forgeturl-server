@@ -14,8 +14,6 @@ import (
 )
 
 func Init() {
-	// todo 自己实现一个，通过header返回， 不通过cookie返回
-
 	maxAge := 86400 * 30 // 30 days
 	isProd := false
 	store, _ := redistore.NewRediStore(10, "tcp", ":6379", "", "", []byte("fg-key"))
