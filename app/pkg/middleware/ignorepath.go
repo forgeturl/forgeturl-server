@@ -10,12 +10,12 @@ import (
 
 func IgnoreNotExistPath() gin.HandlerFunc {
 	allowListMap := map[string]bool{
-		"/health":             true,
-		"/debug/pprof":        true,
-		"/monitor/prometheus": true,
-		"/login/":             true,
-		"/dumplinks/":         true,
-		"/space/":             true,
+		"/health":     true,
+		"/debug/":     true,
+		"/monitor/":   true,
+		"/login/":     true,
+		"/dumplinks/": true,
+		"/space/":     true,
 	}
 	// 如果不在前缀树里，则直接404，不记录到promethues里
 	return func(c *gin.Context) {
