@@ -40,7 +40,7 @@ func IgnoreNotExistPath() gin.HandlerFunc {
 
 		if _, ok := allowListMap[subPath]; !ok {
 			c.Header("X-NotFound-Reason", "not-in-allowlist")
-			c.AbortWithStatus(http.StatusNotFound)
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
@@ -81,6 +81,7 @@ func MustLocalIp() gin.HandlerFunc {
 		// 检查是否是本地或内网IP
 		if !isLocalOrPrivateIP(clientIP) {
 			c.Header("X-Forbidden-Reason", "only-local-ip-allowed")
+			c.Header("X-Client-IP", clientIP) // 方便调试
 			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}

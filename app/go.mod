@@ -7,6 +7,7 @@ toolchain go1.23.10
 require (
 	github.com/bytedance/sonic v1.13.3
 	github.com/forgeturl/redistore v0.0.0-20250825112738-1c5a7a886c57
+	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/pprof v1.5.0
 	github.com/gin-gonic/gin v1.10.1

@@ -6,10 +6,10 @@ import (
 	"forgeturl-server/pkg/middleware"
 	"forgeturl-server/route"
 
+	"github.com/fvbock/endless"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sunmi-OS/gocore-contrib/smartgzip"
-	"github.com/sunmi-OS/gocore/v2/api"
 	"github.com/sunmi-OS/gocore/v2/conf/viper"
 	"github.com/sunmi-OS/gocore/v2/utils"
 	"github.com/urfave/cli/v2"
@@ -36,21 +36,26 @@ func RunApi(c *cli.Context) error {
 	initLog()
 	initClient()
 
-	gs := api.NewGinServer(
-		api.WithServerDebug(!utils.IsRelease()),
-		api.WithServerHost(viper.C.GetString("network.ApiServiceHost")),
-		api.WithServerPort(viper.C.GetInt("network.ApiServicePort")),
-		api.WithServerTimeout(time.Minute*5),
-		api.WithOpenTrace(false),
-	)
-	gin.DefaultWriter = middleware.NewGlogWriterDebug()
-	gin.DefaultErrorWriter = middleware.NewGlogWriterError()
+	newG := middleware.NewGin()
+	//gs := api.NewGinServer(
+	//	api.WithServerDebug(!utils.IsRelease()),
+	//	api.WithServerHost(viper.C.GetString("network.ApiServiceHost")),
+	//	api.WithServerPort(viper.C.GetInt("network.ApiServicePort")),
+	//	api.WithServerTimeout(time.Minute*5),
+	//	api.WithOpenTrace(false),
+	//)
+	//gin.DefaultWriter = middleware.NewGlogWriterDebug()
+	//gin.DefaultErrorWriter = middleware.NewGlogWriterError()
 
-	addMiddlewares(gs.Gin)
+	addMiddlewares(newG)
 
 	// init route
-	route.Routes(gs.Gin)
-	gs.Start()
+	route.Routes(newG)
+	address := viper.C.GetString("network.ApiServiceHost") + ":" + viper.C.GetString("network.ApiServicePort")
+	err := endless.ListenAndServe(address, newG)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

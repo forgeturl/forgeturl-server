@@ -1,12 +1,8 @@
 package middleware
 
 import (
-	"net/http"
-
-	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/sunmi-OS/gocore/v2/glog"
-	"github.com/sunmi-OS/gocore/v2/lib/prometheus"
 	"github.com/sunmi-OS/gocore/v2/utils"
 )
 
@@ -20,13 +16,7 @@ func NewGin() *gin.Engine {
 	if utils.GetRunTime() != utils.LocalEnv {
 		r.Use(gin.Recovery())
 	}
-	r.Use(ServerLogging(WithSlowThreshold(5000)))
-
-	r.Any("/health", func(c *gin.Context) {
-		c.String(http.StatusOK, "Welcome GoCore Service")
-	})
-	pprof.Register(r, "/debug/pprof")
-	prometheus.NewPrometheus("app", nil).Use(r)
+	// r.Use(ServerLogging(WithSlowThreshold(5000)))
 	return r
 }
 
