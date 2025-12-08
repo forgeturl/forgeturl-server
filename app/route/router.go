@@ -13,13 +13,12 @@ import (
 )
 
 func Routes(router *gin.Engine) {
-	loginService := api.NewLoginService()
 	space.RegisterSpaceServiceHTTPServer(router, api.NewSpaceService())
-	login.RegisterLoginServiceHTTPServer(router, loginService)
+	login.RegisterLoginServiceHTTPServer(router, api.NewLoginService())
 	dumplinks.RegisterDumplinksServiceHTTPServer(router, api.NewDumplinksService())
 
-	router.GET("/login/connector/auth", api.LoginAuth(loginService))                   // 连接器登录，跳转鉴权的url
-	router.GET("/login/connector/callback/:provider", api.LoginCallback(loginService)) // 第三方登录回调
+	router.GET("/login/connector/auth", api.LoginAuth())                   // 连接器登录，跳转鉴权的url
+	router.GET("/login/connector/callback/:provider", api.LoginCallback()) // 第三方登录回调
 
 	router.Any("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome GoCore Service")

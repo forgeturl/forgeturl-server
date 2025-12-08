@@ -22,7 +22,7 @@ func NewLoginService() login.LoginServiceHTTPServer {
 	return &loginServiceImpl{}
 }
 
-func LoginAuth(l login.LoginServiceHTTPServer) gin.HandlerFunc {
+func LoginAuth() gin.HandlerFunc {
 	return func(g *gin.Context) {
 		req := &login.ConnectorReq{}
 		apiCtx := api.NewContext(g)
@@ -33,7 +33,7 @@ func LoginAuth(l login.LoginServiceHTTPServer) gin.HandlerFunc {
 	}
 }
 
-func LoginCallback(l login.LoginServiceHTTPServer) gin.HandlerFunc {
+func LoginCallback() gin.HandlerFunc {
 	return func(g *gin.Context) {
 		req := &login.ConnectorCallbackReq{}
 		apiCtx := api.NewContext(g)
