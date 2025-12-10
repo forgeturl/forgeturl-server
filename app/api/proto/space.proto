@@ -193,6 +193,8 @@ message PageBrief { // omitempty=false
 message Collections {// omitempty=false
   // 每个文件夹里，有多个链接
   repeated Link links = 1;
+  // 文件夹标题
+  string title = 2; // binding:"max=256"
 }
 
 message SubLink {
