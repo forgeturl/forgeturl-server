@@ -90,6 +90,8 @@ type PageBrief struct {
 type Collections struct {
 	// 每个文件夹里，有多个链接
 	Links []*Link `json:"links"`
+	// 文件夹标题
+	Title string `json:"title" binding:"max=256"`
 }
 
 type SubLink struct {

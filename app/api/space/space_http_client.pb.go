@@ -29,7 +29,10 @@ type SpaceServiceHTTPClient interface {
 	UpdatePage(context.Context, *UpdatePageReq, ...calloption.CallOption) (*TResponse[UpdatePageResp], error)
 	// 拉取某个页面数据 || 页面
 	GetPage(context.Context, *GetPageReq, ...calloption.CallOption) (*TResponse[GetPageResp], error)
-	// 删除页面 || 页面
+	// 真删除页面 || 页面
+	// 删除后，所有该页面数据都会消失，所有人都无法打开该页面
+	// 页面创建者可以删除该页面
+	// admin和管理员暂时不支持删除该页面
 	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法

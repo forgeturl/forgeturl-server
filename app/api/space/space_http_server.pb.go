@@ -27,7 +27,10 @@ type SpaceServiceHTTPServer interface {
 	UpdatePage(*api.Context, *UpdatePageReq) (*UpdatePageResp, error)
 	// 拉取某个页面数据 || 页面
 	GetPage(*api.Context, *GetPageReq) (*GetPageResp, error)
-	// 删除页面 || 页面
+	// 真删除页面 || 页面
+	// 删除后，所有该页面数据都会消失，所有人都无法打开该页面
+	// 页面创建者可以删除该页面
+	// admin和管理员暂时不支持删除该页面
 	DeletePage(*api.Context, *DeletePageReq) (*DeletePageResp, error)
 	// 调整我的空间下面的页面顺序 || 空间
 	// 如果有新增、删除page_id，也使用该方法
@@ -57,7 +60,7 @@ func RegisterSpaceServiceHTTPServer(s *gin.Engine, srv SpaceServiceHTTPServer) {
 	r.POST("/space/createPage", _SpaceService_CreatePage_HTTP_Handler(srv))         // 创建页面 || 空间
 	r.POST("/space/updatePage", _SpaceService_UpdatePage_HTTP_Handler(srv))         // 更新页面 || 页面
 	r.POST("/space/getPage", _SpaceService_GetPage_HTTP_Handler(srv))               // 拉取某个页面数据 || 页面
-	r.POST("/space/deletePage", _SpaceService_DeletePage_HTTP_Handler(srv))         // 删除页面 || 页面
+	r.POST("/space/deletePage", _SpaceService_DeletePage_HTTP_Handler(srv))         // 真删除页面 || 页面
 	r.POST("/space/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))       // 调整我的空间下面的页面顺序 || 空间
 	r.POST("/space/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))   // (暂时废弃)创建临时页面 || 页面
 	r.POST("/space/addPageLink", _SpaceService_AddPageLink_HTTP_Handler(srv))       // 生成新页面链接 || 页面
