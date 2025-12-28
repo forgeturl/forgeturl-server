@@ -685,6 +685,10 @@
               }
             ],
             "description": "页面配置"
+          },
+          "is_not_found": {
+            "type": "boolean",
+            "description": "该链接是否找不到了"
           }
         },
         "description": "页面简介"
@@ -707,10 +711,19 @@
         }
       },
       ".RemovePageLinkReq": {
+        "required": [
+          "page_id",
+          "page_type"
+        ],
         "type": "object",
         "properties": {
           "page_id": {
-            "type": "string"
+            "type": "string",
+            "description": "原始页面id"
+          },
+          "page_type": {
+            "type": "string",
+            "description": "生成只读、编辑、超级权限的链接\n 只读、编辑、超级权限的链接，一次只能删除一个, 如果不存在则直接返回成功"
           }
         }
       },

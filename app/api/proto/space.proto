@@ -187,7 +187,9 @@ message PageBrief { // omitempty=false
   // 是否是自己的页面
   bool is_self = 6;
   // 页面配置
-  PageConf page_conf = 8;
+  PageConf page_conf = 7;
+  // 该链接是否找不到了
+  bool is_not_found = 8;
 }
 
 message Collections {// omitempty=false
@@ -300,7 +302,11 @@ message DeletePageResp { // omitempty=false
 }
 
 message RemovePageLinkReq {
-  string page_id = 1;
+  // 原始页面id
+  string page_id = 1; // binding:"required,min=1,max=64"
+  // 生成只读、编辑、超级权限的链接
+  // 只读、编辑、超级权限的链接，一次只能删除一个, 如果不存在则直接返回成功
+  string page_type = 2; // binding:"required,oneof=readonly edit admin"
 }
 
 message RemovePageLinkResp {

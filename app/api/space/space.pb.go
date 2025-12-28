@@ -85,6 +85,8 @@ type PageBrief struct {
 	IsSelf bool `json:"is_self"`
 	// 页面配置
 	PageConf *PageConf `json:"page_conf"`
+	// 该链接是否找不到了
+	IsNotFound bool `json:"is_not_found"`
 }
 
 type Collections struct {
@@ -195,7 +197,11 @@ type DeletePageResp struct {
 }
 
 type RemovePageLinkReq struct {
-	PageId string `json:"page_id,omitempty"`
+	// 原始页面id
+	PageId string `json:"page_id" binding:"required,min=1,max=64"`
+	// 生成只读、编辑、超级权限的链接
+	// 只读、编辑、超级权限的链接，一次只能删除一个, 如果不存在则直接返回成功
+	PageType string `json:"page_type" binding:"required,oneof=readonly edit admin"`
 }
 
 type RemovePageLinkResp struct {

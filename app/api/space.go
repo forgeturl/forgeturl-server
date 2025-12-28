@@ -122,6 +122,14 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 	for _, pageId := range pageIds {
 		page, err0 := dal.Page.GetPageBrief(ctx, uid, pageId)
 		if err0 != nil {
+			if common.IsErrNotFound(err) {
+				resp.PageBriefs = append(resp.PageBriefs, &space.PageBrief{
+					PageId:     pageId,
+					IsNotFound: true,
+					PageConf:   &space.PageConf{},
+				})
+				continue
+			}
 			return nil, err0
 		}
 		pageResp := toPageBrief(uid, pageId, page)
