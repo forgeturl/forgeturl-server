@@ -17,7 +17,7 @@ import (
 )
 
 const hideBody = "gocore_body_hide"
-const maxBodySize = 1024 * 1024 * 1
+const maxBodySize = 1024 * 50
 
 // 自定义一个结构体，实现 gin.ResponseWriter interface
 type responseWriter struct {

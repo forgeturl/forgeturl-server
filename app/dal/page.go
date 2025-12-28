@@ -279,3 +279,53 @@ func (*pageImpl) UpdateAdminPid(ctx context.Context, pid, adminPid string, tx ..
 	_, err := do.Where(u.Pid.Eq(pid)).UpdateSimple(u.AdminPid.Value(adminPid))
 	return transGormErr(err)
 }
+
+// UnlinkPageByType 根据page_type解除页面链接
+// 需要该页面创建者才有权限移除
+// 返回被移除的链接pid，用于后续清理user_page表
+func (*pageImpl) UnlinkPageByType(ctx context.Context, uid int64, ownerPid string, pageType string, tx ...*query.Query) (string, error) {
+	u := Q.Page
+	if len(tx) > 0 {
+		u = tx[0].Page
+	}
+
+	// 首先验证所有权并获取页面
+	page, err := u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(ownerPid)).First()
+	if err != nil {
+		return "", transGormErr(err)
+	}
+	if page == nil {
+		return "", common.ErrNotYourPageOrPageNotExist()
+	}
+
+	var linkPid string
+
+	switch pageType {
+	case conf.ReadOnlyStr:
+		linkPid = page.ReadonlyPid
+		if linkPid == "" {
+			return "", nil // 已经为空，直接返回成功
+		}
+		_, err = u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(ownerPid)).UpdateSimple(u.ReadonlyPid.Value(""))
+	case conf.EditStr:
+		linkPid = page.EditPid
+		if linkPid == "" {
+			return "", nil
+		}
+		_, err = u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(ownerPid)).UpdateSimple(u.EditPid.Value(""))
+	case conf.AdminStr:
+		linkPid = page.AdminPid
+		if linkPid == "" {
+			return "", nil
+		}
+		_, err = u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(ownerPid)).UpdateSimple(u.AdminPid.Value(""))
+	default:
+		return "", common.ErrBadRequest("invalid page type")
+	}
+
+	if err != nil {
+		return "", transGormErr(err)
+	}
+
+	return linkPid, nil
+}

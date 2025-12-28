@@ -328,13 +328,20 @@ func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.Remove
 	}
 
 	err := dal.Q.Transaction(func(tx *query.Query) error {
-		// 只有创建者可以移除该页面，其他人移除会报错
-		err0 := dal.Page.UnlinkPage(ctx, uid, req.PageId)
+		// 只有创建者可以移除该页面链接，其他人移除会报错
+		// 根据page_type清除对应的链接字段，并返回被移除的链接pid
+		linkPid, err0 := dal.Page.UnlinkPageByType(ctx, uid, req.PageId, req.PageType, tx)
 		if err0 != nil {
 			return err0
 		}
 
-		_, err0 = dal.UserPage.BatchRemovePageLink(ctx, req.PageId, tx)
+		// 如果linkPid为空，说明链接已经不存在，直接返回成功
+		if linkPid == "" {
+			return nil
+		}
+
+		// 从user_page表中移除该链接
+		_, err0 = dal.UserPage.BatchRemovePageLink(ctx, linkPid, tx)
 		if err0 != nil {
 			return err0
 		}
