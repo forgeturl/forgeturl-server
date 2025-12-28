@@ -26,9 +26,9 @@ func (*userImpl) Get(ctx context.Context, uid int64) (*model.User, error) {
 	return page, nil
 }
 
-func (*userImpl) GetByExternalID(ctx context.Context, externalID string) (*model.User, error) {
+func (*userImpl) GetByExternalID(ctx context.Context, provider, externalID string) (*model.User, error) {
 	u := Q.User
-	page, err := u.WithContext(ctx).Where(u.ExternalID.Eq(externalID)).First()
+	page, err := u.WithContext(ctx).Where(u.Provider.Eq(provider), u.ExternalID.Eq(externalID)).First()
 	if err != nil {
 		return nil, transGormErr(err)
 	}

@@ -86,7 +86,8 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 	}
 
 	// 处理用户信息
-	userInfo, err := dal.User.GetByExternalID(ctx, user.UserID)
+	provider := user.Provider
+	userInfo, err := dal.User.GetByExternalID(ctx, provider, user.UserID)
 	isNewUser := false
 	if err != nil {
 		if common.IsErrNotFound(err) {
@@ -98,7 +99,11 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 				Email:         user.Email,
 				ExternalID:    user.UserID,
 				Avatar:        user.AvatarURL,
+				Status:        0,
 				LastLoginDate: now,
+				Provider:      provider,
+				IPInfo:        "",
+				IsAdmin:       0,
 			}
 			err = dal.User.Create(ctx, newUser)
 			if err != nil {
