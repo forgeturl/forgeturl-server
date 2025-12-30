@@ -10,7 +10,8 @@ import (
 func FillDomain(path string) string {
 	if utils.IsLocal() {
 		//return fmt.Sprintf("%s%s", viper.C.GetString("base.domain"), path)
-		return fmt.Sprintf("%s:%s%s", viper.C.GetString("base.domain"), viper.C.GetString("network.ApiServicePort"), path)
+		//return fmt.Sprintf("%s:%s%s", viper.C.GetString("base.domain"), viper.C.GetString("network.ApiServicePort"), path)
+		return fmt.Sprintf("%s%s", viper.C.GetString("base.domain"), path)
 	}
 	return viper.C.GetString("base.domain") + path
 }

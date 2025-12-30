@@ -3,6 +3,8 @@ package connector_provider
 import (
 	"os"
 
+	"github.com/sunmi-OS/gocore/v2/glog"
+
 	"forgeturl-server/pkg/core"
 
 	"github.com/forgeturl/redistore"
@@ -31,6 +33,7 @@ func Init() {
 	// Add GitHub provider if environment variables are set
 	if os.Getenv("GITHUB_KEY") != "" && os.Getenv("GITHUB_SECRET") != "" {
 		viders = append(viders, github.New(os.Getenv("GITHUB_KEY"), os.Getenv("GITHUB_SECRET"), core.FillDomain("/auth/callback/github")))
+		glog.InfoF("github provider inited")
 	}
 	goth.UseProviders(viders...)
 

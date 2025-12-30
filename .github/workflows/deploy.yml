@@ -165,7 +165,7 @@ jobs:
           approvers: guoming0000
           minimum-approvals: 1
           issue-title: "Approve deploy to production (blue-green)"
-          issue-body: "请确认测试环境无误后，批准发布到生产环境。"
+          issue-body: "Please confirm the test environment is correct, then approve the release to production."
 
       - name: Checkout code
         uses: actions/checkout@v3
