@@ -266,9 +266,9 @@ message CreatePageResp { // omitempty=false
 }
 
 message UpdatePageReq {
-  string page_id = 1;
-  string title = 2; // binding:"required,min=0,max=256"
-  string brief = 3;// binding:"required,min=0,max=1024"
+  string page_id = 1;// binding:"required"
+  string title = 2; // binding:"min=0,max=256"
+  string brief = 3;// binding:"min=0,max=1024"
   repeated Collections collections = 5;
   // 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0
   int64 version = 6;  // binding:"min=0"

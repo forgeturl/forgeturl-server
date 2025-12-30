@@ -7,16 +7,9 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
-type ImportBookmarksReq struct {
-	Folders []*Folder `json:"folders,omitempty"`
-}
-
 type Folder struct {
 	Name     string   `json:"name,omitempty"`
 	Bookmark []string `json:"bookmark,omitempty"`
-}
-
-type ImportBookmarksResp struct {
 }
 
 type ExportBookmarksReq struct {

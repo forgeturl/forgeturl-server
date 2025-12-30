@@ -691,8 +691,7 @@ components:
                     $ref: '#/components/schemas/.UpdatePageResp'
         .UpdatePageReq:
             required:
-                - title
-                - brief
+                - page_id
                 - mask
             type: object
             properties:

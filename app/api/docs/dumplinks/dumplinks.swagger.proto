@@ -6,12 +6,6 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 
 service DumplinksService {
-  rpc ImportBookmarks(ImportBookmarksReq) returns (TImportBookmarksResp)  {
-    option (google.api.http) = {
-      post: "/dumplinks/importBookmarks"
-    };
-  };
-
   rpc ExportBookmarks(ExportBookmarksReq) returns (TExportBookmarksResp){
     option (google.api.http) = {
       post: "/dumplinks/exportBookmarks"
@@ -19,18 +13,10 @@ service DumplinksService {
   };
 }
 
-message ImportBookmarksReq {
-  repeated Folder folders = 2;
-}
-
 message Folder {
   string name = 1;
   repeated string bookmark = 2;
 }
-
-message ImportBookmarksResp {
-}
-
 message ExportBookmarksReq {
 }
 
@@ -38,11 +24,6 @@ message ExportBookmarksResp {
   repeated Folder folders = 2;
 }
 
-message TImportBookmarksResp {
-   int32 code = 1; // binding:"required"
-   string msg = 2; // binding:"required"
-   ImportBookmarksResp data = 3; // binding:"required"
-}
 message TExportBookmarksResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"

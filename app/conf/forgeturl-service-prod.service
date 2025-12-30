@@ -6,7 +6,7 @@ LimitNOFILE=1048576
 WorkingDirectory=/data/app/forgeturl-server/prod/main
 Environment=RUN_TIME=onl
 Environment=APP_NAME=forgeturl-server-prod
-ExecStart=/data/app/forgeturl-server/test/main/forgeturl-server api start
+ExecStart=/data/app/forgeturl-server/prod/main/forgeturl-server api start
 Restart=always
 
 [Install]

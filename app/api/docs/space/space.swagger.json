@@ -973,8 +973,7 @@
       },
       ".UpdatePageReq": {
         "required": [
-          "title",
-          "brief",
+          "page_id",
           "mask"
         ],
         "type": "object",

@@ -15,7 +15,6 @@ import (
 
 // DumplinksServiceHTTPClient is the client API for DumplinksService service.
 type DumplinksServiceHTTPClient interface {
-	ImportBookmarks(context.Context, *ImportBookmarksReq, ...calloption.CallOption) (*TResponse[ImportBookmarksResp], error)
 	ExportBookmarks(context.Context, *ExportBookmarksReq, ...calloption.CallOption) (*TResponse[ExportBookmarksResp], error)
 }
 
@@ -25,22 +24,6 @@ type DumplinksServiceHTTPClientImpl struct {
 
 func NewDumplinksServiceHTTPClient(hh *http_request.HttpClient) DumplinksServiceHTTPClient {
 	return &DumplinksServiceHTTPClientImpl{hh: hh}
-}
-
-func (c *DumplinksServiceHTTPClientImpl) ImportBookmarks(ctx context.Context, req *ImportBookmarksReq, opts ...calloption.CallOption) (*TResponse[ImportBookmarksResp], error) {
-	resp := &TResponse[ImportBookmarksResp]{}
-	r := c.hh.Client.R().SetContext(ctx)
-	for _, opt := range opts {
-		opt(r)
-	}
-	_, err := r.SetBody(req).SetResult(resp).Post("/dumplinks/importBookmarks")
-	if err != nil {
-		return nil, err
-	}
-	if resp.Code != 1 {
-		err = ecode.NewV2(int(resp.Code), resp.Msg)
-	}
-	return resp, err
 }
 
 func (c *DumplinksServiceHTTPClientImpl) ExportBookmarks(ctx context.Context, req *ExportBookmarksReq, opts ...calloption.CallOption) (*TResponse[ExportBookmarksResp], error) {

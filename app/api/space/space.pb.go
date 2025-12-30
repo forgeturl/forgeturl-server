@@ -161,9 +161,9 @@ type CreatePageResp struct {
 }
 
 type UpdatePageReq struct {
-	PageId      string         `json:"page_id,omitempty"`
-	Title       string         `json:"title" binding:"required,min=0,max=256"`
-	Brief       string         `json:"brief" binding:"required,min=0,max=1024"`
+	PageId      string         `json:"page_id" binding:"required"`
+	Title       string         `json:"title,omitempty" binding:"min=0,max=256"`
+	Brief       string         `json:"brief,omitempty" binding:"min=0,max=1024"`
 	Collections []*Collections `json:"collections,omitempty"`
 	// 版本号，从0递增，修改时需要传入该值，当超过最大值后会回退到0
 	Version int64 `json:"version,omitempty" binding:"min=0"`

@@ -10,22 +10,6 @@ import (
 	sonic "github.com/bytedance/sonic"
 )
 
-func (m *ImportBookmarksReq) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *ImportBookmarksReq) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *ImportBookmarksReq) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *ImportBookmarksReq) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
 func (m *Folder) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }
@@ -39,22 +23,6 @@ func (m *Folder) Unmarshal(buf []byte) error {
 }
 
 func (m *Folder) UnmarshalString(str string) error {
-	return sonic.UnmarshalString(str, m)
-}
-
-func (m *ImportBookmarksResp) Marshal() ([]byte, error) {
-	return sonic.Marshal(m)
-}
-
-func (m *ImportBookmarksResp) MarshalString() (string, error) {
-	return sonic.MarshalString(m)
-}
-
-func (m *ImportBookmarksResp) Unmarshal(buf []byte) error {
-	return sonic.Unmarshal(buf, m)
-}
-
-func (m *ImportBookmarksResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
