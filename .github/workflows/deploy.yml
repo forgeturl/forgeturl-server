@@ -162,7 +162,7 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: ranchoX
+          approvers: guoming0000
           minimum-approvals: 1
           issue-title: "Approve deploy to production (blue-green)"
           issue-body: "请确认测试环境无误后，批准发布到生产环境。"
