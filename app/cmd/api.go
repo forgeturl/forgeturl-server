@@ -79,7 +79,7 @@ func addMiddlewares(g *gin.Engine) {
 	case utils.TestEnv:
 		allowOrigins = []string{"https://test-api.brightguo.com"}
 	case utils.ReleaseEnv:
-		allowOrigins = []string{"https://api.brightguo.com"}
+		allowOrigins = []string{"https://api.brightguo.com", "https://forgeturl.com"}
 	default:
 		allowOrigins = []string{"http://127.0.0.1:3000", "http://localhost:3000", "http://127.0.0.1", "http://localhost"}
 	}
