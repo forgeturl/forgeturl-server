@@ -67,7 +67,6 @@ func addMiddlewares(g *gin.Engine) {
 	g.Use(middleware.ServerLogging(
 		middleware.WithSlowThreshold(10000),
 		middleware.WithHideReqBodyLogsPath(map[string]bool{
-			"/dumplinks/importBookmarks": true,
 			"/dumplinks/exportBookmarks": true,
 		}, true),
 	))
