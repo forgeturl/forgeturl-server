@@ -16,6 +16,9 @@ func Routes(router *gin.Engine) {
 	space.RegisterSpaceServiceHTTPServer(router, api.NewSpaceService())
 	login.RegisterLoginServiceHTTPServer(router, api.NewLoginService())
 	dumplinks.RegisterDumplinksServiceHTTPServer(router, api.NewDumplinksService())
+	space.SetAutoValidate(false, nil, true)
+	login.SetAutoValidate(false, nil, true)
+	dumplinks.SetAutoValidate(false, nil, true)
 
 	router.GET("/login/connector/auth", api.LoginAuth())                   // 连接器登录，跳转鉴权的url
 	router.GET("/login/connector/callback/:provider", api.LoginCallback()) // 第三方登录回调
