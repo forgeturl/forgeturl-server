@@ -104,7 +104,7 @@ jobs:
           echo "Uploading systemd service file..."
           rsync -avz ./app/conf/forgeturl-service-test.service ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:/data/app/forgeturl-server/test/main/conf/
           
-          echo "Installing/updating systemd service file..."
+          echo "Installing systemd service file (if not exists)..."
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
             export TERM=xterm-256color
             SERVICE_FILE='/etc/systemd/system/forgeturl-server-test.service'
@@ -116,22 +116,14 @@ jobs:
               exit 1
             fi
             
-            # 检查是否需要安装或更新服务文件
+            # 只有服务文件不存在时才安装
             if [ ! -f \$SERVICE_FILE ]; then
               echo '📦 Installing new service file...'
               sudo cp \$SOURCE_FILE \$SERVICE_FILE
               sudo systemctl daemon-reload
               echo '✅ Service file installed'
             else
-              # 比较文件内容
-              if ! cmp -s \$SOURCE_FILE \$SERVICE_FILE; then
-                echo '🔄 Service file content differs, updating...'
-                sudo cp \$SOURCE_FILE \$SERVICE_FILE
-                sudo systemctl daemon-reload
-                echo '✅ Service file updated'
-              else
-                echo '✅ Service file content is identical, skipping update'
-              fi
+              echo '✅ Service file already exists, skipping installation'
             fi
           "
           
@@ -242,7 +234,7 @@ jobs:
           # 同步 systemd service 文件到目标目录
           rsync -avz ./app/conf/forgeturl-service-prod.service ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}:$TARGET_DIR/conf/
 
-          # 安装/更新生产环境的 systemd service 文件
+          # 只有服务文件不存在时才安装
           ssh ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} "
             export TERM=xterm-256color
             SERVICE_FILE='/etc/systemd/system/forgeturl-server-prod.service'
@@ -254,22 +246,14 @@ jobs:
               exit 1
             fi
             
-            # 检查是否需要安装或更新服务文件
+            # 只有服务文件不存在时才安装
             if [ ! -f \$SERVICE_FILE ]; then
               echo '📦 Installing new production service file...'
               sudo cp \$SOURCE_FILE \$SERVICE_FILE
               sudo systemctl daemon-reload
               echo '✅ Production service file installed'
             else
-              # 比较文件内容
-              if ! cmp -s \$SOURCE_FILE \$SERVICE_FILE; then
-                echo '🔄 Production service file content differs, updating...'
-                sudo cp \$SOURCE_FILE \$SERVICE_FILE
-                sudo systemctl daemon-reload
-                echo '✅ Production service file updated'
-              else
-                echo '✅ Production service file content is identical, skipping update'
-              fi
+              echo '✅ Production service file already exists, skipping installation'
             fi
           "
           
