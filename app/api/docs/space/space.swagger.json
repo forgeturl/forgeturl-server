@@ -346,7 +346,7 @@
         "properties": {
           "new_page_id": {
             "type": "string",
-            "description": "只读：http://2049links.com/share_readonly/R加密字符串1\n 可编辑页面：http://2049links.com/share_editable/E加密字符串2\n 超级权限页面：http://2049links.com/share_admin/A加密字符串3"
+            "description": "只读：http://forgeturl.com/share_readonly/R加密字符串1\n 可编辑页面：http://forgeturl.com/share_editable/E加密字符串2\n 超级权限页面：http://forgeturl.com/share_admin/A加密字符串3"
           },
           "page_type": {
             "type": "string",
