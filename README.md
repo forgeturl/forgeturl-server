@@ -1,131 +1,318 @@
-# Still in Test, Will be Coming Soon 
+<p align="center">
+  <h1 align="center">🔖 ForgetURL Server</h1>
+  <p align="center">
+    <strong>Minimalist Bookmark Management Service - Make Link Collection Simple</strong>
+  </p>
+  <p align="center">
+    <a href="#features">Features</a> •
+    <a href="#quick-start">Quick Start</a> •
+    <a href="#api-documentation">API Docs</a> •
+    <a href="#deployment">Deployment</a>
+  </p>
+  <p align="center">
+    <a href="./README_zh.md">🇨🇳 中文文档</a>
+  </p>
+</p>
 
-# 概述
+---
 
-# 非登录态
-getPage 
-getUserInfo(暂无场景)
+## 📖 Introduction
 
-# 登录相关
-/auth/{name}
-/callback/{name}
-getUserInfo
+ForgetURL is a modern bookmark management platform that helps users easily save, organize, and share web links. With a clean, elegant interface and powerful backend service, link collection becomes effortless.
 
-# 登录态
-getUserInfo
-getMySpace
-getPage
+**Why ForgetURL?**
 
-createPage
-updatePage
-deletePage
-createPageLink
-removePageLink
+- 🎯 **Minimalist Design** - Focus on core features, no bloat
+- 🔐 **Secure & Reliable** - Support multiple OAuth providers
+- 🔗 **Flexible Sharing** - Multi-level permission control for different sharing scenarios
+- 📦 **Seamless Migration** - Import/export bookmarks for easy data migration
 
-savePageIds
+## ✨ Features
 
-# 测试方法
+### 🔐 User Authentication
+- Support Google, GitHub and other OAuth providers
+- Secure token-based authentication
+- User profile management
 
-## 非登录态
-```bash
-# 获取用户信息
-curl '127.0.0.1:80/space/getUserInfo' -d '{"uid": 1}' -H 'content-type: application/json'
+### 📄 Page Management
+- **Create Pages** - Quickly create bookmark collection pages
+- **Edit Pages** - Real-time editing of title, description, and link collections
+- **Delete Pages** - Safely remove unwanted pages
+- **Sort Pages** - Customize page order
 
-# 获取页面数据
-curl '127.0.0.1:80/space/getPage' -d '{"page_id": "test_page_id"}' -H 'content-type: application/json'
+### 📁 Link Organization
+- **Link Collections** - Group related links together
+- **Tagging System** - Add tags to links for easy filtering
+- **Sub-links** - Attach related sub-links to main links
+
+### 🔗 Permission Sharing
+| Link Type | Prefix | Permission |
+|-----------|--------|------------|
+| Read-only | `R` | View only, no editing |
+| Editable | `E` | View and edit content |
+| Admin | `A` | Full control permissions |
+
+### 📥 Import/Export
+- Import bookmarks from browsers
+- Export to universal formats
+
+## 🛠 Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Language** | Go 1.23 |
+| **Web Framework** | Gin |
+| **ORM** | GORM + Gen |
+| **Database** | MySQL |
+| **Cache** | Redis |
+| **API Spec** | Protocol Buffers / gRPC |
+| **Container** | Docker |
+| **Auth** | Goth (OAuth) |
+
+## 📁 Project Structure
+
+```
+forgeturl-server/
+├── app/
+│   ├── api/                    # API Layer
+│   │   ├── proto/              # Protobuf definitions
+│   │   │   ├── space.proto     # Space management API
+│   │   │   ├── login.proto     # Authentication API
+│   │   │   └── dumplinks.proto # Import/Export API
+│   │   ├── space/              # Generated space service code
+│   │   ├── login/              # Generated login service code
+│   │   └── docs/               # Swagger documentation
+│   ├── cmd/                    # CLI entry points
+│   ├── conf/                   # Configuration files
+│   ├── dal/                    # Data Access Layer
+│   │   ├── model/              # Data models
+│   │   └── query/              # GORM Gen queries
+│   ├── pkg/                    # Shared packages
+│   │   ├── connector-google/   # Google OAuth connector
+│   │   ├── core/               # Core utilities
+│   │   ├── lcache/             # Local cache
+│   │   ├── maths/              # Math utilities (ID generation)
+│   │   └── middleware/         # Middlewares
+│   ├── route/                  # Router configuration
+│   ├── main.go                 # Main entry point
+│   └── go.mod                  # Go module definition
+├── tests/                      # Test files
+├── Dockerfile                  # Docker build file
+└── README.md
 ```
 
-## 登录态
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Go 1.23+
+- MySQL 5.7+
+- Redis 6.0+
+
+### Local Development
+
 ```bash
-# 获取用户信息
-curl '127.0.0.1:80/space/getUserInfo' -d '{"uid": 1}' -H 'content-type: application/json' -H 'X-Token: test'
+# 1. Clone the repository
+git clone https://github.com/your-username/forgeturl.git
+cd forgeturl/forgeturl-server
 
-# 拉取我的空间
-curl '127.0.0.1:80/space/getMySpace' -d '{"uid": 1}' -H 'content-type: application/json' -H 'X-Token: test'
+# 2. Install dependencies
+cd app
+go mod download
 
-# 获取页面数据
-curl '127.0.0.1:80/space/getPage' -d '{"page_id": "test_page_id"}' -H 'content-type: application/json' -H 'X-Token: test'
+# 3. Configure environment
+cp conf/local.toml.example conf/local.toml
+# Edit conf/local.toml to configure database and Redis connection
 
-# 创建页面
-curl '127.0.0.1:80/space/createPage' -d '{
-  "title": "我的页面",
-  "brief": "这是一个测试页面",
-  "collections": [
-    {
-      "links": [
-        {
-          "title": "示例链接",
-          "url": "https://example.com",
-          "tags": ["示例", "测试"],
-          "photo_url": "https://example.com/photo.jpg",
-          "sub_links": [
-            {
-              "sub_title": "子链接",
-              "sub_url": "https://sub.example.com"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}' -H 'content-type: application/json' -H 'X-Token: test'
-
-# 更新页面
-curl '127.0.0.1:80/space/updatePage' -d '{
-  "page_id": "O3sFmpq",
-  "title": "更新后的页面标题",
-  "brief": "更新后的页面描述",
-  "collections": [
-    {
-      "links": [
-        {
-          "title": "更新后的链接",
-          "url": "https://updated.example.com",
-          "tags": ["更新", "测试"]
-        }
-      ]
-    }
-  ],
-  "version": 0,
-  "mask": 7
-}' -H 'content-type: application/json' -H 'X-Token: test'
-
-# 删除页面
-curl '127.0.0.1:80/space/deletePage' -d '{"page_id": "test_page_id"}' -H 'content-type: application/json' -H 'X-Token: test'
-
-# 创建页面链接
-curl '127.0.0.1:80/space/addPageLink' -d '{
-  "page_id": "test_page_id",
-  "page_type": "readonly"
-}' -H 'content-type: application/json' -H 'X-Token: test'
-
-# 移除页面链接
-curl '127.0.0.1:80/space/removePageLink' -d '{"page_id": "test_page_id"}' -H 'content-type: application/json' -H 'X-Token: test'
-
-# 保存页面ID顺序
-curl '127.0.0.1:80/space/savePageIds' -d '{
-  "uid": 1,
-  "page_ids": ["page1", "page2", "page3"]
-}' -H 'content-type: application/json' -H 'X-Token: test'
-
-# 创建临时页面（已废弃）
-curl '127.0.0.1:80/space/createTmpPage' -d '{"user_uuid": "test_user_uuid"}' -H 'content-type: application/json' -H 'X-Token: test'
+# 4. Start the server
+go run main.go api start
 ```
 
-## 接口说明
+Server runs at `http://127.0.0.1:80` by default.
 
-### 页面类型 (page_type)
-- `readonly`: 只读链接
-- `edit`: 可编辑链接  
-- `admin`: 超级权限链接
+### Docker Deployment
 
-### 更新掩码 (mask)
-- `0x01`: 更新标题 (title)
-- `0x02`: 更新描述 (brief)
-- `0x04`: 更新集合 (collections)
-- `0x07`: 更新所有字段
+```bash
+# Build image
+docker build -t forgeturl-server .
 
-### 页面配置 (PageConf)
-- `read_only`: 是否只读
-- `can_edit`: 是否可编辑
-- `can_delete`: 是否可删除
+# Run container
+docker run -d -p 80:80 forgeturl-server
+```
+
+## 📚 API Documentation
+
+### Authentication
+
+All endpoints requiring authentication need the Token in request header:
+
+```http
+X-Token: your_access_token
+```
+
+### Core Endpoints
+
+#### Space Management
+
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/space/getUserInfo` | POST | Get user info | Optional |
+| `/space/getMySpace` | POST | Get my space | ✅ |
+| `/space/getPage` | POST | Get page details | Optional |
+| `/space/createPage` | POST | Create page | ✅ |
+| `/space/updatePage` | POST | Update page | ✅ |
+| `/space/deletePage` | POST | Delete page | ✅ |
+| `/space/savePageIds` | POST | Save page order | ✅ |
+| `/space/addPageLink` | POST | Generate share link | ✅ |
+| `/space/removePageLink` | POST | Remove share link | ✅ |
+
+#### Authentication
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/{provider}` | GET | OAuth authorization redirect |
+| `/callback/{provider}` | GET | OAuth callback handler |
+| `/login/logout` | POST | Logout |
+
+#### Import/Export
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/dumplinks/importBookmarks` | POST | Import bookmarks |
+| `/dumplinks/exportBookmarks` | POST | Export bookmarks |
+
+### Request Examples
+
+<details>
+<summary><b>Get User Info</b></summary>
+
+```bash
+curl 'http://127.0.0.1:80/space/getUserInfo' \
+  -d '{"uid": 1}' \
+  -H 'Content-Type: application/json'
+```
+</details>
+
+<details>
+<summary><b>Get My Space</b></summary>
+
+```bash
+curl 'http://127.0.0.1:80/space/getMySpace' \
+  -d '{}' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Token: your_token'
+```
+</details>
+
+<details>
+<summary><b>Create Page</b></summary>
+
+```bash
+curl 'http://127.0.0.1:80/space/createPage' \
+  -d '{
+    "title": "My Bookmarks",
+    "brief": "Frequently used links",
+    "collections": [
+      {
+        "title": "Dev Tools",
+        "links": [
+          {
+            "title": "GitHub",
+            "url": "https://github.com",
+            "tags": ["code", "opensource"]
+          }
+        ]
+      }
+    ]
+  }' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Token: your_token'
+```
+</details>
+
+<details>
+<summary><b>Update Page</b></summary>
+
+```bash
+curl 'http://127.0.0.1:80/space/updatePage' \
+  -d '{
+    "page_id": "O3sFmpq",
+    "title": "Updated Title",
+    "brief": "Updated description",
+    "collections": [...],
+    "version": 0,
+    "mask": 7
+  }' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Token: your_token'
+```
+
+**Update Mask Values:**
+- `0x01` (1): Update title
+- `0x02` (2): Update description
+- `0x04` (4): Update collections
+- `0x07` (7): Update all fields
+</details>
+
+<details>
+<summary><b>Generate Share Link</b></summary>
+
+```bash
+curl 'http://127.0.0.1:80/space/addPageLink' \
+  -d '{
+    "page_id": "O3sFmpq",
+    "page_type": "readonly"
+  }' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Token: your_token'
+```
+
+**page_type Options:**
+- `readonly` - Read-only link
+- `edit` - Editable link
+- `admin` - Admin link
+</details>
+
+## 🌐 Environment Configuration
+
+The project supports three environments:
+
+| Environment | Config File | API Address |
+|-------------|-------------|-------------|
+| Local | `local.toml` | `http://127.0.0.1:80` |
+| Test | `test.toml` | `https://test-api.brightguo.com` |
+| Production | `onl.toml` | `https://api.brightguo.com` |
+
+## 🔧 Development Guide
+
+### Code Generation
+
+```bash
+# Generate API code (from proto files)
+./genapi.sh
+
+# Generate GORM models and queries
+cd dal && ./gensql.sh
+```
+
+### Running Tests
+
+```bash
+cd tests
+pip install -r requirements.txt
+python run_tests.py
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Issues and Pull Requests are welcome!
+
+---
+
+<p align="center">
+  Made with ❤️ by ForgetURL Team
+</p>
