@@ -146,3 +146,5 @@ require (
 	gorm.io/driver/sqlite v1.5.6 // indirect
 	gorm.io/hints v1.1.0 // indirect
 )
+
+replace github.com/markbates/goth => github.com/forgeturl/goth v0.0.0-20260107141454-98e61dae2f92

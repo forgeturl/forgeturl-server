@@ -5,7 +5,7 @@ ApiServicePort = "80"
 [base]
 debug = true
 logLevel = "info" # when online can set to error
-domain = "http://127.0.0.1:3000"
+domain = "http://localhost:3000"
 
 [mysql]
 Host = "127.0.0.1"
@@ -27,4 +27,20 @@ encryption = 0
 
 [redisDB]
 userCache = 0
-lock = 1
+lock = 0
+
+[keys]
+# Google OAuth 配置
+# 在 https://console.cloud.google.com/apis/credentials 创建 OAuth 2.0 客户端获取
+#GOOGLE_KEY = ""
+#GOOGLE_SECRET = ""
+
+# GitHub OAuth 配置
+# 在 https://github.com/settings/developers 创建 OAuth App 获取
+# GITHUB_KEY = ""
+# GITHUB_SECRET = ""
+
+# 微信开放平台配置 (PC扫码登录)
+# 在 https://open.weixin.qq.com/ 创建网站应用获取
+# WECHAT_KEY = "你的微信AppID"
+# WECHAT_SECRET = "你的微信AppSecret"
