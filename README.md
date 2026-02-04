@@ -4,6 +4,21 @@
     <strong>Minimalist Bookmark Management Service - Make Link Collection Simple</strong>
   </p>
   <p align="center">
+    <a href="https://github.com/forgeturl/forgeturl-server/actions/workflows/deploy.yml">
+      <img src="https://github.com/forgeturl/forgeturl-server/actions/workflows/deploy.yml/badge.svg" alt="Deploy Status">
+    </a>
+    <a href="https://github.com/forgeturl/forgeturl-server/releases">
+      <img src="https://img.shields.io/github/v/release/forgeturl/forgeturl-server" alt="Release">
+    </a>
+    <a href="https://github.com/forgeturl/forgeturl-server/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/forgeturl/forgeturl-server" alt="License">
+    </a>
+    <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go" alt="Go Version">
+    <a href="https://github.com/forgeturl/forgeturl-server/stargazers">
+      <img src="https://img.shields.io/github/stars/forgeturl/forgeturl-server?style=social" alt="Stars">
+    </a>
+  </p>
+  <p align="center">
     <a href="#features">Features</a> •
     <a href="#quick-start">Quick Start</a> •
     <a href="#api-documentation">API Docs</a> •
