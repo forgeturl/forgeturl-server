@@ -46,3 +46,12 @@ func (*userImpl) UpdateLastLoginTime(ctx context.Context, uid int64, lastLoginTi
 	_, err := u.WithContext(ctx).Where(u.ID.Eq(uid)).UpdateSimple(u.LastLoginDate.Value(lastLoginTime))
 	return transGormErr(err)
 }
+
+func (*userImpl) Count(ctx context.Context) (int64, error) {
+	u := Q.User
+	count, err := u.WithContext(ctx).Count()
+	if err != nil {
+		return 0, transGormErr(err)
+	}
+	return count, nil
+}

@@ -26,6 +26,9 @@ func Routes(router *gin.Engine) {
 	router.Any("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome GoCore Service")
 	})
+
+	// Stats API - 公开接口，获取用户统计信息
+	router.GET("/stats/users", api.GetUserCount())
 	pprof.Register(router, "/debug/pprof")
 	prometheus.NewPrometheus("app", nil).Use(router)
 }
