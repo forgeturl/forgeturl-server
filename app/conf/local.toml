@@ -5,7 +5,7 @@ ApiServicePort = "80"
 [base]
 debug = true
 logLevel = "info" # when online can set to error
-domain = "http://localhost:3000"
+domain = "http://127.0.0.1:3000"
 
 [mysql]
 Host = "127.0.0.1"

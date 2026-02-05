@@ -16,6 +16,7 @@ func IgnoreNotExistPath() gin.HandlerFunc {
 		"/login/":     true,
 		"/dumplinks/": true,
 		"/space/":     true,
+		"/stats/":     true,
 	}
 	// 如果不在前缀树里，则直接404，不记录到promethues里
 	return func(c *gin.Context) {
