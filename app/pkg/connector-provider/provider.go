@@ -2,6 +2,7 @@ package connector_provider
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"forgeturl-server/pkg/core"
@@ -27,11 +28,13 @@ func getConfig(viperKey, envKey string) string {
 
 func Init() {
 	maxAge := 86400 * 30 // 30 days
-	isProd := false
+	isProd := true
 	store, _ := redistore.NewRediStore(10, "tcp", ":6379", "", "", []byte("fg-key"))
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
 	store.Options.Secure = isProd
+	// 跨站请求需要 SameSite=None（配合 Secure=true）
+	store.Options.SameSite = http.SameSiteNoneMode
 	store.SetMaxAge(maxAge)
 
 	gothic.Store = store
