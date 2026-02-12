@@ -89,11 +89,17 @@ func Init() {
 	}
 
 	// WeChat provider (微信开放平台 - PC扫码登录)
+	// 微信要求回调域名必须经过ICP备案，因此使用独立的备案域名作为回调URL
 	wechatKey := getConfig("keys.WECHAT_KEY", "WECHAT_KEY")
 	wechatSecret := getConfig("keys.WECHAT_SECRET", "WECHAT_SECRET")
 	if wechatKey != "" && wechatSecret != "" {
-		providers = append(providers, wechat.New(wechatKey, wechatSecret, core.FillDomain("/auth/callback/wechat"), wechat.WECHAT_LANG_CN))
-		glog.InfoF("wechat provider inited")
+		wechatDomain := getConfig("base.wechat_domain", "WECHAT_DOMAIN")
+		if wechatDomain == "" {
+			wechatDomain = viper.C.GetString("base.domain")
+		}
+		wechatCallbackURL := wechatDomain + "/auth/callback/wechat"
+		providers = append(providers, wechat.New(wechatKey, wechatSecret, wechatCallbackURL, wechat.WECHAT_LANG_CN))
+		glog.InfoF("wechat provider inited, callback: %s", wechatCallbackURL)
 	}
 
 	if len(providers) == 0 {
