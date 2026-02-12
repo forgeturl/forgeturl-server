@@ -6,6 +6,8 @@ ApiServicePort = "80"
 debug = true
 logLevel = "info" # when online can set to error
 domain = "http://127.0.0.1:3000"
+# wechat_domain: 微信登录回调域名（需ICP备案），本地开发时与domain一致即可
+# wechat_domain = "http://127.0.0.1:3000"
 
 [mysql]
 Host = "127.0.0.1"
