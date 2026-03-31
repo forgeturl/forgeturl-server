@@ -68,6 +68,12 @@ func addMiddlewares(g *gin.Engine) {
 		middleware.WithSlowThreshold(10000),
 		middleware.WithHideReqBodyLogsPath(map[string]bool{
 			"/dumplinks/exportBookmarks": true,
+			"/openclaw/getApiKey":        true,
+			"/openclaw/regenerateApiKey": true,
+		}, true),
+		middleware.WithHideBodyLogsPath(map[string]bool{
+			"/openclaw/getApiKey":        true,
+			"/openclaw/regenerateApiKey": true,
 		}, true),
 	))
 

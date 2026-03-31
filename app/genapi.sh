@@ -48,10 +48,11 @@ protoc --go-errors_out=fe_ecode=./api/docs/fe_ecode:. api/proto/ecode.proto
 protoc -I. -I api/proto/third_party --go-gin_out=. --go_out=. api/proto/space.proto
 protoc -I. -I api/proto/third_party --go-gin_out=. --go_out=. api/proto/login.proto
 protoc -I. -I api/proto/third_party --go-gin_out=. --go_out=. api/proto/dumplinks.proto
+protoc -I. -I api/proto/third_party --go-gin_out=. --go_out=. api/proto/openclaw.proto
 
 
 # 生成到openapi文件夹
-for protoName in "space" "dumplinks" "login";
+for protoName in "space" "dumplinks" "login" "openclaw";
 do
   go run api/docs/swagger.go api/proto/$protoName.proto api/docs/$protoName/$protoName.swagger.proto
   protoc --proto_path=. \
@@ -61,4 +62,3 @@ do
 
   yq -Poj api/docs/$protoName/$protoName.swagger.yaml > api/docs/$protoName/$protoName.swagger.json
 done
-
