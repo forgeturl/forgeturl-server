@@ -1,17 +1,21 @@
 package api
 
 import (
+	"net/http"
+	"os"
+	"time"
+
 	"forgeturl-server/api/common"
 	"forgeturl-server/api/login"
 	"forgeturl-server/dal"
 	"forgeturl-server/dal/model"
 	"forgeturl-server/pkg/middleware"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/sunmi-OS/gocore/v2/api"
+	"github.com/sunmi-OS/gocore/v2/conf/viper"
 	"github.com/sunmi-OS/gocore/v2/glog"
 )
 
@@ -42,6 +46,45 @@ func LoginCallback() gin.HandlerFunc {
 		apiCtx.Request.SetPathValue("provider", req.Provider)
 		resp, err := connectorCallback(&apiCtx, req)
 		apiCtx.RetJSON(resp, err)
+	}
+}
+
+func AVMAuthCodeExchange() gin.HandlerFunc {
+	type exchangeReq struct {
+		AuthCode string `json:"auth_code"`
+	}
+
+	return func(g *gin.Context) {
+		secret := getAVMExchangeSecret()
+		if secret != "" && g.GetHeader("X-AVM-Exchange-Secret") != secret {
+			g.JSON(http.StatusForbidden, gin.H{"code": 0, "msg": "invalid exchange secret"})
+			return
+		}
+
+		req := &exchangeReq{}
+		if err := g.ShouldBindJSON(req); err != nil || req.AuthCode == "" {
+			g.JSON(http.StatusBadRequest, gin.H{"code": 0, "msg": "missing auth_code"})
+			return
+		}
+
+		payload, err := dal.C.ConsumeAVMAuthCode(g.Request.Context(), req.AuthCode)
+		if err != nil {
+			g.JSON(http.StatusUnauthorized, gin.H{"code": 0, "msg": err.Error()})
+			return
+		}
+
+		g.JSON(http.StatusOK, gin.H{
+			"code": 1,
+			"data": gin.H{
+				"provider":     payload.Provider,
+				"wechat_uid":   payload.WechatUID,
+				"forgeturl_id": payload.ForgetURLID,
+				"display_name": payload.DisplayName,
+				"username":     payload.Username,
+				"avatar":       payload.Avatar,
+				"email":        payload.Email,
+			},
+		})
 	}
 }
 
@@ -131,6 +174,26 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 		err = nil
 	}
 
+	avmAuthCode := ""
+	if apiCtx.Query("avm_login") == "true" {
+		if provider != "wechat" {
+			return nil, common.ErrBadRequest("avm login only supports wechat")
+		}
+		avmAuthCode = middleware.NewUUID()
+		err = dal.C.SetAVMAuthCode(ctx, avmAuthCode, dal.AVMAuthCodePayload{
+			Provider:    provider,
+			WechatUID:   user.UserID,
+			ForgetURLID: userInfo.ID,
+			DisplayName: userInfo.DisplayName,
+			Username:    userInfo.Username,
+			Avatar:      userInfo.Avatar,
+			Email:       userInfo.Email,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &login.ConnectorCallbackResp{
 		Uid:         userInfo.ID,
 		DisplayName: userInfo.DisplayName,
@@ -138,7 +201,15 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 		Avatar:      userInfo.Avatar,
 		Email:       userInfo.Email,
 		IsNewUser:   isNewUser,
+		AVMAuthCode: avmAuthCode,
 	}, nil
+}
+
+func getAVMExchangeSecret() string {
+	if val := viper.C.GetString("keys.AVM_AUTH_EXCHANGE_SECRET"); val != "" {
+		return val
+	}
+	return os.Getenv("AVM_AUTH_EXCHANGE_SECRET")
 }
 
 func (l loginServiceImpl) Logout(context *api.Context, req *login.LogoutReq) (*login.LogoutResp, error) {

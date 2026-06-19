@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -17,9 +18,21 @@ import (
 
 const (
 	// LoginTimeout 登录过期时间
-	LoginTimeout   = time.Hour * 24 * 180
-	RdsTokenPrefix = "auth:tk"
+	LoginTimeout         = time.Hour * 24 * 180
+	AVMAuthCodeTimeout   = time.Minute * 5
+	RdsTokenPrefix       = "auth:tk"
+	RdsAVMAuthCodePrefix = "auth:avm:code"
 )
+
+type AVMAuthCodePayload struct {
+	Provider    string `json:"provider"`
+	WechatUID   string `json:"wechat_uid"`
+	ForgetURLID int64  `json:"forgeturl_id"`
+	DisplayName string `json:"display_name"`
+	Username    string `json:"username"`
+	Avatar      string `json:"avatar"`
+	Email       string `json:"email"`
+}
 
 type cacheImpl struct {
 	user *redis.Client
@@ -111,4 +124,44 @@ func (c *cacheImpl) DelXToken(ctx context.Context, key string) error {
 
 func GetTokenKey(key string) string {
 	return RdsTokenPrefix + ":" + key
+}
+
+func (c *cacheImpl) SetAVMAuthCode(ctx context.Context, code string, payload AVMAuthCodePayload) error {
+	if code == "" || payload.WechatUID == "" {
+		return common.ErrInternalServerError("invalid avm auth code payload")
+	}
+	buf, err := json.Marshal(payload)
+	if err != nil {
+		return common.ErrInternalServerError(fmt.Sprintf("marshal avm auth code failed: %v", err))
+	}
+	if err := c.user.Set(ctx, GetAVMAuthCodeKey(code), string(buf), AVMAuthCodeTimeout).Err(); err != nil {
+		return common.ErrInternalServerError(fmt.Sprintf("set avm auth code failed, err: %v", err))
+	}
+	return nil
+}
+
+func (c *cacheImpl) ConsumeAVMAuthCode(ctx context.Context, code string) (*AVMAuthCodePayload, error) {
+	if code == "" {
+		return nil, common.ErrBadRequest("missing auth_code")
+	}
+	key := GetAVMAuthCodeKey(code)
+	val, err := c.user.Get(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, common.ErrNotAuthenticated("invalid or expired auth_code")
+		}
+		return nil, common.ErrInternalServerError(fmt.Sprintf("get avm auth code failed, err: %v", err))
+	}
+	if err := c.user.Del(ctx, key).Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return nil, common.ErrInternalServerError(fmt.Sprintf("delete avm auth code failed, err: %v", err))
+	}
+	payload := &AVMAuthCodePayload{}
+	if err := json.Unmarshal([]byte(val), payload); err != nil {
+		return nil, common.ErrInternalServerError(fmt.Sprintf("unmarshal avm auth code failed, err: %v", err))
+	}
+	return payload, nil
+}
+
+func GetAVMAuthCodeKey(code string) string {
+	return RdsAVMAuthCodePrefix + ":" + code
 }
