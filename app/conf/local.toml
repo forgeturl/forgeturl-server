@@ -46,3 +46,7 @@ lock = 0
 # 在 https://open.weixin.qq.com/ 创建网站应用获取
 # WECHAT_KEY = "你的微信AppID"
 # WECHAT_SECRET = "你的微信AppSecret"
+
+# AVM 专用 auth_code 换身份接口密钥；生产建议设置，并与 AVM 后端
+# AVM_FORGETURL_EXCHANGE_SECRET 保持一致。不设置时仅依赖一次性 code。
+# AVM_AUTH_EXCHANGE_SECRET = "change-me"

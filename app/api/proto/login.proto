@@ -86,6 +86,8 @@ message ConnectorCallbackResp {
     string email = 5;
     // 是否是新用户
     bool is_new_user = 6;
+    // AVM 专用一次性登录 code，仅 avm_login=true 时返回。
+    string avm_auth_code = 7;
 }
 
 message LogoutReq {
