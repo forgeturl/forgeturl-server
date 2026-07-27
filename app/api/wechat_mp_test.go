@@ -123,12 +123,27 @@ func TestWeChatMPSendRefreshesInvalidTokenAndMapsTemplateFields(t *testing.T) {
 		t.Fatalf("unexpected template payload: %#v", sentPayload)
 	}
 	data := sentPayload["data"].(map[string]any)
+	if len(data) != 5 {
+		t.Fatalf("unexpected template data: %#v", data)
+	}
 	thing4 := data["thing4"].(map[string]any)["value"].(string)
 	if got := len([]rune(thing4)); got != 20 {
 		t.Fatalf("thing4 length = %d, want 20", got)
 	}
 	if data["thing10"].(map[string]any)["value"] != "AI 创业" {
 		t.Fatalf("unexpected project name: %#v", data["thing10"])
+	}
+	if data["thing5"].(map[string]any)["value"] != "评分88分，阈值75分" {
+		t.Fatalf("unexpected trigger condition: %#v", data["thing5"])
+	}
+	if data["thing8"].(map[string]any)["value"] != "微博" {
+		t.Fatalf("unexpected trigger source: %#v", data["thing8"])
+	}
+	if data["time14"].(map[string]any)["value"] != "2026-07-27 12:30:00" {
+		t.Fatalf("unexpected trigger time: %#v", data["time14"])
+	}
+	if _, exists := data["time21"]; exists {
+		t.Fatalf("obsolete time21 field is still present: %#v", data)
 	}
 }
 

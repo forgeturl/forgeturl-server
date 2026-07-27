@@ -452,7 +452,7 @@ func (c *weChatMPClient) sendTemplateWithToken(
 		"thing10": {"value": truncateWeChatTemplateValue(req.ProjectName, 20)},
 		"thing5":  {"value": truncateWeChatTemplateValue(req.TriggerCondition, 20)},
 		"thing8":  {"value": truncateWeChatTemplateValue(req.TriggerSource, 20)},
-		"time21":  {"value": truncateWeChatTemplateValue(req.TriggerTime, 20)},
+		"time14":  {"value": truncateWeChatTemplateValue(req.TriggerTime, 20)},
 	}
 	payload := map[string]any{
 		"touser":      req.OpenID,
