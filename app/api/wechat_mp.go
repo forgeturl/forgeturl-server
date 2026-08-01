@@ -75,6 +75,7 @@ type weChatMPSendReq struct {
 	TriggerCondition string `json:"trigger_condition"`
 	TriggerSource    string `json:"trigger_source"`
 	TriggerTime      string `json:"trigger_time"`
+	TopicID          string `json:"topic_id"`
 }
 
 func weChatMPConfigValue(viperKey string, envKey string) string {
@@ -459,8 +460,10 @@ func (c *weChatMPClient) sendTemplateWithToken(
 		"template_id": c.config.TemplateID,
 		"data":        data,
 	}
-	if c.config.MessageURL != "" {
-		payload["url"] = c.config.MessageURL
+	if messageURL := resolveWeChatMPMessageURL(
+		c.config.MessageURL, req.TopicID,
+	); messageURL != "" {
+		payload["url"] = messageURL
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -544,4 +547,20 @@ func validWeChatMPHTTPSURL(rawURL string) bool {
 		parsed.Scheme == "https" &&
 		parsed.Host != "" &&
 		parsed.User == nil
+}
+
+func resolveWeChatMPMessageURL(messageURL string, topicID string) string {
+	messageURL = strings.TrimSpace(messageURL)
+	if !validWeChatMPHTTPSURL(messageURL) {
+		return ""
+	}
+	topicID = strings.TrimSpace(topicID)
+	if topicID == "" || len(topicID) > 500 {
+		return messageURL
+	}
+	parsed, _ := url.Parse(messageURL)
+	query := parsed.Query()
+	query.Set("topic_id", topicID)
+	parsed.RawQuery = query.Encode()
+	return parsed.String()
 }

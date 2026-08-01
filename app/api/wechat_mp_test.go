@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -101,6 +102,7 @@ func TestWeChatMPSendRefreshesInvalidTokenAndMapsTemplateFields(t *testing.T) {
 		TriggerCondition: "评分88分，阈值75分",
 		TriggerSource:    "微博",
 		TriggerTime:      "2026-07-27 12:30:00",
+		TopicID:          "uapi:topic-1",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -119,7 +121,8 @@ func TestWeChatMPSendRefreshesInvalidTokenAndMapsTemplateFields(t *testing.T) {
 	}
 	if sentPayload["touser"] != "openid-1" ||
 		sentPayload["template_id"] != "template-id" ||
-		sentPayload["url"] != "https://lixiaoyaoai.com/hotspots" {
+		sentPayload["url"] !=
+			"https://lixiaoyaoai.com/hotspots?topic_id=uapi%3Atopic-1" {
 		t.Fatalf("unexpected template payload: %#v", sentPayload)
 	}
 	data := sentPayload["data"].(map[string]any)
@@ -144,6 +147,56 @@ func TestWeChatMPSendRefreshesInvalidTokenAndMapsTemplateFields(t *testing.T) {
 	}
 	if _, exists := data["time21"]; exists {
 		t.Fatalf("obsolete time21 field is still present: %#v", data)
+	}
+}
+
+func TestResolveWeChatMPMessageURL(t *testing.T) {
+	messageURL := "https://lixiaoyaoai.com/hotspots"
+	tests := []struct {
+		name    string
+		baseURL string
+		topicID string
+		want    string
+	}{
+		{
+			name:    "adds encoded topic ID to hotspot page",
+			baseURL: messageURL,
+			topicID: "uapi:topic-1",
+			want:    "https://lixiaoyaoai.com/hotspots?topic_id=uapi%3Atopic-1",
+		},
+		{
+			name:    "preserves existing query parameters",
+			baseURL: messageURL + "?from=wechat",
+			topicID: "topic-1",
+			want:    "https://lixiaoyaoai.com/hotspots?from=wechat&topic_id=topic-1",
+		},
+		{
+			name:    "uses hotspot page when topic ID is empty",
+			baseURL: messageURL,
+			topicID: "",
+			want:    messageURL,
+		},
+		{
+			name:    "uses hotspot page when topic ID is too long",
+			baseURL: messageURL,
+			topicID: strings.Repeat("x", 501),
+			want:    messageURL,
+		},
+		{
+			name:    "rejects invalid hotspot page URL",
+			baseURL: "javascript:alert(1)",
+			topicID: "topic-1",
+			want:    "",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := resolveWeChatMPMessageURL(
+				test.baseURL, test.topicID,
+			); got != test.want {
+				t.Fatalf("resolved URL = %q, want %q", got, test.want)
+			}
+		})
 	}
 }
 
