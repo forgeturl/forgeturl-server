@@ -42,6 +42,15 @@ service SpaceService {
     };
   }
 
+  // 复制或移动整个文件夹到另一个可编辑页面 || 页面
+  // 该操作在同一个数据库事务内更新目标页面，以及移动时的源页面。
+  rpc TransferCollection(TransferCollectionReq) returns (TransferCollectionResp) {
+    option (google.api.http) = {
+      post: "/space/transferCollection"
+      body: "*"
+    };
+  }
+
   // 拉取某个页面数据 || 页面
   rpc GetPage(GetPageReq) returns (GetPageResp) {
     option (google.api.http) = {
@@ -282,6 +291,21 @@ message UpdatePageReq {
 message UpdatePageResp { // omitempty=false
   int64 update_time = 2;
   int64 version = 3;
+}
+
+message TransferCollectionReq {
+  string source_page_id = 1; // binding:"required"
+  string target_page_id = 2; // binding:"required"
+  int32 source_collection_index = 3; // binding:"min=0"
+  string operation = 4; // binding:"required,oneof=copy move"
+  int64 source_version = 5; // binding:"min=0"
+  int64 target_version = 6; // binding:"min=0"
+}
+
+message TransferCollectionResp { // omitempty=false
+  int64 source_version = 1;
+  int64 target_version = 2;
+  int64 update_time = 3;
 }
 
 message SavePageIdsReq {

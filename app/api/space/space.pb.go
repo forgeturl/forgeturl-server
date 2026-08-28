@@ -179,6 +179,21 @@ type UpdatePageResp struct {
 	Version    int64 `json:"version"`
 }
 
+type TransferCollectionReq struct {
+	SourcePageId          string `json:"source_page_id" binding:"required"`
+	TargetPageId          string `json:"target_page_id" binding:"required"`
+	SourceCollectionIndex int32  `json:"source_collection_index,omitempty" binding:"min=0"`
+	Operation             string `json:"operation" binding:"required,oneof=copy move"`
+	SourceVersion         int64  `json:"source_version,omitempty" binding:"min=0"`
+	TargetVersion         int64  `json:"target_version,omitempty" binding:"min=0"`
+}
+
+type TransferCollectionResp struct {
+	SourceVersion int64 `json:"source_version"`
+	TargetVersion int64 `json:"target_version"`
+	UpdateTime    int64 `json:"update_time"`
+}
+
 type SavePageIdsReq struct {
 	// 调整后页面id的顺序
 	PageIds []string `json:"page_ids" binding:"required,min=1"`

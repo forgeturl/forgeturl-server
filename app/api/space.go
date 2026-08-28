@@ -267,6 +267,91 @@ func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePage
 	}, nil
 }
 
+func (s spaceServiceImpl) TransferCollection(context *api.Context, req *space.TransferCollectionReq) (*space.TransferCollectionResp, error) {
+	ctx := context.Request.Context()
+	uid := middleware.GetLoginUid(context)
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
+	if req.Operation != collectionTransferCopy && req.Operation != collectionTransferMove {
+		return nil, common.ErrBadRequest("operation must be copy or move")
+	}
+
+	userInfo, err := dal.User.Get(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	sourceOwnerPid, err := canEditPage(ctx, userInfo, req.SourcePageId)
+	if err != nil {
+		return nil, err
+	}
+	targetOwnerPid, err := canEditPage(ctx, userInfo, req.TargetPageId)
+	if err != nil {
+		return nil, err
+	}
+	if sourceOwnerPid == targetOwnerPid {
+		return nil, common.ErrBadRequest("source and target pages must be different")
+	}
+
+	err = dal.Q.Transaction(func(tx *query.Query) error {
+		sourcePage, err0 := dal.Page.GetPage(ctx, uid, req.SourcePageId, tx)
+		if err0 != nil {
+			return err0
+		}
+		targetPage, err0 := dal.Page.GetPage(ctx, uid, req.TargetPageId, tx)
+		if err0 != nil {
+			return err0
+		}
+		if sourcePage.Pid != sourceOwnerPid || targetPage.Pid != targetOwnerPid {
+			return common.ErrUpdateMissNeedRefreshPage()
+		}
+
+		sourceCollections, err0 := decodeCollections(sourcePage.Content)
+		if err0 != nil {
+			return err0
+		}
+		targetCollections, err0 := decodeCollections(targetPage.Content)
+		if err0 != nil {
+			return err0
+		}
+		sourceCollections, targetCollections, err0 = transferCollection(
+			sourceCollections,
+			targetCollections,
+			int(req.SourceCollectionIndex),
+			req.Operation,
+		)
+		if err0 != nil {
+			return err0
+		}
+
+		sourceContent, err0 := sonic.MarshalString(sourceCollections)
+		if err0 != nil {
+			return err0
+		}
+		targetContent, err0 := sonic.MarshalString(targetCollections)
+		if err0 != nil {
+			return err0
+		}
+
+		// Update both pages in one transaction. Copy also writes the unchanged
+		// source content so its optimistic version check prevents copying a stale
+		// collection while another editor is changing the source page.
+		if err0 = dal.Page.UpdatePage(ctx, dal.MaskContent, req.SourceVersion, sourceOwnerPid, "", "", sourceContent, tx); err0 != nil {
+			return err0
+		}
+		return dal.Page.UpdatePage(ctx, dal.MaskContent, req.TargetVersion, targetOwnerPid, "", "", targetContent, tx)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &space.TransferCollectionResp{
+		SourceVersion: req.SourceVersion + 1,
+		TargetVersion: req.TargetVersion + 1,
+		UpdateTime:    time.Now().Unix(),
+	}, nil
+}
+
 func (s spaceServiceImpl) DeletePage(context *api.Context, req *space.DeletePageReq) (*space.DeletePageResp, error) {
 	ctx := context.Request.Context()
 	uid := middleware.GetLoginUid(context)
