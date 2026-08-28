@@ -27,6 +27,9 @@ type SpaceServiceHTTPClient interface {
 	CreatePage(context.Context, *CreatePageReq, ...calloption.CallOption) (*TResponse[CreatePageResp], error)
 	// 更新页面 || 页面
 	UpdatePage(context.Context, *UpdatePageReq, ...calloption.CallOption) (*TResponse[UpdatePageResp], error)
+	// 复制或移动整个文件夹到另一个可编辑页面 || 页面
+	// 该操作在同一个数据库事务内更新目标页面，以及移动时的源页面。
+	TransferCollection(context.Context, *TransferCollectionReq, ...calloption.CallOption) (*TResponse[TransferCollectionResp], error)
 	// 拉取某个页面数据 || 页面
 	GetPage(context.Context, *GetPageReq, ...calloption.CallOption) (*TResponse[GetPageResp], error)
 	// 真删除页面 || 页面
@@ -118,6 +121,22 @@ func (c *SpaceServiceHTTPClientImpl) UpdatePage(ctx context.Context, req *Update
 		opt(r)
 	}
 	_, err := r.SetBody(req).SetResult(resp).Post("/space/updatePage")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) TransferCollection(ctx context.Context, req *TransferCollectionReq, opts ...calloption.CallOption) (*TResponse[TransferCollectionResp], error) {
+	resp := &TResponse[TransferCollectionResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/transferCollection")
 	if err != nil {
 		return nil, err
 	}

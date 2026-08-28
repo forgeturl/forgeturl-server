@@ -298,6 +298,38 @@ func (m *UpdatePageResp) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
+func (m *TransferCollectionReq) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *TransferCollectionReq) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *TransferCollectionReq) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *TransferCollectionReq) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *TransferCollectionResp) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *TransferCollectionResp) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *TransferCollectionResp) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *TransferCollectionResp) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
 func (m *SavePageIdsReq) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }

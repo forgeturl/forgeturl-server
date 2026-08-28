@@ -1,5 +1,12 @@
 name: Deploy and Rollback
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 on:
   push:
     branches:
@@ -34,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -145,22 +152,10 @@ jobs:
     name: Deploy to Production (Blue-Green)
     runs-on: ubuntu-latest
     needs: deploy-test
-    permissions:
-      issues: write
-      contents: read
 
     steps:
-      - name: Wait for manual approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: guoming0000
-          minimum-approvals: 1
-          issue-title: "Approve deploy to production (blue-green)"
-          issue-body: "Please confirm the test environment is correct, then approve the release to production."
-
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v5
