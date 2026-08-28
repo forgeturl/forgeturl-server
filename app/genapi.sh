@@ -61,4 +61,3 @@ do
 
   yq -Poj api/docs/$protoName/$protoName.swagger.yaml > api/docs/$protoName/$protoName.swagger.json
 done
-

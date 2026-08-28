@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"forgeturl-server/api/common"
 	"forgeturl-server/api/space"
 	"forgeturl-server/conf"
@@ -166,9 +168,7 @@ func (s spaceServiceImpl) CreateTmpPage(context *api.Context, req *space.CreateT
 }
 
 func (s spaceServiceImpl) CreatePage(context *api.Context, req *space.CreatePageReq) (*space.CreatePageResp, error) {
-	// 首先搜下，他有几个页面
 	ctx := context.Request.Context()
-	// 获取某个页面数据
 	uid := middleware.GetLoginUid(context)
 	if uid == 0 {
 		return nil, common.ErrNeedLogin("")
@@ -183,18 +183,8 @@ func (s spaceServiceImpl) CreatePage(context *api.Context, req *space.CreatePage
 	startVersion := int64(0)
 	var pageIds []string
 	err = dal.Q.Transaction(func(tx *query.Query) error {
-		page, err0 := dal.Page.GetSelfPage(ctx, uid, tx)
-		if err0 == nil && page != nil && page.ID > 0 {
-			return common.ErrBadRequest("You already have a self page, cannot create more")
-		}
-		if !common.IsErrNotFound(err0) {
-			if err0 != nil {
-				return err0
-			}
-		}
-
 		pageId = genOwnerPageId()
-		err0 = dal.UniquePid.Create(ctx, uid, pageId, tx)
+		err0 := dal.UniquePid.Create(ctx, uid, pageId, tx)
 		if err0 != nil {
 			return err0
 		}
@@ -271,7 +261,10 @@ func (s spaceServiceImpl) UpdatePage(context *api.Context, req *space.UpdatePage
 	if err != nil {
 		return nil, err
 	}
-	return &space.UpdatePageResp{}, nil
+	return &space.UpdatePageResp{
+		UpdateTime: time.Now().Unix(),
+		Version:    req.Version + 1,
+	}, nil
 }
 
 func (s spaceServiceImpl) DeletePage(context *api.Context, req *space.DeletePageReq) (*space.DeletePageResp, error) {

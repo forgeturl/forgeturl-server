@@ -232,7 +232,9 @@ var hideLogsPath = map[string]bool{
 var hideShowHeaders = map[string]bool{
 	"accept":                true,
 	"accept-encoding":       true,
+	"authorization":         true,
 	"proxy-connection":      true,
+	"x-token":               true,
 	"x-avm-wechat-secret":   true,
 	"x-envoy-peer-metadata": true,
 }
