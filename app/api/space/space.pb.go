@@ -181,7 +181,7 @@ type UpdatePageResp struct {
 
 type SavePageIdsReq struct {
 	// 调整后页面id的顺序
-	PageIds []string `json:"page_ids" binding:"required,min=1,max=3"`
+	PageIds []string `json:"page_ids" binding:"required,min=1"`
 }
 
 type SavePageIdsResp struct {

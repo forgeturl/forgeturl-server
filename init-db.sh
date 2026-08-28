@@ -122,7 +122,7 @@ create_database() {
 
 #---------- Create tables ----------
 create_tables() {
-    local SQL_FILES=("user.sql" "unique_pid.sql" "page.sql" "user_page.sql" "openclaw_api_key.sql" "tmp_bookmark.sql")
+    local SQL_FILES=("user.sql" "unique_pid.sql" "page.sql" "user_page.sql")
 
     for sql_file in "${SQL_FILES[@]}"; do
         local filepath="${SQL_DIR}/${sql_file}"

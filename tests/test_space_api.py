@@ -158,6 +158,37 @@ class TestSpaceAPI:
                 self.created_page_id = response_data["page_id"]
                 assert self.created_page_id is not None
                 assert len(self.created_page_id) > 0
+
+    @allure.story("页面管理")
+    @allure.title("测试5c: 同一用户可以创建多个页面")
+    @pytest.mark.login
+    def test_05c_create_multiple_pages_with_login_success(self, headers_with_login, sample_page_data):
+        """同一登录用户连续创建两个页面，两个页面都应保留在我的空间中。"""
+        created_page_ids = []
+        try:
+            for index in range(2):
+                page_data = dict(sample_page_data)
+                page_data["title"] = f"多页面测试-{index + 1}"
+                response = self.api_client.post("/space/createPage", page_data, headers_with_login)
+
+                assert response.status_code == 200
+                response_data = response.json()
+                assert response_data.get("code") == 1
+                page_id = response_data["data"]["page_id"]
+                assert page_id
+                created_page_ids.append(page_id)
+
+            response = self.api_client.post("/space/getMySpace", {}, headers_with_login)
+            assert response.status_code == 200
+            response_data = response.json()
+            assert response_data.get("code") == 1
+            actual_page_ids = {
+                page["page_id"] for page in response_data["data"].get("page_briefs", [])
+            }
+            assert set(created_page_ids).issubset(actual_page_ids)
+        finally:
+            for page_id in created_page_ids:
+                self.api_client.post("/space/deletePage", {"page_id": page_id}, headers_with_login)
     
     @allure.story("我的空间")
     @allure.title("测试6a: 非登录态无法拉取getMySpace")

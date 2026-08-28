@@ -33,8 +33,10 @@ func (*userPageImpl) SaveUserPageIds(ctx context.Context, uid int64, pageids []s
 	if len(tx) > 0 {
 		u = tx[0].UserPage
 	}
-	// 先删除旧的
-	_, err := u.WithContext(ctx).Where(u.UID.Eq(uid)).Delete()
+	// user_page is an ordering/association table. Records must be physically
+	// removed before rebuilding the list; a soft delete would leave (uid, pid)
+	// occupied by the unique index and make the second page fail to insert.
+	_, err := u.WithContext(ctx).Unscoped().Where(u.UID.Eq(uid)).Delete()
 	if err != nil {
 		return transGormErr(err)
 	}

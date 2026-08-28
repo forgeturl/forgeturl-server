@@ -19,12 +19,10 @@ import (
 const (
 	// LoginTimeout 登录过期时间
 	LoginTimeout                    = time.Hour * 24 * 180
-	OpenClawAPIKeyCacheTTL          = time.Hour * 24 * 180
 	AVMAuthCodeTimeout              = time.Minute * 5
 	AVMWeChatMPBindStateTimeout     = time.Minute * 10
 	AVMWeChatMPBindResultTimeout    = time.Minute * 5
 	RdsTokenPrefix                  = "auth:tk"
-	RdsOpenClawAPIKeyPrefix         = "auth:openclaw:ak"
 	RdsAVMAuthCodePrefix            = "auth:avm:code"
 	RdsAVMWeChatMPBindStatePrefix   = "auth:avm:wechat-mp:state"
 	RdsAVMWeChatMPBindResultPrefix  = "auth:avm:wechat-mp:result"
@@ -138,34 +136,6 @@ func GetTokenKey(key string) string {
 	return RdsTokenPrefix + ":" + key
 }
 
-func (c *cacheImpl) GetOpenClawAPIKey(ctx context.Context, apiKey string) int64 {
-	if apiKey == "" {
-		return 0
-	}
-	cacheKey := GetOpenClawAPIKeyKey(apiKey)
-	val, err := c.user.Get(ctx, cacheKey).Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return 0
-		}
-		glog.WarnC(ctx, "get openclaw api key cache failed, key: %s, err: %v", apiKey, err)
-		return 0
-	}
-	return cast.ToInt64(val)
-}
-
-func (c *cacheImpl) SetOpenClawAPIKey(ctx context.Context, apiKey string, uid int64) error {
-	if apiKey == "" || uid == 0 {
-		return common.ErrInternalServerError("invalid api_key or uid")
-	}
-	cacheKey := GetOpenClawAPIKeyKey(apiKey)
-	err := c.user.Set(ctx, cacheKey, uid, OpenClawAPIKeyCacheTTL).Err()
-	if err != nil {
-		return common.ErrInternalServerError(fmt.Sprintf("set openclaw api key failed, uid: %d, err: %v", uid, err))
-	}
-	return nil
-}
-
 func (c *cacheImpl) SetAVMAuthCode(ctx context.Context, code string, payload AVMAuthCodePayload) error {
 	if code == "" || payload.WechatUID == "" {
 		return common.ErrInternalServerError("invalid avm auth code payload")
@@ -222,19 +192,6 @@ func (c *cacheImpl) SetAVMWeChatMPBindState(
 		return common.ErrInternalServerError(
 			fmt.Sprintf("set wechat mp bind state failed: %v", err),
 		)
-	}
-	return nil
-}
-
-func (c *cacheImpl) DelOpenClawAPIKey(ctx context.Context, apiKey string) error {
-	if apiKey == "" {
-		return nil
-	}
-	cacheKey := GetOpenClawAPIKeyKey(apiKey)
-	err := c.user.Del(ctx, cacheKey).Err()
-	if err != nil && !errors.Is(err, redis.Nil) {
-		glog.WarnC(ctx, "del openclaw api key failed, key: %s, err: %v", apiKey, err)
-		return common.ErrInternalServerError("del openclaw api key failed")
 	}
 	return nil
 }
@@ -361,10 +318,6 @@ func (c *cacheImpl) DeleteAVMWeChatMPAccessToken(
 		)
 	}
 	return nil
-}
-
-func GetOpenClawAPIKeyKey(apiKey string) string {
-	return RdsOpenClawAPIKeyPrefix + ":" + apiKey
 }
 
 func GetAVMWeChatMPBindStateKey(state string) string {
