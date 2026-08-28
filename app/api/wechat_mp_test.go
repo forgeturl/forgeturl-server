@@ -1,0 +1,257 @@
+package api
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+)
+
+type fakeWeChatMPTokenStore struct {
+	mu      sync.Mutex
+	token   string
+	ttl     time.Duration
+	deletes int
+}
+
+func (s *fakeWeChatMPTokenStore) GetAVMWeChatMPAccessToken(
+	_ context.Context, _ string,
+) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.token, nil
+}
+
+func (s *fakeWeChatMPTokenStore) SetAVMWeChatMPAccessToken(
+	_ context.Context, _ string, token string, ttl time.Duration,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.token = token
+	s.ttl = ttl
+	return nil
+}
+
+func (s *fakeWeChatMPTokenStore) DeleteAVMWeChatMPAccessToken(
+	_ context.Context, _ string,
+) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.token = ""
+	s.deletes++
+	return nil
+}
+
+func TestWeChatMPSendRefreshesInvalidTokenAndMapsTemplateFields(t *testing.T) {
+	var stableTokenCalls int
+	var sendCalls int
+	var sentPayload map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(
+		writer http.ResponseWriter, request *http.Request,
+	) {
+		writer.Header().Set("Content-Type", "application/json")
+		switch request.URL.Path {
+		case "/cgi-bin/stable_token":
+			stableTokenCalls++
+			var payload map[string]any
+			if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+				t.Fatal(err)
+			}
+			if payload["appid"] != "mp-app" || payload["secret"] != "mp-secret" {
+				t.Fatalf("unexpected token payload: %#v", payload)
+			}
+			_, _ = writer.Write([]byte(
+				`{"access_token":"fresh-token","expires_in":7200}`,
+			))
+		case "/cgi-bin/message/template/send":
+			sendCalls++
+			if err := json.NewDecoder(request.Body).Decode(&sentPayload); err != nil {
+				t.Fatal(err)
+			}
+			if request.URL.Query().Get("access_token") == "stale-token" {
+				_, _ = writer.Write([]byte(`{"errcode":40014,"errmsg":"invalid token"}`))
+				return
+			}
+			_, _ = writer.Write([]byte(`{"errcode":0,"errmsg":"ok","msgid":12345}`))
+		default:
+			http.NotFound(writer, request)
+		}
+	}))
+	defer server.Close()
+
+	store := &fakeWeChatMPTokenStore{token: "stale-token"}
+	client := &weChatMPClient{
+		config: weChatMPConfig{
+			AppID:      "mp-app",
+			AppSecret:  "mp-secret",
+			TemplateID: "template-id",
+			MessageURL: "https://lixiaoyaoai.com/hotspots",
+			APIBase:    server.URL,
+		},
+		httpClient: server.Client(),
+		tokenStore: store,
+	}
+	msgID, err := client.sendTemplate(context.Background(), weChatMPSendReq{
+		OpenID:           "openid-1",
+		WorkOrderName:    "这是一个超过二十个汉字需要被安全截断的热点标题示例",
+		ProjectName:      "AI 创业",
+		TriggerCondition: "评分88分，阈值75分",
+		TriggerSource:    "微博",
+		TriggerTime:      "2026-07-27 12:30:00",
+		TopicID:          "uapi:topic-1",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if msgID != 12345 || stableTokenCalls != 1 || sendCalls != 2 {
+		t.Fatalf(
+			"unexpected result: msgID=%d tokenCalls=%d sendCalls=%d",
+			msgID,
+			stableTokenCalls,
+			sendCalls,
+		)
+	}
+	if store.deletes != 1 || store.token != "fresh-token" ||
+		store.ttl != 6900*time.Second {
+		t.Fatalf("unexpected token store state: %#v", store)
+	}
+	if sentPayload["touser"] != "openid-1" ||
+		sentPayload["template_id"] != "template-id" ||
+		sentPayload["url"] !=
+			"https://lixiaoyaoai.com/hotspots?topic_id=uapi%3Atopic-1" {
+		t.Fatalf("unexpected template payload: %#v", sentPayload)
+	}
+	data := sentPayload["data"].(map[string]any)
+	if len(data) != 5 {
+		t.Fatalf("unexpected template data: %#v", data)
+	}
+	thing4 := data["thing4"].(map[string]any)["value"].(string)
+	if got := len([]rune(thing4)); got != 20 {
+		t.Fatalf("thing4 length = %d, want 20", got)
+	}
+	if data["thing10"].(map[string]any)["value"] != "AI 创业" {
+		t.Fatalf("unexpected project name: %#v", data["thing10"])
+	}
+	if data["thing5"].(map[string]any)["value"] != "评分88分，阈值75分" {
+		t.Fatalf("unexpected trigger condition: %#v", data["thing5"])
+	}
+	if data["thing8"].(map[string]any)["value"] != "微博" {
+		t.Fatalf("unexpected trigger source: %#v", data["thing8"])
+	}
+	if data["time14"].(map[string]any)["value"] != "2026-07-27 12:30:00" {
+		t.Fatalf("unexpected trigger time: %#v", data["time14"])
+	}
+	if _, exists := data["time21"]; exists {
+		t.Fatalf("obsolete time21 field is still present: %#v", data)
+	}
+}
+
+func TestResolveWeChatMPMessageURL(t *testing.T) {
+	messageURL := "https://lixiaoyaoai.com/hotspots"
+	tests := []struct {
+		name    string
+		baseURL string
+		topicID string
+		want    string
+	}{
+		{
+			name:    "adds encoded topic ID to hotspot page",
+			baseURL: messageURL,
+			topicID: "uapi:topic-1",
+			want:    "https://lixiaoyaoai.com/hotspots?topic_id=uapi%3Atopic-1",
+		},
+		{
+			name:    "preserves existing query parameters",
+			baseURL: messageURL + "?from=wechat",
+			topicID: "topic-1",
+			want:    "https://lixiaoyaoai.com/hotspots?from=wechat&topic_id=topic-1",
+		},
+		{
+			name:    "uses hotspot page when topic ID is empty",
+			baseURL: messageURL,
+			topicID: "",
+			want:    messageURL,
+		},
+		{
+			name:    "uses hotspot page when topic ID is too long",
+			baseURL: messageURL,
+			topicID: strings.Repeat("x", 501),
+			want:    messageURL,
+		},
+		{
+			name:    "rejects invalid hotspot page URL",
+			baseURL: "javascript:alert(1)",
+			topicID: "topic-1",
+			want:    "",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := resolveWeChatMPMessageURL(
+				test.baseURL, test.topicID,
+			); got != test.want {
+				t.Fatalf("resolved URL = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestWeChatMPOAuthCodeExchange(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(
+		writer http.ResponseWriter, request *http.Request,
+	) {
+		if request.URL.Path != "/sns/oauth2/access_token" {
+			http.NotFound(writer, request)
+			return
+		}
+		query := request.URL.Query()
+		if query.Get("appid") != "mp-app" ||
+			query.Get("secret") != "mp-secret" ||
+			query.Get("code") != "oauth-code" ||
+			query.Get("grant_type") != "authorization_code" {
+			t.Fatalf("unexpected oauth query: %s", request.URL.RawQuery)
+		}
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write([]byte(`{"openid":"service-openid","scope":"snsapi_base"}`))
+	}))
+	defer server.Close()
+
+	client := &weChatMPClient{
+		config: weChatMPConfig{
+			AppID:     "mp-app",
+			AppSecret: "mp-secret",
+			APIBase:   server.URL,
+		},
+		httpClient: server.Client(),
+	}
+	openID, err := client.exchangeOAuthCode(context.Background(), "oauth-code")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if openID != "service-openid" {
+		t.Fatalf("openid = %q", openID)
+	}
+}
+
+func TestWeChatMPBindSignature(t *testing.T) {
+	if !validWeChatMPBindSignature(
+		"bind-code",
+		1_800_000_000,
+		"4f7ccd238d5cafe77255ac6141f4ef262f01dfd7c19337b028431e4c0c6e6312",
+		"bridge-secret",
+	) {
+		t.Fatal("valid signature was rejected")
+	}
+	if validWeChatMPBindSignature(
+		"tampered",
+		1_800_000_000,
+		"4f7ccd238d5cafe77255ac6141f4ef262f01dfd7c19337b028431e4c0c6e6312",
+		"bridge-secret",
+	) {
+		t.Fatal("tampered bind code was accepted")
+	}
+}

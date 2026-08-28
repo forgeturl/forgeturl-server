@@ -235,6 +235,7 @@ var hideShowHeaders = map[string]bool{
 	"authorization":         true,
 	"proxy-connection":      true,
 	"x-token":               true,
+	"x-avm-wechat-secret":   true,
 	"x-envoy-peer-metadata": true,
 }
 

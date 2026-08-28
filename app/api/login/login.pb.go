@@ -59,6 +59,8 @@ type ConnectorCallbackResp struct {
 	Email string `json:"email,omitempty"`
 	// 是否是新用户
 	IsNewUser bool `json:"is_new_user,omitempty"`
+	// AVM 专用一次性登录 code，仅 avm_login=true 时返回。
+	AVMAuthCode string `json:"avm_auth_code,omitempty"`
 }
 
 type LogoutReq struct {

@@ -9,6 +9,12 @@ domain = "http://127.0.0.1:3000"
 # wechat_domain: 微信登录回调域名（需ICP备案），本地开发时与domain一致即可
 # wechat_domain = "http://127.0.0.1:3000"
 
+# 微信服务号网页授权与模板消息桥接。生产回调 URL 的域名必须已配置在
+# 服务号「网页授权域名」中；AVM 回调固定配置，避免把任意回跳地址带入 OAuth。
+WECHAT_MP_CALLBACK_URL = "https://forgeturl.brightguo.com/login/connector/avm/wechat-mp/callback"
+WECHAT_MP_AVM_CALLBACK_URL = "https://lixiaoyaoai.com/api/hotspots/wechat-service/callback"
+WECHAT_MP_MESSAGE_URL = "https://lixiaoyaoai.com/hotspots"
+
 [mysql]
 Host = "127.0.0.1"
 Port = "3306"
@@ -46,3 +52,14 @@ lock = 0
 # 在 https://open.weixin.qq.com/ 创建网站应用获取
 # WECHAT_KEY = "你的微信AppID"
 # WECHAT_SECRET = "你的微信AppSecret"
+
+# AVM 专用 auth_code 换身份接口密钥；生产建议设置，并与 AVM 后端
+# AVM_FORGETURL_EXCHANGE_SECRET 保持一致。不设置时仅依赖一次性 code。
+# AVM_AUTH_EXCHANGE_SECRET = "change-me"
+
+# 微信服务号（不是微信开放平台网站应用）AppID / AppSecret，以及「我的模板」中
+# “收到工单通知”的长模板 ID。AVM_WECHAT_MP_BRIDGE_SECRET 必须与 AVM 后端一致。
+# WECHAT_MP_APP_ID = "wx..."
+# WECHAT_MP_APP_SECRET = "change-me"
+WECHAT_MP_TEMPLATE_ID = "CnsbYcrLUK3V4dT0lhuzD-pvu9CzJgx05w7tFGBSv8g"
+AVM_WECHAT_MP_BRIDGE_SECRET = "4c0c1e7d747bbe884e099301279b8da5490b5c99ac3009c15410db70a5c661e1"

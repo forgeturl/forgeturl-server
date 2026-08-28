@@ -25,6 +25,11 @@ func Routes(router *gin.Engine) {
 
 	router.GET("/login/connector/auth", api.LoginAuth())                   // 连接器登录，跳转鉴权的url
 	router.GET("/login/connector/callback/:provider", api.LoginCallback()) // 第三方登录回调
+	router.POST("/login/connector/avm/exchange", api.AVMAuthCodeExchange())
+	router.GET("/login/connector/avm/wechat-mp/bind", api.AVMWeChatMPBind())
+	router.GET("/login/connector/avm/wechat-mp/callback", api.AVMWeChatMPCallback())
+	router.POST("/login/connector/avm/wechat-mp/exchange", api.AVMWeChatMPBindExchange())
+	router.POST("/login/connector/avm/wechat-mp/send", api.AVMWeChatMPSend())
 
 	router.Any("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome GoCore Service")

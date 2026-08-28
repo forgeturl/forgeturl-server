@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -17,11 +18,33 @@ import (
 
 const (
 	// LoginTimeout 登录过期时间
-	LoginTimeout            = time.Hour * 24 * 180
-	OpenClawAPIKeyCacheTTL  = time.Hour * 24 * 180
-	RdsTokenPrefix          = "auth:tk"
-	RdsOpenClawAPIKeyPrefix = "auth:openclaw:ak"
+	LoginTimeout                    = time.Hour * 24 * 180
+	OpenClawAPIKeyCacheTTL          = time.Hour * 24 * 180
+	AVMAuthCodeTimeout              = time.Minute * 5
+	AVMWeChatMPBindStateTimeout     = time.Minute * 10
+	AVMWeChatMPBindResultTimeout    = time.Minute * 5
+	RdsTokenPrefix                  = "auth:tk"
+	RdsOpenClawAPIKeyPrefix         = "auth:openclaw:ak"
+	RdsAVMAuthCodePrefix            = "auth:avm:code"
+	RdsAVMWeChatMPBindStatePrefix   = "auth:avm:wechat-mp:state"
+	RdsAVMWeChatMPBindResultPrefix  = "auth:avm:wechat-mp:result"
+	RdsAVMWeChatMPAccessTokenPrefix = "auth:avm:wechat-mp:access-token"
 )
+
+type AVMAuthCodePayload struct {
+	Provider    string `json:"provider"`
+	WechatUID   string `json:"wechat_uid"`
+	ForgetURLID int64  `json:"forgeturl_id"`
+	DisplayName string `json:"display_name"`
+	Username    string `json:"username"`
+	Avatar      string `json:"avatar"`
+	Email       string `json:"email"`
+}
+
+type AVMWeChatMPBindResultPayload struct {
+	BindCode string `json:"bind_code"`
+	OpenID   string `json:"openid"`
+}
 
 type cacheImpl struct {
 	user *redis.Client
@@ -143,6 +166,66 @@ func (c *cacheImpl) SetOpenClawAPIKey(ctx context.Context, apiKey string, uid in
 	return nil
 }
 
+func (c *cacheImpl) SetAVMAuthCode(ctx context.Context, code string, payload AVMAuthCodePayload) error {
+	if code == "" || payload.WechatUID == "" {
+		return common.ErrInternalServerError("invalid avm auth code payload")
+	}
+	buf, err := json.Marshal(payload)
+	if err != nil {
+		return common.ErrInternalServerError(fmt.Sprintf("marshal avm auth code failed: %v", err))
+	}
+	if err := c.user.Set(ctx, GetAVMAuthCodeKey(code), string(buf), AVMAuthCodeTimeout).Err(); err != nil {
+		return common.ErrInternalServerError(fmt.Sprintf("set avm auth code failed, err: %v", err))
+	}
+	return nil
+}
+
+func (c *cacheImpl) ConsumeAVMAuthCode(ctx context.Context, code string) (*AVMAuthCodePayload, error) {
+	if code == "" {
+		return nil, common.ErrBadRequest("missing auth_code")
+	}
+	key := GetAVMAuthCodeKey(code)
+	val, err := c.user.Get(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, common.ErrNotAuthenticated("invalid or expired auth_code")
+		}
+		return nil, common.ErrInternalServerError(fmt.Sprintf("get avm auth code failed, err: %v", err))
+	}
+	if err := c.user.Del(ctx, key).Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return nil, common.ErrInternalServerError(fmt.Sprintf("delete avm auth code failed, err: %v", err))
+	}
+	payload := &AVMAuthCodePayload{}
+	if err := json.Unmarshal([]byte(val), payload); err != nil {
+		return nil, common.ErrInternalServerError(fmt.Sprintf("unmarshal avm auth code failed, err: %v", err))
+	}
+	return payload, nil
+}
+
+func GetAVMAuthCodeKey(code string) string {
+	return RdsAVMAuthCodePrefix + ":" + code
+}
+
+func (c *cacheImpl) SetAVMWeChatMPBindState(
+	ctx context.Context, state string, bindCode string,
+) error {
+	if state == "" || bindCode == "" {
+		return common.ErrBadRequest("missing bind state or bind code")
+	}
+	err := c.user.Set(
+		ctx,
+		GetAVMWeChatMPBindStateKey(state),
+		bindCode,
+		AVMWeChatMPBindStateTimeout,
+	).Err()
+	if err != nil {
+		return common.ErrInternalServerError(
+			fmt.Sprintf("set wechat mp bind state failed: %v", err),
+		)
+	}
+	return nil
+}
+
 func (c *cacheImpl) DelOpenClawAPIKey(ctx context.Context, apiKey string) error {
 	if apiKey == "" {
 		return nil
@@ -156,6 +239,142 @@ func (c *cacheImpl) DelOpenClawAPIKey(ctx context.Context, apiKey string) error 
 	return nil
 }
 
+func (c *cacheImpl) ConsumeAVMWeChatMPBindState(
+	ctx context.Context, state string,
+) (string, error) {
+	if state == "" {
+		return "", common.ErrBadRequest("missing bind state")
+	}
+	val, err := c.user.GetDel(ctx, GetAVMWeChatMPBindStateKey(state)).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", common.ErrNotAuthenticated("invalid or expired bind state")
+		}
+		return "", common.ErrInternalServerError(
+			fmt.Sprintf("consume wechat mp bind state failed: %v", err),
+		)
+	}
+	return val, nil
+}
+
+func (c *cacheImpl) SetAVMWeChatMPBindResult(
+	ctx context.Context, resultCode string, payload AVMWeChatMPBindResultPayload,
+) error {
+	if resultCode == "" || payload.BindCode == "" || payload.OpenID == "" {
+		return common.ErrBadRequest("invalid wechat mp bind result")
+	}
+	buf, err := json.Marshal(payload)
+	if err != nil {
+		return common.ErrInternalServerError(
+			fmt.Sprintf("marshal wechat mp bind result failed: %v", err),
+		)
+	}
+	err = c.user.Set(
+		ctx,
+		GetAVMWeChatMPBindResultKey(resultCode),
+		string(buf),
+		AVMWeChatMPBindResultTimeout,
+	).Err()
+	if err != nil {
+		return common.ErrInternalServerError(
+			fmt.Sprintf("set wechat mp bind result failed: %v", err),
+		)
+	}
+	return nil
+}
+
+func (c *cacheImpl) ConsumeAVMWeChatMPBindResult(
+	ctx context.Context, resultCode string,
+) (*AVMWeChatMPBindResultPayload, error) {
+	if resultCode == "" {
+		return nil, common.ErrBadRequest("missing result_code")
+	}
+	val, err := c.user.GetDel(
+		ctx,
+		GetAVMWeChatMPBindResultKey(resultCode),
+	).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, common.ErrNotAuthenticated("invalid or expired result_code")
+		}
+		return nil, common.ErrInternalServerError(
+			fmt.Sprintf("consume wechat mp bind result failed: %v", err),
+		)
+	}
+	payload := &AVMWeChatMPBindResultPayload{}
+	if err := json.Unmarshal([]byte(val), payload); err != nil {
+		return nil, common.ErrInternalServerError(
+			fmt.Sprintf("unmarshal wechat mp bind result failed: %v", err),
+		)
+	}
+	return payload, nil
+}
+
+func (c *cacheImpl) GetAVMWeChatMPAccessToken(
+	ctx context.Context, appID string,
+) (string, error) {
+	if appID == "" {
+		return "", common.ErrBadRequest("missing wechat mp app id")
+	}
+	val, err := c.user.Get(ctx, GetAVMWeChatMPAccessTokenKey(appID)).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", nil
+		}
+		return "", common.ErrInternalServerError(
+			fmt.Sprintf("get wechat mp access token failed: %v", err),
+		)
+	}
+	return val, nil
+}
+
+func (c *cacheImpl) SetAVMWeChatMPAccessToken(
+	ctx context.Context, appID string, token string, ttl time.Duration,
+) error {
+	if appID == "" || token == "" || ttl <= 0 {
+		return common.ErrBadRequest("invalid wechat mp access token")
+	}
+	err := c.user.Set(
+		ctx,
+		GetAVMWeChatMPAccessTokenKey(appID),
+		token,
+		ttl,
+	).Err()
+	if err != nil {
+		return common.ErrInternalServerError(
+			fmt.Sprintf("set wechat mp access token failed: %v", err),
+		)
+	}
+	return nil
+}
+
+func (c *cacheImpl) DeleteAVMWeChatMPAccessToken(
+	ctx context.Context, appID string,
+) error {
+	if appID == "" {
+		return nil
+	}
+	err := c.user.Del(ctx, GetAVMWeChatMPAccessTokenKey(appID)).Err()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return common.ErrInternalServerError(
+			fmt.Sprintf("delete wechat mp access token failed: %v", err),
+		)
+	}
+	return nil
+}
+
 func GetOpenClawAPIKeyKey(apiKey string) string {
 	return RdsOpenClawAPIKeyPrefix + ":" + apiKey
+}
+
+func GetAVMWeChatMPBindStateKey(state string) string {
+	return RdsAVMWeChatMPBindStatePrefix + ":" + state
+}
+
+func GetAVMWeChatMPBindResultKey(resultCode string) string {
+	return RdsAVMWeChatMPBindResultPrefix + ":" + resultCode
+}
+
+func GetAVMWeChatMPAccessTokenKey(appID string) string {
+	return RdsAVMWeChatMPAccessTokenPrefix + ":" + appID
 }
