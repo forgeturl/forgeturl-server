@@ -30,6 +30,7 @@ const (
 )
 
 type AVMAuthCodePayload struct {
+	Subject     string `json:"subject"`
 	Provider    string `json:"provider"`
 	WechatUID   string `json:"wechat_uid"`
 	ForgetURLID int64  `json:"forgeturl_id"`
@@ -137,7 +138,7 @@ func GetTokenKey(key string) string {
 }
 
 func (c *cacheImpl) SetAVMAuthCode(ctx context.Context, code string, payload AVMAuthCodePayload) error {
-	if code == "" || payload.WechatUID == "" {
+	if code == "" || (payload.Subject == "" && (payload.Provider != "wechat" || payload.WechatUID == "")) {
 		return common.ErrInternalServerError("invalid avm auth code payload")
 	}
 	buf, err := json.Marshal(payload)
@@ -155,15 +156,12 @@ func (c *cacheImpl) ConsumeAVMAuthCode(ctx context.Context, code string) (*AVMAu
 		return nil, common.ErrBadRequest("missing auth_code")
 	}
 	key := GetAVMAuthCodeKey(code)
-	val, err := c.user.Get(ctx, key).Result()
+	val, err := c.user.GetDel(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, common.ErrNotAuthenticated("invalid or expired auth_code")
 		}
 		return nil, common.ErrInternalServerError(fmt.Sprintf("get avm auth code failed, err: %v", err))
-	}
-	if err := c.user.Del(ctx, key).Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return nil, common.ErrInternalServerError(fmt.Sprintf("delete avm auth code failed, err: %v", err))
 	}
 	payload := &AVMAuthCodePayload{}
 	if err := json.Unmarshal([]byte(val), payload); err != nil {

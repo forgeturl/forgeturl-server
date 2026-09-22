@@ -77,6 +77,7 @@ func AVMAuthCodeExchange() gin.HandlerFunc {
 			"code": 1,
 			"data": gin.H{
 				"provider":     payload.Provider,
+				"subject":      payload.Subject,
 				"wechat_uid":   payload.WechatUID,
 				"forgeturl_id": payload.ForgetURLID,
 				"display_name": payload.DisplayName,
@@ -176,19 +177,12 @@ func connectorCallback(apiCtx *api.Context, req *login.ConnectorCallbackReq) (*l
 
 	avmAuthCode := ""
 	if apiCtx.Query("avm_login") == "true" {
-		if provider != "wechat" {
-			return nil, common.ErrBadRequest("avm login only supports wechat")
+		payload, identityErr := avmIdentity(user, userInfo)
+		if identityErr != nil {
+			return nil, identityErr
 		}
 		avmAuthCode = middleware.NewUUID()
-		err = dal.C.SetAVMAuthCode(ctx, avmAuthCode, dal.AVMAuthCodePayload{
-			Provider:    provider,
-			WechatUID:   user.UserID,
-			ForgetURLID: userInfo.ID,
-			DisplayName: userInfo.DisplayName,
-			Username:    userInfo.Username,
-			Avatar:      userInfo.Avatar,
-			Email:       userInfo.Email,
-		})
+		err = dal.C.SetAVMAuthCode(ctx, avmAuthCode, payload)
 		if err != nil {
 			return nil, err
 		}
