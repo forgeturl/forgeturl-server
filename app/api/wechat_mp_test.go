@@ -192,11 +192,58 @@ func TestResolveWeChatMPMessageURL(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if got := resolveWeChatMPMessageURL(
-				test.baseURL, test.topicID,
+				test.baseURL, test.topicID, 0,
 			); got != test.want {
 				t.Fatalf("resolved URL = %q, want %q", got, test.want)
 			}
 		})
+	}
+}
+
+func TestWeChatMPSendLinksToPrivateRecommendation(t *testing.T) {
+	var sentPayload map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if err := json.NewDecoder(request.Body).Decode(&sentPayload); err != nil {
+			t.Fatal(err)
+		}
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write([]byte(`{"errcode":0,"errmsg":"ok","msgid":67890}`))
+	}))
+	defer server.Close()
+	client := &weChatMPClient{
+		config: weChatMPConfig{
+			TemplateID: "template-id",
+			MessageURL: "https://lixiaoyaoai.com/hotspots?from=wechat&topic_id=old#stale",
+			APIBase:    server.URL,
+		},
+		httpClient: server.Client(),
+	}
+	var req weChatMPSendReq
+	if err := json.Unmarshal([]byte(`{"openid":"openid-1","topic_id":"uapi:topic-1","recommendation_id":123}`), &req); err != nil {
+		t.Fatal(err)
+	}
+	_, err := client.sendTemplateWithToken(context.Background(), "test-token", req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := sentPayload["url"], "https://lixiaoyaoai.com/hotspots?from=wechat&recommendation_id=123"; got != want {
+		t.Fatalf("recommendation URL = %q, want %q", got, want)
+	}
+}
+
+func TestRecommendationMessageURLKeepsConfiguredHTTPSOrigin(t *testing.T) {
+	for _, baseURL := range []string{"javascript:alert(1)", "http://lixiaoyaoai.com/hotspots", "https://user:pass@lixiaoyaoai.com/hotspots", "//evil.example/hotspots"} {
+		if got := resolveWeChatMPMessageURL(baseURL, "topic-1", 123); got != "" {
+			t.Fatalf("invalid URL %q accepted as %q", baseURL, got)
+		}
+	}
+	got := resolveWeChatMPMessageURL("https://lixiaoyaoai.com/other", "https://evil.example/?x=1", 123)
+	if got != "https://lixiaoyaoai.com/hotspots?recommendation_id=123" {
+		t.Fatalf("recommendation did not retain configured origin: %q", got)
+	}
+	got = resolveWeChatMPMessageURL("https://lixiaoyaoai.com/hotspots", "topic&recommendation_id=999", 0)
+	if got != "https://lixiaoyaoai.com/hotspots?topic_id=topic%26recommendation_id%3D999" {
+		t.Fatalf("legacy topic ID escaped its query value: %q", got)
 	}
 }
 
