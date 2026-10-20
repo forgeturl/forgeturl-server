@@ -77,6 +77,7 @@ type weChatMPSendReq struct {
 	TriggerTime      string `json:"trigger_time"`
 	TopicID          string `json:"topic_id"`
 	RecommendationID int64  `json:"recommendation_id,omitempty"`
+	ShareToken       string `json:"share_token,omitempty"`
 }
 
 func weChatMPConfigValue(viperKey string, envKey string) string {
@@ -301,6 +302,10 @@ func AVMWeChatMPSend() gin.HandlerFunc {
 			g.JSON(http.StatusBadRequest, gin.H{"code": 0, "msg": "invalid recommendation_id"})
 			return
 		}
+		if !validWeChatMPShareToken(req.ShareToken) || (req.ShareToken != "" && req.RecommendationID == 0) {
+			g.JSON(http.StatusBadRequest, gin.H{"code": 0, "msg": "invalid share_token"})
+			return
+		}
 		client := &weChatMPClient{
 			config:     cfg,
 			httpClient: &http.Client{Timeout: 15 * time.Second},
@@ -466,7 +471,7 @@ func (c *weChatMPClient) sendTemplateWithToken(
 		"data":        data,
 	}
 	if messageURL := resolveWeChatMPMessageURL(
-		c.config.MessageURL, req.TopicID, req.RecommendationID,
+		c.config.MessageURL, req.TopicID, req.RecommendationID, req.ShareToken,
 	); messageURL != "" {
 		payload["url"] = messageURL
 	}
@@ -554,21 +559,32 @@ func validWeChatMPHTTPSURL(rawURL string) bool {
 		parsed.User == nil
 }
 
-func resolveWeChatMPMessageURL(messageURL string, topicID string, recommendationID int64) string {
+func validWeChatMPShareToken(token string) bool {
+	return len(token) <= 1024 && strings.IndexFunc(token, func(r rune) bool {
+		return !((r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') ||
+			(r >= '0' && r <= '9') || r == '-' || r == '_' || r == '=')
+	}) == -1
+}
+
+func resolveWeChatMPMessageURL(messageURL string, topicID string, recommendationID int64, shareToken string) string {
 	messageURL = strings.TrimSpace(messageURL)
 	if !validWeChatMPHTTPSURL(messageURL) {
 		return ""
 	}
 	if recommendationID > 0 && recommendationID <= 9_007_199_254_740_991 {
 		parsed, _ := url.Parse(messageURL)
-		// Only the server's configured origin is used; callers supply an ID,
-		// never a redirect URL. Private recommendation ownership is checked by AVM.
+		// Only the configured origin is used. AVM validates this capability for
+		// exactly one recommendation; the bridge never accepts a redirect URL.
 		parsed.Path = "/hotspots"
 		parsed.RawPath = ""
 		parsed.Fragment = ""
 		query := parsed.Query()
 		query.Del("topic_id")
+		query.Del("share_token")
 		query.Set("recommendation_id", strconv.FormatInt(recommendationID, 10))
+		if shareToken != "" && validWeChatMPShareToken(shareToken) {
+			query.Set("share_token", shareToken)
+		}
 		parsed.RawQuery = query.Encode()
 		return parsed.String()
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -192,7 +193,7 @@ func TestResolveWeChatMPMessageURL(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if got := resolveWeChatMPMessageURL(
-				test.baseURL, test.topicID, 0,
+				test.baseURL, test.topicID, 0, "",
 			); got != test.want {
 				t.Fatalf("resolved URL = %q, want %q", got, test.want)
 			}
@@ -233,15 +234,15 @@ func TestWeChatMPSendLinksToPrivateRecommendation(t *testing.T) {
 
 func TestRecommendationMessageURLKeepsConfiguredHTTPSOrigin(t *testing.T) {
 	for _, baseURL := range []string{"javascript:alert(1)", "http://lixiaoyaoai.com/hotspots", "https://user:pass@lixiaoyaoai.com/hotspots", "//evil.example/hotspots"} {
-		if got := resolveWeChatMPMessageURL(baseURL, "topic-1", 123); got != "" {
+		if got := resolveWeChatMPMessageURL(baseURL, "topic-1", 123, ""); got != "" {
 			t.Fatalf("invalid URL %q accepted as %q", baseURL, got)
 		}
 	}
-	got := resolveWeChatMPMessageURL("https://lixiaoyaoai.com/other", "https://evil.example/?x=1", 123)
+	got := resolveWeChatMPMessageURL("https://lixiaoyaoai.com/other", "https://evil.example/?x=1", 123, "")
 	if got != "https://lixiaoyaoai.com/hotspots?recommendation_id=123" {
 		t.Fatalf("recommendation did not retain configured origin: %q", got)
 	}
-	got = resolveWeChatMPMessageURL("https://lixiaoyaoai.com/hotspots", "topic&recommendation_id=999", 0)
+	got = resolveWeChatMPMessageURL("https://lixiaoyaoai.com/hotspots", "topic&recommendation_id=999", 0, "")
 	if got != "https://lixiaoyaoai.com/hotspots?topic_id=topic%26recommendation_id%3D999" {
 		t.Fatalf("legacy topic ID escaped its query value: %q", got)
 	}
@@ -300,5 +301,41 @@ func TestWeChatMPBindSignature(t *testing.T) {
 		"bridge-secret",
 	) {
 		t.Fatal("tampered bind code was accepted")
+	}
+}
+
+func TestWeChatMPSendCarriesSingleRecommendationCapability(t *testing.T) {
+	var sentPayload map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&sentPayload); err != nil {
+			t.Fatal(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"errcode":0,"msgid":1}`))
+	}))
+	defer server.Close()
+	client := &weChatMPClient{config: weChatMPConfig{TemplateID: "template", MessageURL: "https://lixiaoyaoai.com/hotspots?topic_id=old&share_token=old", APIBase: server.URL}, httpClient: server.Client()}
+	var req weChatMPSendReq
+	if err := json.Unmarshal([]byte(`{"openid":"openid","recommendation_id":123,"share_token":"gAAAA-capability_123=="}`), &req); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.sendTemplateWithToken(context.Background(), "test", req); err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := url.Parse(sentPayload["url"].(string))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if parsed.Host != "lixiaoyaoai.com" || parsed.Query().Get("recommendation_id") != "123" || parsed.Query().Get("share_token") != req.ShareToken || parsed.Query().Has("topic_id") {
+		t.Fatalf("incorrect recommendation link: %s", parsed)
+	}
+	for _, token := range []string{"bad&redirect=evil", "https://evil.example", "has space", strings.Repeat("a", 1025)} {
+		if validWeChatMPShareToken(token) {
+			t.Fatalf("accepted invalid token")
+		}
+	}
+	legacy, _ := url.Parse(resolveWeChatMPMessageURL("https://lixiaoyaoai.com/hotspots?share_token=stale", "", 123, ""))
+	if legacy.Query().Has("share_token") {
+		t.Fatal("stale configured token leaked into notification")
 	}
 }

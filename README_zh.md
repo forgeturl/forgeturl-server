@@ -331,3 +331,7 @@ python run_tests.py
 <p align="center">
   Made with ❤️ by ForgetURL Team
 </p>
+
+### AVM 热点通知查看凭证
+
+微信服务号桥接 `/login/connector/avm/wechat-mp/send` 支持可选 `share_token`（需同时提供 `recommendation_id`）。桥接只把凭证编码到配置的官网 `/hotspots` 链接，不接受调用方指定跳转域名。凭证由 AVM 签发并验证，只授权免登录读取对应的单条推荐。旧调用不传此字段时仍生成原登录链接。上线时先部署桥接，再部署 AVM API 和官网前端；历史通知不会自动补上凭证。
