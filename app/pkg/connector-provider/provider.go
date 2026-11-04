@@ -26,6 +26,23 @@ func getConfig(viperKey, envKey string) string {
 	return os.Getenv(envKey)
 }
 
+func newGoogleProvider(key, secret, callbackURL, accountDomain, tokenDomain, profileDomain string) *google.Provider {
+	if accountDomain != "" && tokenDomain != "" && profileDomain != "" {
+		google.Endpoint = oauth2.Endpoint{
+			// Browser sign-in must stay on Google's origin to preserve its login session.
+			AuthURL:       "https://accounts.google.com/o/oauth2/auth",
+			TokenURL:      fmt.Sprintf("https://%s/token", tokenDomain),
+			DeviceAuthURL: fmt.Sprintf("https://%s/device/code", tokenDomain),
+			AuthStyle:     oauth2.AuthStyleInParams,
+		}
+	}
+	provider := google.New(key, secret, callbackURL)
+	if profileDomain != "" {
+		provider.EndpointProfile = fmt.Sprintf("https://%s/v1/userinfo", profileDomain)
+	}
+	return provider
+}
+
 func Init() {
 	maxAge := 86400 * 30 // 30 days
 	isProd := true
@@ -47,18 +64,8 @@ func Init() {
 		accountGoogle := getConfig("keys.ACCOUNTS_GOOGLE", "ACCOUNTS_GOOGLE")
 		oauth2Google := getConfig("keys.OAUTH2_GOOGLEAPIS", "OAUTH2_GOOGLEAPIS")
 		openidconnectGoogle := getConfig("keys.OPENIDCONNECT_GOOGLEAPIS", "OPENIDCONNECT_GOOGLEAPIS")
-		if accountGoogle != "" && oauth2Google != "" && openidconnectGoogle != "" {
-			google.Endpoint = oauth2.Endpoint{
-				AuthURL:       fmt.Sprintf("https://%s/o/oauth2/auth", accountGoogle),
-				TokenURL:      fmt.Sprintf("https://%s/token", oauth2Google),
-				DeviceAuthURL: fmt.Sprintf("https://%s/device/code", oauth2Google),
-				AuthStyle:     oauth2.AuthStyleInParams,
-			}
-		}
-		gg := google.New(googleKey, googleSecret, core.FillDomain("/auth/callback/google"))
-		if openidconnectGoogle != "" {
-			gg.EndpointProfile = fmt.Sprintf("https://%s/v1/userinfo", openidconnectGoogle)
-		}
+		gg := newGoogleProvider(googleKey, googleSecret, core.FillDomain("/auth/callback/google"),
+			accountGoogle, oauth2Google, openidconnectGoogle)
 		providers = append(providers, gg)
 		glog.InfoF("google provider inited")
 	}
