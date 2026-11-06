@@ -68,7 +68,7 @@ func (*pageImpl) GetPage(ctx context.Context, uid int64, pageId string, tx ...*q
 	case conf.ReadOnlyPage:
 		do = do.Where(u.ReadonlyPid.Eq(pageId)) // 只读页面，谁都能访问。不需要登录。
 	case conf.EditPage:
-		do = do.Where(u.EditPid.Eq(pageId)) // 编辑页面，谁有链接就能编辑。需要登录。
+		do = do.Where(u.EditPid.Eq(pageId)) // 编辑分享可匿名读取；写入由 API 校验登录态。
 	case conf.AdminPage:
 		do = do.Where(u.AdminPid.Eq(pageId)) // 管理页面，谁有链接就能管理。需要登录。
 	default:
@@ -97,7 +97,7 @@ func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string, tx 
 	case conf.ReadOnlyPage:
 		do = do.Where(u.ReadonlyPid.Eq(pageId)) // 只读页面，谁都能访问。不需要登录。
 	case conf.EditPage:
-		do = do.Where(u.EditPid.Eq(pageId)) // 编辑页面，谁有链接就能编辑。需要登录。
+		do = do.Where(u.EditPid.Eq(pageId)) // 编辑分享可匿名读取；写入由 API 校验登录态。
 	case conf.AdminPage:
 		do = do.Where(u.AdminPid.Eq(pageId)) // 管理页面，谁有链接就能管理。需要登录。
 	default:

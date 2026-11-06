@@ -18,9 +18,9 @@ func isNeedLoginPageId(pageId string) bool {
 		return true
 	}
 	switch pageId[0] {
-	case conf.OwnerPrefix, conf.EditPrefix:
+	case conf.OwnerPrefix:
 		return true
-	case conf.ReadonlyPrefix, conf.TempPrefix:
+	case conf.ReadonlyPrefix, conf.EditPrefix, conf.TempPrefix:
 		return false
 	}
 	return true
