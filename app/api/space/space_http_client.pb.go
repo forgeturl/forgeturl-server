@@ -18,7 +18,7 @@ type SpaceServiceHTTPClient interface {
 	GetUserInfo(context.Context, *GetUserInfoReq, ...calloption.CallOption) (*TResponse[GetUserInfoResp], error)
 	// 拉取我的空间 || 空间
 	// 登录状态才能拉到自己的空间
-	// 部分页面如果消失或者没权限了，需要自动移除
+	// 失效的分享返回 is_not_found 占位，由用户移除
 	GetMySpace(context.Context, *GetMySpaceReq, ...calloption.CallOption) (*TResponse[GetMySpaceResp], error)
 	// 创建页面 || 空间
 	// 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
@@ -38,9 +38,13 @@ type SpaceServiceHTTPClient interface {
 	// admin和管理员暂时不支持删除该页面
 	DeletePage(context.Context, *DeletePageReq, ...calloption.CallOption) (*TResponse[DeletePageResp], error)
 	// 调整我的空间下面的页面顺序 || 空间
-	// 如果有新增、删除page_id，也使用该方法
+	// 保留未提交的已有入口，删除共享入口请使用 RemoveSharedPage
 	// 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
 	SavePageIds(context.Context, *SavePageIdsReq, ...calloption.CallOption) (*TResponse[SavePageIdsResp], error)
+	// 将当前分享入口关联到登录用户的空间，不复制页面或升级权限 || 空间
+	AddSharedPage(context.Context, *AddSharedPageReq, ...calloption.CallOption) (*TResponse[AddSharedPageResp], error)
+	// 只移除登录用户的分享入口关联，允许分享已失效及空间变空 || 空间
+	RemoveSharedPage(context.Context, *RemoveSharedPageReq, ...calloption.CallOption) (*TResponse[RemoveSharedPageResp], error)
 	// (暂时废弃)创建临时页面 || 页面
 	// 新：临时页面，能否只存在于浏览器本地？
 	// 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
@@ -185,6 +189,38 @@ func (c *SpaceServiceHTTPClientImpl) SavePageIds(ctx context.Context, req *SaveP
 		opt(r)
 	}
 	_, err := r.SetBody(req).SetResult(resp).Post("/space/savePageIds")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) AddSharedPage(ctx context.Context, req *AddSharedPageReq, opts ...calloption.CallOption) (*TResponse[AddSharedPageResp], error) {
+	resp := &TResponse[AddSharedPageResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/addSharedPage")
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 1 {
+		err = ecode.NewV2(int(resp.Code), resp.Msg)
+	}
+	return resp, err
+}
+
+func (c *SpaceServiceHTTPClientImpl) RemoveSharedPage(ctx context.Context, req *RemoveSharedPageReq, opts ...calloption.CallOption) (*TResponse[RemoveSharedPageResp], error) {
+	resp := &TResponse[RemoveSharedPageResp]{}
+	r := c.hh.Client.R().SetContext(ctx)
+	for _, opt := range opts {
+		opt(r)
+	}
+	_, err := r.SetBody(req).SetResult(resp).Post("/space/removeSharedPage")
 	if err != nil {
 		return nil, err
 	}

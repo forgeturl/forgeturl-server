@@ -346,6 +346,70 @@ func (m *SavePageIdsReq) UnmarshalString(str string) error {
 	return sonic.UnmarshalString(str, m)
 }
 
+func (m *AddSharedPageReq) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *AddSharedPageReq) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *AddSharedPageReq) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *AddSharedPageReq) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *AddSharedPageResp) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *AddSharedPageResp) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *AddSharedPageResp) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *AddSharedPageResp) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *RemoveSharedPageReq) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *RemoveSharedPageReq) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *RemoveSharedPageReq) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *RemoveSharedPageReq) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
+func (m *RemoveSharedPageResp) Marshal() ([]byte, error) {
+	return sonic.Marshal(m)
+}
+
+func (m *RemoveSharedPageResp) MarshalString() (string, error) {
+	return sonic.MarshalString(m)
+}
+
+func (m *RemoveSharedPageResp) Unmarshal(buf []byte) error {
+	return sonic.Unmarshal(buf, m)
+}
+
+func (m *RemoveSharedPageResp) UnmarshalString(str string) error {
+	return sonic.UnmarshalString(str, m)
+}
+
 func (m *SavePageIdsResp) Marshal() ([]byte, error) {
 	return sonic.Marshal(m)
 }

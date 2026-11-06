@@ -15,7 +15,7 @@ service SpaceService {
 
   // 拉取我的空间 || 空间
   // 登录状态才能拉到自己的空间
-  // 部分页面如果消失或者没权限了，需要自动移除
+  // 失效的分享返回 is_not_found 占位，由用户移除
   rpc GetMySpace(GetMySpaceReq) returns (TGetMySpaceResp) {
     option (google.api.http) = {
       post: "/space/getMySpace"
@@ -42,6 +42,15 @@ service SpaceService {
     };
   }
 
+  // 复制或移动整个文件夹到另一个可编辑页面 || 页面
+  // 该操作在同一个数据库事务内更新目标页面，以及移动时的源页面。
+  rpc TransferCollection(TransferCollectionReq) returns (TTransferCollectionResp) {
+    option (google.api.http) = {
+      post: "/space/transferCollection"
+      body: "*"
+    };
+  }
+
   // 拉取某个页面数据 || 页面
   rpc GetPage(GetPageReq) returns (TGetPageResp) {
     option (google.api.http) = {
@@ -62,13 +71,23 @@ service SpaceService {
   }
 
   // 调整我的空间下面的页面顺序 || 空间
-  // 如果有新增、删除page_id，也使用该方法
+  // 保留未提交的已有入口，删除共享入口请使用 RemoveSharedPage
   // 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
   rpc SavePageIds(SavePageIdsReq) returns (TSavePageIdsResp) {
     option (google.api.http) = {
       post: "/space/savePageIds"
       body: "*"
     };
+  }
+
+  // 将当前分享入口关联到登录用户的空间，不复制页面或升级权限 || 空间
+  rpc AddSharedPage(AddSharedPageReq) returns (TAddSharedPageResp) {
+    option (google.api.http) = { post: "/space/addSharedPage" body: "*" };
+  }
+
+  // 只移除登录用户的分享入口关联，允许分享已失效及空间变空 || 空间
+  rpc RemoveSharedPage(RemoveSharedPageReq) returns (TRemoveSharedPageResp) {
+    option (google.api.http) = { post: "/space/removeSharedPage" body: "*" };
   }
 
   // (暂时废弃)创建临时页面 || 页面
@@ -173,6 +192,8 @@ message Page {// omitempty=false
   string readonly_page_id = 14;
   string edit_page_id = 15;
   string admin_page_id = 16;
+  // 仅页面本人可见，用于从自己的分享返回个人空间
+  string owner_page_id = 17;
 }
 
 // 页面简介
@@ -284,9 +305,45 @@ message UpdatePageResp { // omitempty=false
   int64 version = 3;
 }
 
+message TransferCollectionReq {
+  string source_page_id = 1; // binding:"required"
+  string target_page_id = 2; // binding:"required"
+  int32 source_collection_index = 3; // binding:"min=0"
+  string operation = 4; // binding:"required,oneof=copy move"
+  int64 source_version = 5; // binding:"min=0"
+  int64 target_version = 6; // binding:"min=0"
+}
+
+message TransferCollectionResp { // omitempty=false
+  int64 source_version = 1;
+  int64 target_version = 2;
+  int64 update_time = 3;
+}
+
 message SavePageIdsReq {
   // 调整后页面id的顺序
-  repeated string page_ids = 1; // binding:"required,min=1"
+  repeated string page_ids = 1;
+  // 排序前客户端持有的完整列表，check_base 为 true 时原子校验
+  repeated string base_page_ids = 2;
+  bool check_base = 3;
+}
+
+message AddSharedPageReq {
+  string page_id = 1; // binding:"required,min=2,max=13"
+}
+
+message AddSharedPageResp { // omitempty=false
+  PageBrief page_brief = 1;
+  repeated string page_ids = 2;
+  bool already_added = 3;
+}
+
+message RemoveSharedPageReq {
+  string page_id = 1; // binding:"required,min=2,max=13"
+}
+
+message RemoveSharedPageResp { // omitempty=false
+  repeated string page_ids = 1;
 }
 
 message SavePageIdsResp { // omitempty=false
@@ -349,6 +406,11 @@ message TUpdatePageResp {
    string msg = 2; // binding:"required"
    UpdatePageResp data = 3; // binding:"required"
 }
+message TTransferCollectionResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   TransferCollectionResp data = 3; // binding:"required"
+}
 message TGetPageResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
@@ -363,6 +425,16 @@ message TSavePageIdsResp {
    int32 code = 1; // binding:"required"
    string msg = 2; // binding:"required"
    SavePageIdsResp data = 3; // binding:"required"
+}
+message TAddSharedPageResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   AddSharedPageResp data = 3; // binding:"required"
+}
+message TRemoveSharedPageResp {
+   int32 code = 1; // binding:"required"
+   string msg = 2; // binding:"required"
+   RemoveSharedPageResp data = 3; // binding:"required"
 }
 message TCreateTmpPageResp {
    int32 code = 1; // binding:"required"

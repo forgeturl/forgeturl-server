@@ -21,7 +21,7 @@ func (*userPageImpl) GetUserPageIds(ctx context.Context, uid int64, tx ...*query
 		u = tx[0].UserPage
 	}
 	pageids := make([]string, 0)
-	err := u.WithContext(ctx).Select(u.Pid).Where(u.UID.Eq(uid)).Order(u.Sort.Asc()).Scan(&pageids)
+	err := u.WithContext(ctx).Select(u.Pid).Where(u.UID.Eq(uid)).Order(u.Sort.Asc(), u.ID.Asc()).Scan(&pageids)
 	if err != nil {
 		return nil, transGormErr(err)
 	}
@@ -50,6 +50,9 @@ func (*userPageImpl) SaveUserPageIds(ctx context.Context, uid int64, pageids []s
 		})
 	}
 	// 再插入新的
+	if len(datas) == 0 {
+		return nil
+	}
 	err = u.WithContext(ctx).Create(datas...)
 	if err != nil {
 		return transGormErr(err)
@@ -62,7 +65,7 @@ func (*userPageImpl) DeleteUserPageId(ctx context.Context, uid int64, pageid str
 	if len(tx) > 0 {
 		u = tx[0].UserPage
 	}
-	result, err := u.WithContext(ctx).Where(u.UID.Eq(uid), u.Pid.Eq(pageid)).Delete()
+	result, err := u.WithContext(ctx).Unscoped().Where(u.UID.Eq(uid), u.Pid.Eq(pageid)).Delete()
 	if err != nil {
 		return 0, transGormErr(err)
 	}

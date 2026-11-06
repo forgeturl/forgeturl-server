@@ -16,7 +16,7 @@ type SpaceServiceHTTPServer interface {
 	GetUserInfo(*api.Context, *GetUserInfoReq) (*GetUserInfoResp, error)
 	// 拉取我的空间 || 空间
 	// 登录状态才能拉到自己的空间
-	// 部分页面如果消失或者没权限了，需要自动移除
+	// 失效的分享返回 is_not_found 占位，由用户移除
 	GetMySpace(*api.Context, *GetMySpaceReq) (*GetMySpaceResp, error)
 	// 创建页面 || 空间
 	// 当getMySpace不存在自己的页面时，调用该接口创建自己的页面
@@ -36,9 +36,13 @@ type SpaceServiceHTTPServer interface {
 	// admin和管理员暂时不支持删除该页面
 	DeletePage(*api.Context, *DeletePageReq) (*DeletePageResp, error)
 	// 调整我的空间下面的页面顺序 || 空间
-	// 如果有新增、删除page_id，也使用该方法
+	// 保留未提交的已有入口，删除共享入口请使用 RemoveSharedPage
 	// 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法
 	SavePageIds(*api.Context, *SavePageIdsReq) (*SavePageIdsResp, error)
+	// 将当前分享入口关联到登录用户的空间，不复制页面或升级权限 || 空间
+	AddSharedPage(*api.Context, *AddSharedPageReq) (*AddSharedPageResp, error)
+	// 只移除登录用户的分享入口关联，允许分享已失效及空间变空 || 空间
+	RemoveSharedPage(*api.Context, *RemoveSharedPageReq) (*RemoveSharedPageResp, error)
 	// (暂时废弃)创建临时页面 || 页面
 	// 新：临时页面，能否只存在于浏览器本地？
 	// 非登录状态可以创建临时页面，默认一个浏览器只能创建一个自己的临时页面
@@ -66,6 +70,8 @@ func RegisterSpaceServiceHTTPServer(s *gin.Engine, srv SpaceServiceHTTPServer) {
 	r.POST("/space/getPage", _SpaceService_GetPage_HTTP_Handler(srv))                       // 拉取某个页面数据 || 页面
 	r.POST("/space/deletePage", _SpaceService_DeletePage_HTTP_Handler(srv))                 // 真删除页面 || 页面
 	r.POST("/space/savePageIds", _SpaceService_SavePageIds_HTTP_Handler(srv))               // 调整我的空间下面的页面顺序 || 空间
+	r.POST("/space/addSharedPage", _SpaceService_AddSharedPage_HTTP_Handler(srv))           // 将当前分享入口关联到登录用户的空间，不复制页面或升级权限 || 空间
+	r.POST("/space/removeSharedPage", _SpaceService_RemoveSharedPage_HTTP_Handler(srv))     // 只移除登录用户的分享入口关联，允许分享已失效及空间变空 || 空间
 	r.POST("/space/createTmpPage", _SpaceService_CreateTmpPage_HTTP_Handler(srv))           // (暂时废弃)创建临时页面 || 页面
 	r.POST("/space/addPageLink", _SpaceService_AddPageLink_HTTP_Handler(srv))               // 生成新页面链接 || 页面
 	r.POST("/space/removePageLink", _SpaceService_RemovePageLink_HTTP_Handler(srv))         // 去除页面的某个链接 || 页面
@@ -188,6 +194,38 @@ func _SpaceService_SavePageIds_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *
 			return
 		}
 		resp, err := srv.SavePageIds(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _SpaceService_AddSharedPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &AddSharedPageReq{}
+		var err error
+		ctx := api.NewContext(g)
+		err = parseReq(&ctx, req)
+		err = checkValidate(err)
+		if err != nil {
+			setRetJSON(&ctx, nil, err)
+			return
+		}
+		resp, err := srv.AddSharedPage(&ctx, req)
+		setRetJSON(&ctx, resp, err)
+	}
+}
+
+func _SpaceService_RemoveSharedPage_HTTP_Handler(srv SpaceServiceHTTPServer) func(g *gin.Context) {
+	return func(g *gin.Context) {
+		req := &RemoveSharedPageReq{}
+		var err error
+		ctx := api.NewContext(g)
+		err = parseReq(&ctx, req)
+		err = checkValidate(err)
+		if err != nil {
+			setRetJSON(&ctx, nil, err)
+			return
+		}
+		resp, err := srv.RemoveSharedPage(&ctx, req)
 		setRetJSON(&ctx, resp, err)
 	}
 }

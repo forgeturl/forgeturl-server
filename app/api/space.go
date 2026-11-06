@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"slices"
 	"time"
 
 	"forgeturl-server/api/common"
@@ -62,39 +64,41 @@ func (s spaceServiceImpl) GetUserInfo(context *api.Context, req *space.GetUserIn
 	return info, nil
 }
 
-func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageIdsReq) (*space.SavePageIdsResp, error) {
-	ctx := context.Request.Context()
-	uid := middleware.GetLoginUid(context)
+func (s spaceServiceImpl) SavePageIds(c *api.Context, req *space.SavePageIdsReq) (*space.SavePageIdsResp, error) {
+	return savePageIds(c.Request.Context(), middleware.GetLoginUid(c), req)
+}
+
+func savePageIds(ctx context.Context, uid int64, req *space.SavePageIdsReq) (*space.SavePageIdsResp, error) {
 	if uid == 0 {
 		return nil, common.ErrNeedLogin("")
 	}
 
-	pageIds := req.PageIds
-
-	// 如果是owner page则必须是他自己的才能保存
-	ownerIds := make([]string, 0)
-	for _, pageId := range pageIds {
-		if conf.ParseIdType(pageId).IsOwnPage() {
-			ownerIds = append(ownerIds, pageId)
+	for _, id := range req.PageIds {
+		if !conf.ValidPageID(id) {
+			return nil, common.ErrBadRequest("invalid page id")
 		}
 	}
-	err := dal.Page.MustBeYourPage(ctx, uid, ownerIds)
-	if err != nil {
-		return nil, err
-	}
-
-	newPageIds := make([]string, 0, len(pageIds))
-	err = dal.Q.Transaction(func(tx *query.Query) error {
-		err0 := dal.UserPage.SaveUserPageIds(ctx, uid, pageIds, tx)
+	var newPageIds []string
+	err := dal.WithUserPageLock(ctx, uid, func(tx *query.Query) error {
+		current, err0 := dal.UserPage.GetUserPageIds(ctx, uid, tx)
 		if err0 != nil {
 			return err0
 		}
-
-		newPageIds, err0 = dal.UserPage.GetUserPageIds(ctx, uid, tx)
+		newPageIds, err0 = dal.ReconcilePageOrder(current, req.PageIds, req.BasePageIds, req.CheckBase)
 		if err0 != nil {
 			return err0
 		}
-		return nil
+		// Existing invalid entries may still be reordered. Newly supplied IDs
+		// must resolve using the actual link's current access and ownership.
+		for _, id := range req.PageIds {
+			if slices.Contains(current, id) {
+				continue
+			}
+			if _, err0 = dal.Page.GetPageBrief(ctx, uid, id, tx); err0 != nil {
+				return err0
+			}
+		}
+		return dal.UserPage.SaveUserPageIds(ctx, uid, newPageIds, tx)
 	})
 	if err != nil {
 		return nil, err
@@ -104,9 +108,13 @@ func (s spaceServiceImpl) SavePageIds(context *api.Context, req *space.SavePageI
 
 // GetMySpace 只需要给个大概
 func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpaceReq) (*space.GetMySpaceResp, error) {
-	ctx := context.Request.Context()
-	// 获取某个页面数据
-	uid := middleware.GetLoginUid(context)
+	return getMySpace(context.Request.Context(), middleware.GetLoginUid(context))
+}
+
+func getMySpace(ctx context.Context, uid int64) (*space.GetMySpaceResp, error) {
+	if uid == 0 {
+		return nil, common.ErrNeedLogin("")
+	}
 	userInfo, err := dal.User.Get(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -124,7 +132,7 @@ func (s spaceServiceImpl) GetMySpace(context *api.Context, req *space.GetMySpace
 	for _, pageId := range pageIds {
 		page, err0 := dal.Page.GetPageBrief(ctx, uid, pageId)
 		if err0 != nil {
-			if common.IsErrNotFound(err) {
+			if common.IsErrNotFound(err0) {
 				resp.PageBriefs = append(resp.PageBriefs, &space.PageBrief{
 					PageId:     pageId,
 					IsNotFound: true,
@@ -182,7 +190,7 @@ func (s spaceServiceImpl) CreatePage(context *api.Context, req *space.CreatePage
 	var pageId string
 	startVersion := int64(0)
 	var pageIds []string
-	err = dal.Q.Transaction(func(tx *query.Query) error {
+	err = dal.WithUserPageLock(ctx, uid, func(tx *query.Query) error {
 		pageId = genOwnerPageId()
 		err0 := dal.UniquePid.Create(ctx, uid, pageId, tx)
 		if err0 != nil {
@@ -418,11 +426,8 @@ func (s spaceServiceImpl) RemovePageLink(context *api.Context, req *space.Remove
 			return nil
 		}
 
-		// 从user_page表中移除该链接
-		_, err0 = dal.UserPage.BatchRemovePageLink(ctx, linkPid, tx)
-		if err0 != nil {
-			return err0
-		}
+		// Keep entries as invalid placeholders; revocation removes access,
+		// while each user decides when to remove their own space shortcut.
 
 		return nil
 	})

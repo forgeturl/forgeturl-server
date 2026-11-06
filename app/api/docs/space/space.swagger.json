@@ -37,6 +37,37 @@
         }
       }
     },
+    "/space/addSharedPage": {
+      "post": {
+        "tags": [
+          "空间"
+        ],
+        "summary": "将当前分享入口关联到登录用户的空间，不复制页面或升级权限",
+        "operationId": "SpaceService_AddSharedPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.AddSharedPageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TAddSharedPageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/space/createPage": {
       "post": {
         "tags": [
@@ -139,7 +170,7 @@
           "空间"
         ],
         "summary": "拉取我的空间",
-        "description": " 登录状态才能拉到自己的空间\n 部分页面如果消失或者没权限了，需要自动移除",
+        "description": " 登录状态才能拉到自己的空间\n 失效的分享返回 is_not_found 占位，由用户移除",
         "operationId": "SpaceService_GetMySpace",
         "requestBody": {
           "content": {
@@ -258,13 +289,44 @@
         }
       }
     },
+    "/space/removeSharedPage": {
+      "post": {
+        "tags": [
+          "空间"
+        ],
+        "summary": "只移除登录用户的分享入口关联，允许分享已失效及空间变空",
+        "operationId": "SpaceService_RemoveSharedPage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.RemoveSharedPageReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TRemoveSharedPageResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/space/savePageIds": {
       "post": {
         "tags": [
           "空间"
         ],
         "summary": "调整我的空间下面的页面顺序",
-        "description": " 如果有新增、删除page_id，也使用该方法\n 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法",
+        "description": " 保留未提交的已有入口，删除共享入口请使用 RemoveSharedPage\n 保存结果会放到返回的page_ids中，也可以使用耗时多一些的getMySpace方法",
         "operationId": "SpaceService_SavePageIds",
         "requestBody": {
           "content": {
@@ -283,6 +345,38 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/.TSavePageIdsResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/space/transferCollection": {
+      "post": {
+        "tags": [
+          "页面"
+        ],
+        "summary": "复制或移动整个文件夹到另一个可编辑页面",
+        "description": " 该操作在同一个数据库事务内更新目标页面，以及移动时的源页面。",
+        "operationId": "SpaceService_TransferCollection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/.TransferCollectionReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/.TTransferCollectionResp"
                 }
               }
             }
@@ -351,6 +445,34 @@
           "page_type": {
             "type": "string",
             "description": "页面类型"
+          }
+        }
+      },
+      ".AddSharedPageReq": {
+        "required": [
+          "page_id"
+        ],
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          }
+        }
+      },
+      ".AddSharedPageResp": {
+        "type": "object",
+        "properties": {
+          "page_brief": {
+            "$ref": "#/components/schemas/.PageBrief"
+          },
+          "page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "already_added": {
+            "type": "boolean"
           }
         }
       },
@@ -645,6 +767,10 @@
           },
           "admin_page_id": {
             "type": "string"
+          },
+          "owner_page_id": {
+            "type": "string",
+            "description": "仅页面本人可见，用于从自己的分享返回个人空间"
           }
         }
       },
@@ -731,10 +857,29 @@
         "type": "object",
         "properties": {}
       },
-      ".SavePageIdsReq": {
+      ".RemoveSharedPageReq": {
         "required": [
-          "page_ids"
+          "page_id"
         ],
+        "type": "object",
+        "properties": {
+          "page_id": {
+            "type": "string"
+          }
+        }
+      },
+      ".RemoveSharedPageResp": {
+        "type": "object",
+        "properties": {
+          "page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      ".SavePageIdsReq": {
         "type": "object",
         "properties": {
           "page_ids": {
@@ -743,6 +888,16 @@
               "type": "string"
             },
             "description": "调整后页面id的顺序"
+          },
+          "base_page_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "排序前客户端持有的完整列表，check_base 为 true 时原子校验"
+          },
+          "check_base": {
+            "type": "boolean"
           }
         }
       },
@@ -788,6 +943,26 @@
           },
           "data": {
             "$ref": "#/components/schemas/.AddPageLinkResp"
+          }
+        }
+      },
+      ".TAddSharedPageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.AddSharedPageResp"
           }
         }
       },
@@ -931,6 +1106,26 @@
           }
         }
       },
+      ".TRemoveSharedPageResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.RemoveSharedPageResp"
+          }
+        }
+      },
       ".TSavePageIdsResp": {
         "required": [
           "code",
@@ -951,6 +1146,26 @@
           }
         }
       },
+      ".TTransferCollectionResp": {
+        "required": [
+          "code",
+          "msg",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/.TransferCollectionResp"
+          }
+        }
+      },
       ".TUpdatePageResp": {
         "required": [
           "code",
@@ -968,6 +1183,54 @@
           },
           "data": {
             "$ref": "#/components/schemas/.UpdatePageResp"
+          }
+        }
+      },
+      ".TransferCollectionReq": {
+        "required": [
+          "source_page_id",
+          "target_page_id",
+          "operation"
+        ],
+        "type": "object",
+        "properties": {
+          "source_page_id": {
+            "type": "string"
+          },
+          "target_page_id": {
+            "type": "string"
+          },
+          "source_collection_index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "source_version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "target_version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      ".TransferCollectionResp": {
+        "type": "object",
+        "properties": {
+          "source_version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "target_version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "update_time": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },

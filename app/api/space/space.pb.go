@@ -70,6 +70,8 @@ type Page struct {
 	ReadonlyPageId string `json:"readonly_page_id"`
 	EditPageId     string `json:"edit_page_id"`
 	AdminPageId    string `json:"admin_page_id"`
+	// 仅页面本人可见，用于从自己的分享返回个人空间
+	OwnerPageId string `json:"owner_page_id"`
 }
 
 // 页面简介
@@ -196,7 +198,28 @@ type TransferCollectionResp struct {
 
 type SavePageIdsReq struct {
 	// 调整后页面id的顺序
-	PageIds []string `json:"page_ids" binding:"required,min=1"`
+	PageIds []string `json:"page_ids,omitempty"`
+	// 排序前客户端持有的完整列表，check_base 为 true 时原子校验
+	BasePageIds []string `json:"base_page_ids,omitempty"`
+	CheckBase   bool     `json:"check_base,omitempty"`
+}
+
+type AddSharedPageReq struct {
+	PageId string `json:"page_id" binding:"required,min=2,max=13"`
+}
+
+type AddSharedPageResp struct {
+	PageBrief    *PageBrief `json:"page_brief"`
+	PageIds      []string   `json:"page_ids"`
+	AlreadyAdded bool       `json:"already_added"`
+}
+
+type RemoveSharedPageReq struct {
+	PageId string `json:"page_id" binding:"required,min=2,max=13"`
+}
+
+type RemoveSharedPageResp struct {
+	PageIds []string `json:"page_ids"`
 }
 
 type SavePageIdsResp struct {

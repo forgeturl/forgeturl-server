@@ -9,6 +9,7 @@ import (
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm/clause"
 )
 
 type pageImpl struct {
@@ -104,6 +105,11 @@ func (*pageImpl) GetPageBrief(ctx context.Context, uid int64, pageId string, tx 
 	}
 
 	do = do.Omit(u.Content)
+	// Coordinate membership validation with link revocation/deletion. The user
+	// lock is acquired before this lookup by membership mutations.
+	if len(tx) > 0 {
+		do = do.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
 
 	page, err := do.First()
 	if err != nil {

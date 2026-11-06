@@ -51,13 +51,13 @@ func transGormErr(err error) error {
 		return nil
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return core.WrapError(common.ErrNotFound(), funcName(SkipErrStack))
+		return core.WrapError(common.ErrNotFound(), "%s", funcName(SkipErrStack))
 	} else if errors.Is(err, gorm.ErrDuplicatedKey) {
-		return core.WrapError(common.ErrConflict(err.Error()), funcName(SkipErrStack))
+		return core.WrapError(common.ErrConflict(err.Error()), "%s", funcName(SkipErrStack))
 	} else if strings.Contains(err.Error(), "Error 3988 (HY000)") {
-		return core.WrapError(common.ErrNotSupportCharacters(err.Error()), funcName(SkipErrStack))
+		return core.WrapError(common.ErrNotSupportCharacters(err.Error()), "%s", funcName(SkipErrStack))
 	} else {
-		return core.WrapError(common.ErrInternalServerError(err.Error()), funcName(SkipErrStack))
+		return core.WrapError(common.ErrInternalServerError(err.Error()), "%s", funcName(SkipErrStack))
 	}
 }
 

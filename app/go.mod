@@ -5,6 +5,7 @@ go 1.24.6
 toolchain go1.24.11
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/bytedance/sonic v1.13.3
 	github.com/forgeturl/redistore v0.0.0-20250825112738-1c5a7a886c57
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6

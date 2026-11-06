@@ -14,6 +14,9 @@ import (
 )
 
 func isNeedLoginPageId(pageId string) bool {
+	if pageId == "" {
+		return true
+	}
 	switch pageId[0] {
 	case conf.OwnerPrefix, conf.EditPrefix:
 		return true
@@ -41,6 +44,9 @@ func toPage(ctx context.Context, uid int64, pageId string, page *model.Page) *sp
 		IsSelf:      isSelf,
 		PageConf:    &space.PageConf{},
 		Version:     page.Version,
+	}
+	if isSelf {
+		pageResp.OwnerPageId = page.Pid
 	}
 
 	if page.ReadonlyPid == pageId {
